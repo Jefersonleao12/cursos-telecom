@@ -7,6 +7,29 @@ import uuid
 from datetime import datetime
 
 
+# Lista de filiais (cidades) disponíveis para o aluno selecionar no cadastro.
+# Mantida em ordem alfabética para facilitar a leitura no formulário e no painel admin.
+FILIAIS = sorted([
+    "Cacoal",
+    "São Domingos",
+    "São Miguel",
+    "5 Bec",
+    "Alta Floresta",
+    "Colniza",
+    "Conselvan",
+    "Cujubim",
+    "Vale do Anari",
+    "Theobroma",
+    "São Francisco",
+    "Pimenta Bueno",
+    "Machadinho",
+    "Juína",
+    "Governador J/ Teixeira",
+    "Alto Alegre",
+    "Aripuanã",
+])
+
+
 def email_valido(email: str) -> bool:
     """Valida um formato básico de e-mail (ex: nome@empresa.com)."""
     padrao = r"^[\w\.\-]+@[\w\-]+\.[a-zA-Z]{2,}$"
