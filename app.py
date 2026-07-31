@@ -37,6 +37,8 @@ st.markdown(
             margin: 0 auto;
         }
         div[data-testid="stForm"] { border: 1px solid #e6e6e6; border-radius: 10px; padding: 1.2rem; }
+        div[data-testid="stImage"] { overflow: visible; }
+        div[data-testid="stImage"] img { overflow: visible; }
     </style>
     """,
     unsafe_allow_html=True,
