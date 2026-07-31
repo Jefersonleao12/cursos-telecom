@@ -9,6 +9,7 @@ Responsável por:
 Para rodar localmente:  streamlit run app.py
 """
 import streamlit as st
+from pathlib import Path
 
 from modules.auth import exigir_login, fazer_logout
 from modules.cursos import tela_lista_cursos, tela_detalhe_curso
@@ -23,6 +24,9 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+# Ícone (só o "N" circular, sem o texto) usado no topo da barra lateral.
+_CAMINHO_ICONE = Path(__file__).resolve().parent / "assets" / "icone.png"
 
 # CSS simples para deixar formulários e botões mais confortáveis no celular.
 # O Streamlit já é responsivo por padrão (a barra lateral vira um menu
@@ -55,6 +59,10 @@ def main():
 
     # 3) Menu lateral (em celulares, o Streamlit já transforma isto num menu ☰ recolhível)
     with st.sidebar:
+        _esq, _centro, _dir = st.columns([1, 2, 1])
+        with _centro:
+            st.image(str(_CAMINHO_ICONE), use_container_width=True)
+
         primeiro_nome = st.session_state["aluno_nome"].split(" ")[0]
         st.markdown(f"### 👋 Olá, {primeiro_nome}!")
         if st.session_state.get("aluno_empresa"):
