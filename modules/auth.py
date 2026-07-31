@@ -8,7 +8,7 @@ import streamlit as st
 import bcrypt
 
 from database.repositorio import criar_aluno, buscar_aluno_por_email
-from utils.helpers import email_valido
+from utils.helpers import email_valido, FILIAIS
 
 
 def gerar_hash_senha(senha: str) -> str:
@@ -28,6 +28,7 @@ def _login_efetuado(aluno: dict):
     st.session_state["aluno_nome"] = aluno["nome_completo"]
     st.session_state["aluno_email"] = aluno["email"]
     st.session_state["aluno_empresa"] = aluno.get("empresa") or ""
+    st.session_state["aluno_filial"] = aluno.get("filial") or ""
     st.session_state["aluno_is_admin"] = aluno.get("is_admin", False)
 
 
@@ -77,6 +78,7 @@ def tela_cadastro():
         email = st.text_input("E-mail *")
         empresa = st.text_input("Empresa")
         cargo = st.text_input("Cargo / Função")
+        filial = st.selectbox("Filial (cidade) *", options=[""] + FILIAIS, format_func=lambda v: "Selecione..." if v == "" else v)
         senha = st.text_input("Senha *", type="password")
         confirmar_senha = st.text_input("Confirmar senha *", type="password")
         cadastrar = st.form_submit_button("Cadastrar", use_container_width=True, type="primary")
@@ -84,6 +86,9 @@ def tela_cadastro():
     if cadastrar:
         if not nome or not email or not senha:
             st.warning("Preencha todos os campos obrigatórios (*).")
+            return
+        if not filial:
+            st.warning("Selecione sua filial (cidade).")
             return
         if not email_valido(email):
             st.warning("Digite um e-mail válido.")
@@ -99,7 +104,7 @@ def tela_cadastro():
             return
 
         senha_hash = gerar_hash_senha(senha)
-        novo_aluno = criar_aluno(nome, email, senha_hash, empresa, cargo)
+        novo_aluno = criar_aluno(nome, email, senha_hash, empresa, cargo, filial)
         st.success("Cadastro realizado com sucesso!")
         _login_efetuado(novo_aluno)
         st.rerun()
