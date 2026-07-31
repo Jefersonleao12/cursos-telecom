@@ -19,14 +19,15 @@ from database.repositorio import (
     criar_pergunta,
     listar_todos_alunos,
     calcular_progresso_curso,
+    contar_alunos_por_filial,
 )
 
 
 def tela_admin():
     st.title("⚙️ Painel de Administração")
 
-    aba_cursos, aba_aulas, aba_provas, aba_alunos = st.tabs(
-        ["Cursos", "Aulas", "Provas e Perguntas", "Alunos"]
+    aba_cursos, aba_aulas, aba_provas, aba_alunos, aba_filiais = st.tabs(
+        ["Cursos", "Aulas", "Provas e Perguntas", "Alunos", "Filiais"]
     )
 
     # ---------------- CURSOS ----------------
@@ -176,3 +177,28 @@ def tela_admin():
                                 linhas_progresso.append(f"{curso['titulo']}: {int(p * 100)}%")
                         if linhas_progresso:
                             st.caption(" · ".join(linhas_progresso))
+
+    # ---------------- FILIAIS ----------------
+    with aba_filiais:
+        st.subheader("Alunos por filial")
+        grupos = contar_alunos_por_filial()
+
+        if not grupos:
+            st.info("Nenhum aluno cadastrado ainda.")
+        else:
+            total_alunos = sum(len(lista) for lista in grupos.values())
+            st.caption(f"Total geral: {total_alunos} aluno(s) em {len(grupos)} filial(is).")
+
+            # Resumo rápido: quantidade por filial, em colunas
+            colunas = st.columns(3)
+            for i, (nome_filial, lista_alunos) in enumerate(grupos.items()):
+                with colunas[i % 3]:
+                    st.metric(nome_filial, len(lista_alunos))
+
+            st.divider()
+
+            # Detalhe: lista de nomes dentro de cada filial (em expansores)
+            for nome_filial, lista_alunos in grupos.items():
+                with st.expander(f"📍 {nome_filial} — {len(lista_alunos)} aluno(s)"):
+                    for aluno in lista_alunos:
+                        st.write(f"- {aluno['nome_completo']} ({aluno['email']})")
