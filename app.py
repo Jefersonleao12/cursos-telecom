@@ -30,7 +30,12 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-        .block-container { padding-top: 2rem; padding-bottom: 3rem; }
+        .block-container {
+            padding-top: 2rem;
+            padding-bottom: 3rem;
+            max-width: 1100px;   /* evita que o conteúdo fique esticado em monitores muito largos */
+            margin: 0 auto;
+        }
         div[data-testid="stForm"] { border: 1px solid #e6e6e6; border-radius: 10px; padding: 1.2rem; }
     </style>
     """,
