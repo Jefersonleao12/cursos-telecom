@@ -21,6 +21,7 @@ create table if not exists public.alunos (
     senha_hash     text not null,       -- senha JAMAIS é salva em texto puro (usamos bcrypt)
     empresa        text,
     cargo          text,
+    filial         text,                -- cidade/filial escolhida pelo aluno no cadastro
     is_admin       boolean not null default false,
     criado_em      timestamptz not null default now()
 );
