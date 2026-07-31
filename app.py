@@ -61,7 +61,7 @@ def main():
     with st.sidebar:
         _esq, _centro, _dir = st.columns([1, 2, 1])
         with _centro:
-            st.image(str(_CAMINHO_ICONE), use_container_width=True)
+            st.image(str(_CAMINHO_ICONE), width=90)
 
         primeiro_nome = st.session_state["aluno_nome"].split(" ")[0]
         st.markdown(f"### 👋 Olá, {primeiro_nome}!")
