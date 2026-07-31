@@ -22,7 +22,7 @@ def buscar_aluno_por_email(email: str):
     return dados[0] if dados else None
 
 
-def criar_aluno(nome_completo: str, email: str, senha_hash: str, empresa: str, cargo: str):
+def criar_aluno(nome_completo: str, email: str, senha_hash: str, empresa: str, cargo: str, filial: str = None):
     """Cria um novo aluno no banco. Retorna o registro criado (já com o id gerado)."""
     sb = get_supabase_client()
     novo = {
@@ -31,6 +31,7 @@ def criar_aluno(nome_completo: str, email: str, senha_hash: str, empresa: str, c
         "senha_hash": senha_hash,
         "empresa": empresa.strip() if empresa else None,
         "cargo": cargo.strip() if cargo else None,
+        "filial": filial.strip() if filial else None,
         "is_admin": False,
     }
     resposta = sb.table("alunos").insert(novo).execute()
@@ -42,6 +43,22 @@ def listar_todos_alunos():
     sb = get_supabase_client()
     resposta = sb.table("alunos").select("*").order("criado_em", desc=True).execute()
     return resposta.data
+
+
+def contar_alunos_por_filial():
+    """
+    Usado no painel administrativo: retorna um dicionário
+    {"Nome da Filial": [lista de alunos daquela filial]}, ordenado por
+    quantidade de alunos (da filial com mais alunos para a com menos).
+    Alunos sem filial definida (cadastros antigos) entram em "Sem filial".
+    """
+    alunos = listar_todos_alunos()
+    grupos: dict = {}
+    for aluno in alunos:
+        nome_filial = aluno.get("filial") or "Sem filial"
+        grupos.setdefault(nome_filial, []).append(aluno)
+    # Ordena as filiais da com mais alunos para a com menos
+    return dict(sorted(grupos.items(), key=lambda item: len(item[1]), reverse=True))
 
 
 # ---------------------------------------------------------------------------
