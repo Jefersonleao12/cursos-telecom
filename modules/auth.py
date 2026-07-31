@@ -4,7 +4,6 @@ Módulo de Autenticação: cadastro e login de alunos.
 A senha NUNCA é salva em texto puro — usamos bcrypt para gerar um hash
 seguro e irreversível, que é o que fica armazenado no banco de dados.
 """
-import base64
 from pathlib import Path
 
 import streamlit as st
@@ -15,14 +14,6 @@ from utils.helpers import email_valido, FILIAIS
 
 # Caminho da logo: assets/logo.png, na raiz do projeto (um nível acima de modules/)
 _CAMINHO_LOGO = Path(__file__).resolve().parent.parent / "assets" / "logo.png"
-
-
-@st.cache_data(show_spinner=False)
-def _logo_em_base64() -> str:
-    """Lê o arquivo da logo uma única vez e devolve o conteúdo em base64,
-    pronto para ser embutido direto no HTML (sem depender de URL pública)."""
-    with open(_CAMINHO_LOGO, "rb") as arquivo:
-        return base64.b64encode(arquivo.read()).decode("utf-8")
 
 
 def gerar_hash_senha(senha: str) -> str:
@@ -144,14 +135,12 @@ def exigir_login():
     # colunas automaticamente, então a coluna do meio ocupa 100% da largura.
     _esq, centro, _dir = st.columns([1, 2, 1])
     with centro:
-        logo_b64 = _logo_em_base64()
-        st.markdown(
-            f"<div style='text-align:center; margin-bottom:1.2rem;'>"
-            f"<img src='data:image/png;base64,{logo_b64}' alt='Norte Tel' "
-            f"style='width:70%; max-width:320px; height:auto;' />"
-            f"</div>",
-            unsafe_allow_html=True,
-        )
+        # Logo centralizada, com largura proporcional à tela (mobile e desktop).
+        # Usamos st.image (nativo do Streamlit) em vez de um <img> via HTML bruto,
+        # porque o HTML bruto sofre um corte no topo em alguns navegadores.
+        sub_esq, sub_centro, sub_dir = st.columns([1, 3, 1])
+        with sub_centro:
+            st.image(str(_CAMINHO_LOGO), use_container_width=True)
         if st.session_state.get("pagina_auth") == "cadastro":
             tela_cadastro()
         else:
