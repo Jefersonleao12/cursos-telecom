@@ -127,9 +127,14 @@ def exigir_login():
 
     st.title("📡 Plataforma de Treinamentos em Telecomunicações")
 
-    if st.session_state.get("pagina_auth") == "cadastro":
-        tela_cadastro()
-    else:
-        tela_login()
+    # As colunas laterais (vazias) empurram o conteúdo para o centro em telas
+    # largas (PC). Em telas estreitas (celular), o Streamlit empilha as
+    # colunas automaticamente, então a coluna do meio ocupa 100% da largura.
+    _esq, centro, _dir = st.columns([1, 2, 1])
+    with centro:
+        if st.session_state.get("pagina_auth") == "cadastro":
+            tela_cadastro()
+        else:
+            tela_login()
 
     st.stop()
