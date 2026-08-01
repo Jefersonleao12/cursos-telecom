@@ -11,6 +11,9 @@ from zoneinfo import ZoneInfo
 
 import streamlit as st
 
+from database.repositorio import enviar_duvida
+from modules.whatsapp import notificar_nova_duvida
+
 # Horário de Rondônia (onde ficam as filiais da Norte Tel), usado para decidir
 # a saudação certa mesmo que o servidor da aplicação rode em outro fuso.
 _FUSO_HORARIO = ZoneInfo("America/Porto_Velho")
@@ -155,3 +158,27 @@ def tela_inicio():
         if st.button("🗂️ Materiais", use_container_width=True):
             st.session_state["pagina_atual"] = "materiais"
             st.rerun()
+
+    # ---------------- DÚVIDAS DO DIA A DIA ----------------
+    st.write("")
+    st.divider()
+    st.subheader("💬 Tire sua dúvida")
+    st.caption("Escreva sua pergunta e ela chega direto para o time responsável.")
+
+    with st.form("form_duvida", clear_on_submit=True):
+        mensagem_duvida = st.text_area(
+            "Sua dúvida",
+            placeholder="Digite aqui sua dúvida do dia a dia...",
+            label_visibility="collapsed",
+            height=100,
+        )
+        enviar_duvida_btn = st.form_submit_button("Enviar dúvida", type="primary")
+
+    if enviar_duvida_btn:
+        if not mensagem_duvida or not mensagem_duvida.strip():
+            st.warning("Escreva sua dúvida antes de enviar.")
+        else:
+            nome_completo = st.session_state["aluno_nome"]
+            enviar_duvida(st.session_state["aluno_id"], nome_completo, mensagem_duvida)
+            notificar_nova_duvida(nome_completo, mensagem_duvida)
+            st.success("Dúvida enviada com sucesso! Em breve alguém vai te responder. 🙌")
