@@ -16,6 +16,7 @@ from modules.auth import exigir_login, fazer_logout
 from modules.cursos import tela_lista_cursos, tela_detalhe_curso
 from modules.provas import tela_prova
 from modules.certificado import tela_certificados
+from modules.materiais import tela_materiais
 from modules.admin import tela_admin
 
 
@@ -94,6 +95,10 @@ def main():
             st.session_state["pagina_atual"] = "certificados"
             st.rerun()
 
+        if st.button("🗂️ Materiais", use_container_width=True):
+            st.session_state["pagina_atual"] = "materiais"
+            st.rerun()
+
         if st.session_state.get("aluno_is_admin"):
             st.divider()
             if st.button("⚙️ Administração", use_container_width=True):
@@ -115,6 +120,8 @@ def main():
         tela_prova()
     elif pagina == "certificados":
         tela_certificados()
+    elif pagina == "materiais":
+        tela_materiais()
     elif pagina == "admin" and st.session_state.get("aluno_is_admin"):
         tela_admin()
     else:
