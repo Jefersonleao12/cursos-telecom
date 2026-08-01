@@ -51,10 +51,10 @@ st.markdown(
         div[data-testid="stImage"] { overflow: visible; }
         div[data-testid="stImage"] img { overflow: visible; }
         section[data-testid="stSidebar"] .block-container { padding-top: 1.2rem; }
-        section[data-testid="stSidebar"] {
-            min-width: 230px !important;
-            max-width: 230px !important;
-            width: 230px !important;
+        section[data-testid="stSidebar"][aria-expanded="true"] {
+            min-width: 300px !important;
+            max-width: 300px !important;
+            width: 300px !important;
         }
     </style>
     """,
