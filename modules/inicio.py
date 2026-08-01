@@ -93,6 +93,7 @@ def tela_inicio():
                 background: linear-gradient(135deg, #143C6E 0%, #28316E 55%, #3B4A9E 100%);
                 border-radius: 18px;
                 padding: clamp(1.8rem, 5vw, 2.8rem) clamp(1.2rem, 4vw, 2.2rem);
+                margin-top: 1.5rem;
                 color: #FFFFFF;
                 text-align: center;
                 animation: apareceSuaveInicio 0.6s ease-out;
