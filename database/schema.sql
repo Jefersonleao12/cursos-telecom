@@ -116,6 +116,22 @@ create table if not exists public.certificados (
     unique (aluno_id, curso_id)
 );
 
+-- MATERIAIS: fotos, documentos e arquivos disponibilizados para download.
+-- O arquivo em si fica no Supabase Storage (bucket "materiais"); aqui só
+-- guardamos os metadados (título, categoria, caminho do arquivo etc.).
+-- ----------------------------------------------------------------------------
+create table if not exists public.materiais (
+    id                bigint generated always as identity primary key,
+    titulo            text not null,
+    descricao         text,
+    categoria         text not null,
+    nome_arquivo      text not null,
+    caminho_storage   text not null,
+    tipo_arquivo      text,
+    tamanho_bytes     bigint,
+    criado_em         timestamptz not null default now()
+);
+
 -- ============================================================================
 -- IMPORTANTE SOBRE SEGURANÇA (leia antes de ir para produção):
 --
