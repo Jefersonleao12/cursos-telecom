@@ -13,6 +13,7 @@ import streamlit as st
 from pathlib import Path
 
 from modules.auth import exigir_login, fazer_logout
+from modules.inicio import tela_inicio
 from modules.cursos import tela_lista_cursos, tela_detalhe_curso
 from modules.provas import tela_prova
 from modules.certificado import tela_certificados
@@ -69,7 +70,7 @@ def main():
 
     # 2) Define a página padrão, na primeira execução da sessão
     if "pagina_atual" not in st.session_state:
-        st.session_state["pagina_atual"] = "lista_cursos"
+        st.session_state["pagina_atual"] = "inicio"
 
     # 3) Menu lateral (em celulares, o Streamlit já transforma isto num menu ☰ recolhível)
     with st.sidebar:
@@ -86,6 +87,10 @@ def main():
         if st.session_state.get("aluno_empresa"):
             st.caption(st.session_state["aluno_empresa"])
         st.divider()
+
+        if st.button("🏠 Início", use_container_width=True):
+            st.session_state["pagina_atual"] = "inicio"
+            st.rerun()
 
         if st.button("📚 Meus Cursos", use_container_width=True):
             st.session_state["pagina_atual"] = "lista_cursos"
@@ -112,7 +117,9 @@ def main():
     # 4) Roteamento simples entre as telas do sistema
     pagina = st.session_state["pagina_atual"]
 
-    if pagina == "lista_cursos":
+    if pagina == "inicio":
+        tela_inicio()
+    elif pagina == "lista_cursos":
         tela_lista_cursos()
     elif pagina == "detalhe_curso":
         tela_detalhe_curso()
@@ -125,7 +132,7 @@ def main():
     elif pagina == "admin" and st.session_state.get("aluno_is_admin"):
         tela_admin()
     else:
-        st.session_state["pagina_atual"] = "lista_cursos"
+        st.session_state["pagina_atual"] = "inicio"
         st.rerun()
 
 
