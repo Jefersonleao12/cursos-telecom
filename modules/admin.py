@@ -24,14 +24,16 @@ from database.repositorio import (
     listar_categorias_materiais,
     enviar_material,
     excluir_material,
+    listar_duvidas,
+    marcar_duvida_respondida,
 )
 
 
 def tela_admin():
     st.title("⚙️ Painel de Administração")
 
-    aba_cursos, aba_aulas, aba_provas, aba_alunos, aba_filiais, aba_materiais = st.tabs(
-        ["Cursos", "Aulas", "Provas e Perguntas", "Alunos", "Filiais", "Materiais"]
+    aba_cursos, aba_aulas, aba_provas, aba_alunos, aba_filiais, aba_materiais, aba_duvidas = st.tabs(
+        ["Cursos", "Aulas", "Provas e Perguntas", "Alunos", "Filiais", "Materiais", "Dúvidas"]
     )
 
     # ---------------- CURSOS ----------------
@@ -259,3 +261,28 @@ def tela_admin():
                 )
                 st.success(f"Material '{titulo_material}' enviado com sucesso!")
                 st.rerun()
+
+    # ---------------- DÚVIDAS ----------------
+    with aba_duvidas:
+        st.subheader("Dúvidas enviadas pelos alunos")
+        apenas_pendentes = st.toggle("Mostrar só as pendentes", value=True)
+
+        duvidas = listar_duvidas(apenas_nao_respondidas=apenas_pendentes)
+
+        if not duvidas:
+            st.info("Nenhuma dúvida pendente." if apenas_pendentes else "Nenhuma dúvida registrada ainda.")
+        else:
+            for d in duvidas:
+                with st.container(border=True):
+                    col_texto, col_acao = st.columns([4, 1])
+                    with col_texto:
+                        st.write(f"**{d['aluno_nome']}**")
+                        st.caption(d["mensagem"])
+                        st.caption(f"Enviada em: {d['criado_em'][:16].replace('T', ' ')}")
+                    with col_acao:
+                        if not d["respondida"]:
+                            if st.button("✅ Marcar respondida", key=f"resp_duvida_{d['id']}", use_container_width=True):
+                                marcar_duvida_respondida(d["id"])
+                                st.rerun()
+                        else:
+                            st.caption("✅ Respondida")
