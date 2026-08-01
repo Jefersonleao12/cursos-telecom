@@ -8,6 +8,7 @@ Responsável por:
 
 Para rodar localmente:  streamlit run app.py
 """
+import base64
 import streamlit as st
 from pathlib import Path
 
@@ -28,6 +29,12 @@ st.set_page_config(
 # Ícone (só o "N" circular, sem o texto) usado no topo da barra lateral.
 _CAMINHO_ICONE = Path(__file__).resolve().parent / "assets" / "icone.png"
 
+
+@st.cache_data(show_spinner=False)
+def _icone_base64() -> str:
+    with open(_CAMINHO_ICONE, "rb") as arquivo:
+        return base64.b64encode(arquivo.read()).decode("utf-8")
+
 # CSS simples para deixar formulários e botões mais confortáveis no celular.
 # O Streamlit já é responsivo por padrão (a barra lateral vira um menu
 # recolhível em telas pequenas), este CSS só refina a aparência.
@@ -43,6 +50,7 @@ st.markdown(
         div[data-testid="stForm"] { border: 1px solid #e6e6e6; border-radius: 10px; padding: 1.2rem; }
         div[data-testid="stImage"] { overflow: visible; }
         div[data-testid="stImage"] img { overflow: visible; }
+        section[data-testid="stSidebar"] .block-container { padding-top: 1.2rem; }
     </style>
     """,
     unsafe_allow_html=True,
@@ -59,9 +67,13 @@ def main():
 
     # 3) Menu lateral (em celulares, o Streamlit já transforma isto num menu ☰ recolhível)
     with st.sidebar:
-        _esq, _centro, _dir = st.columns([1, 2, 1])
-        with _centro:
-            st.image(str(_CAMINHO_ICONE), width=90)
+        st.markdown(
+            f"<div style='text-align:center; margin-top:-0.5rem; margin-bottom:0.3rem;'>"
+            f"<img src='data:image/png;base64,{_icone_base64()}' alt='Norte Tel' "
+            f"style='width:90px; max-width:35%; height:auto;' />"
+            f"</div>",
+            unsafe_allow_html=True,
+        )
 
         primeiro_nome = st.session_state["aluno_nome"].split(" ")[0]
         st.markdown(f"### 👋 Olá, {primeiro_nome}!")
