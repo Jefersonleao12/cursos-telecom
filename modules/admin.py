@@ -20,14 +20,18 @@ from database.repositorio import (
     listar_todos_alunos,
     calcular_progresso_curso,
     contar_alunos_por_filial,
+    listar_materiais,
+    listar_categorias_materiais,
+    enviar_material,
+    excluir_material,
 )
 
 
 def tela_admin():
     st.title("⚙️ Painel de Administração")
 
-    aba_cursos, aba_aulas, aba_provas, aba_alunos, aba_filiais = st.tabs(
-        ["Cursos", "Aulas", "Provas e Perguntas", "Alunos", "Filiais"]
+    aba_cursos, aba_aulas, aba_provas, aba_alunos, aba_filiais, aba_materiais = st.tabs(
+        ["Cursos", "Aulas", "Provas e Perguntas", "Alunos", "Filiais", "Materiais"]
     )
 
     # ---------------- CURSOS ----------------
@@ -202,3 +206,56 @@ def tela_admin():
                 with st.expander(f"📍 {nome_filial} — {len(lista_alunos)} aluno(s)"):
                     for aluno in lista_alunos:
                         st.write(f"- {aluno['nome_completo']} ({aluno['email']})")
+
+    # ---------------- MATERIAIS ----------------
+    with aba_materiais:
+        st.subheader("Materiais cadastrados")
+        materiais = listar_materiais()
+
+        if materiais:
+            for m in materiais:
+                with st.container(border=True):
+                    col_info, col_excluir = st.columns([4, 1])
+                    with col_info:
+                        st.write(f"**{m['titulo']}** — categoria: {m.get('categoria') or '-'}")
+                        st.caption(f"Arquivo original: {m['nome_arquivo']}")
+                    with col_excluir:
+                        if st.button("🗑️ Excluir", key=f"excluir_material_{m['id']}", use_container_width=True):
+                            excluir_material(m["id"], m["caminho_storage"])
+                            st.success("Material excluído.")
+                            st.rerun()
+        else:
+            st.caption("Nenhum material cadastrado ainda.")
+
+        st.divider()
+        st.subheader("Enviar novo material")
+
+        categorias_existentes = listar_categorias_materiais()
+        opcoes_categoria = categorias_existentes + ["+ Nova categoria..."]
+
+        with st.form("form_novo_material", clear_on_submit=True):
+            titulo_material = st.text_input("Título *")
+            descricao_material = st.text_area("Descrição (opcional)")
+            categoria_opcao = st.selectbox("Categoria *", opcoes_categoria)
+            nova_categoria = ""
+            if categoria_opcao == "+ Nova categoria...":
+                nova_categoria = st.text_input("Nome da nova categoria *")
+            arquivo = st.file_uploader(
+                "Arquivo *",
+                help="Fotos, PDFs, planilhas, documentos do Word, vídeos, etc.",
+            )
+            enviar = st.form_submit_button("Enviar material", type="primary")
+
+        if enviar:
+            categoria_final = (
+                nova_categoria.strip() if categoria_opcao == "+ Nova categoria..." else categoria_opcao
+            )
+            if not titulo_material or not categoria_final or arquivo is None:
+                st.warning("Preencha todos os campos obrigatórios (*) e escolha um arquivo.")
+            else:
+                enviar_material(
+                    titulo_material, descricao_material, categoria_final,
+                    arquivo.getvalue(), arquivo.name,
+                )
+                st.success(f"Material '{titulo_material}' enviado com sucesso!")
+                st.rerun()
