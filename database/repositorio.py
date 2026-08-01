@@ -5,6 +5,7 @@ Concentra TODAS as consultas ao Supabase em um único lugar. Isso facilita a
 manutenção: se um dia você quiser trocar de banco de dados ou entender como
 alguma tela busca suas informações, é só olhar aqui.
 """
+import uuid
 from datetime import datetime, timezone
 
 from database.supabase_client import get_supabase_client
@@ -266,3 +267,71 @@ def emitir_certificado(aluno_id: str, curso_id: int, codigo_verificacao: str):
     }
     resposta = sb.table("certificados").insert(registro).execute()
     return resposta.data[0]
+
+
+# ---------------------------------------------------------------------------
+# MATERIAIS (fotos, documentos e arquivos para download pelos alunos)
+# ---------------------------------------------------------------------------
+
+# Nome do "bucket" (pasta) no Supabase Storage onde os arquivos ficam guardados.
+# Precisa ser criado uma vez no painel do Supabase (Storage -> New bucket),
+# marcado como "Public bucket" para que os links de download funcionem.
+_BUCKET_MATERIAIS = "materiais"
+
+
+def enviar_material(titulo: str, descricao: str, categoria: str, arquivo_bytes: bytes, nome_arquivo: str):
+    """
+    Sobe o arquivo para o Supabase Storage e grava o registro (título, categoria,
+    descrição etc.) na tabela 'materiais'. Retorna o registro criado.
+    """
+    sb = get_supabase_client()
+
+    extensao = nome_arquivo.rsplit(".", 1)[-1].lower() if "." in nome_arquivo else ""
+    # Prefixamos com um código único para nunca haver conflito de nomes no Storage,
+    # mesmo que dois arquivos diferentes se chamem igual (ex: "manual.pdf").
+    caminho_storage = f"{uuid.uuid4().hex}_{nome_arquivo}"
+
+    sb.storage.from_(_BUCKET_MATERIAIS).upload(
+        caminho_storage,
+        arquivo_bytes,
+        file_options={"content-type": "application/octet-stream"},
+    )
+
+    novo = {
+        "titulo": titulo.strip(),
+        "descricao": descricao.strip() if descricao else None,
+        "categoria": categoria.strip(),
+        "nome_arquivo": nome_arquivo,
+        "caminho_storage": caminho_storage,
+        "tipo_arquivo": extensao,
+        "tamanho_bytes": len(arquivo_bytes),
+    }
+    resposta = sb.table("materiais").insert(novo).execute()
+    return resposta.data[0]
+
+
+def listar_materiais():
+    """Lista todos os materiais, do mais recente para o mais antigo."""
+    sb = get_supabase_client()
+    resposta = sb.table("materiais").select("*").order("criado_em", desc=True).execute()
+    return resposta.data
+
+
+def listar_categorias_materiais():
+    """Lista as categorias já usadas (sem repetir), em ordem alfabética."""
+    materiais = listar_materiais()
+    categorias = sorted({m["categoria"] for m in materiais if m.get("categoria")})
+    return categorias
+
+
+def url_publica_material(caminho_storage: str) -> str:
+    """Devolve o link direto de download do arquivo no Supabase Storage."""
+    sb = get_supabase_client()
+    return sb.storage.from_(_BUCKET_MATERIAIS).get_public_url(caminho_storage)
+
+
+def excluir_material(material_id, caminho_storage: str):
+    """Remove o arquivo do Storage e o registro correspondente do banco."""
+    sb = get_supabase_client()
+    sb.storage.from_(_BUCKET_MATERIAIS).remove([caminho_storage])
+    sb.table("materiais").delete().eq("id", material_id).execute()
