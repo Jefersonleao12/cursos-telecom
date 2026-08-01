@@ -335,3 +335,34 @@ def excluir_material(material_id, caminho_storage: str):
     sb = get_supabase_client()
     sb.storage.from_(_BUCKET_MATERIAIS).remove([caminho_storage])
     sb.table("materiais").delete().eq("id", material_id).execute()
+
+
+# ---------------------------------------------------------------------------
+# DÚVIDAS (perguntas do dia a dia enviadas pelos alunos na página inicial)
+# ---------------------------------------------------------------------------
+
+def enviar_duvida(aluno_id: str, aluno_nome: str, mensagem: str):
+    """Salva a dúvida no banco (funciona como registro/backup)."""
+    sb = get_supabase_client()
+    registro = {
+        "aluno_id": aluno_id,
+        "aluno_nome": aluno_nome,
+        "mensagem": mensagem.strip(),
+    }
+    resposta = sb.table("duvidas").insert(registro).execute()
+    return resposta.data[0]
+
+
+def listar_duvidas(apenas_nao_respondidas: bool = False):
+    """Lista as dúvidas enviadas, da mais recente para a mais antiga."""
+    sb = get_supabase_client()
+    consulta = sb.table("duvidas").select("*")
+    if apenas_nao_respondidas:
+        consulta = consulta.eq("respondida", False)
+    resposta = consulta.order("criado_em", desc=True).execute()
+    return resposta.data
+
+
+def marcar_duvida_respondida(duvida_id):
+    sb = get_supabase_client()
+    sb.table("duvidas").update({"respondida": True}).eq("id", duvida_id).execute()
