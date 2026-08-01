@@ -52,9 +52,9 @@ st.markdown(
         div[data-testid="stImage"] img { overflow: visible; }
         section[data-testid="stSidebar"] .block-container { padding-top: 1.2rem; }
         section[data-testid="stSidebar"] {
-            min-width: 250px !important;
-            max-width: 250px !important;
-            width: 250px !important;
+            min-width: 230px !important;
+            max-width: 230px !important;
+            width: 230px !important;
         }
     </style>
     """,
