@@ -332,6 +332,18 @@ def excluir_material(material_id: int, caminho_storage: str):
 # DÚVIDAS
 # ==========================================
 
+def enviar_duvida(aluno_id: str, aluno_nome: str, mensagem: str):
+    """Registra uma nova dúvida enviada por um aluno."""
+    sb = get_supabase_client()
+    dados = {
+        "aluno_id": aluno_id,
+        "aluno_nome": aluno_nome,
+        "mensagem": mensagem,
+        "respondida": False
+    }
+    sb.table("duvidas").insert(dados).execute()
+
+
 def listar_duvidas(apenas_nao_respondidas: bool = False):
     """Lista dúvidas enviadas pelos alunos."""
     sb = get_supabase_client()
