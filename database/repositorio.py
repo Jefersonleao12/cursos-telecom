@@ -1,60 +1,78 @@
 """
-Módulo Repositório.
+Camada de acesso a dados (Repositório).
 
-Centraliza todas as operações de leitura e escrita no banco de dados Supabase.
+Concentra TODAS as consultas ao Supabase em um único lugar. Isso facilita a
+manutenção: se um dia você quiser trocar de banco de dados ou entender como
+alguma tela busca suas informações, é só olhar aqui.
 """
-import os
-import streamlit as st
-from supabase import create_client, Client
+import uuid
+from datetime import datetime, timezone
+
+from database.supabase_client import get_supabase_client
 
 
-@st.cache_resource
-def get_supabase_client() -> Client:
-    """Inicializa e retorna o cliente do Supabase utilizando as Secrets do Streamlit."""
-    url = st.secrets["SUPABASE_URL"]
-    key = st.secrets["SUPABASE_KEY"]
-    return create_client(url, key)
-
-
-# ==========================================
-# AUTENTICAÇÃO E USUÁRIOS
-# ==========================================
+# ---------------------------------------------------------------------------
+# ALUNOS
+# ---------------------------------------------------------------------------
 
 def buscar_aluno_por_email(email: str):
-    """Busca um usuário no banco de dados pelo e-mail."""
+    """Retorna o registro do aluno pelo e-mail, ou None se não existir."""
     sb = get_supabase_client()
-    resposta = sb.table("usuarios").select("*").eq("email", email).execute()
+    resposta = sb.table("alunos").select("*").eq("email", email.lower().strip()).execute()
     dados = resposta.data
     return dados[0] if dados else None
 
 
-def criar_aluno(nome_completo: str, email: str, senha_hash: str, empresa: str = None, cargo: str = None):
-    """Cadastra um novo aluno no banco de dados."""
+def criar_aluno(nome_completo: str, email: str, senha_hash: str, empresa: str, cargo: str, filial: str = None):
+    """Cria um novo aluno no banco. Retorna o registro criado (já com o id gerado)."""
     sb = get_supabase_client()
-    dados = {
-        "nome_completo": nome_completo,
-        "email": email,
-        "senha": senha_hash,
-        "empresa": empresa,
-        "cargo": cargo,
-        "is_admin": False
+    novo = {
+        "nome_completo": nome_completo.strip(),
+        "email": email.lower().strip(),
+        "senha_hash": senha_hash,
+        "empresa": empresa.strip() if empresa else None,
+        "cargo": cargo.strip() if cargo else None,
+        "filial": filial.strip() if filial else None,
+        "is_admin": False,
     }
-    sb.table("usuarios").insert(dados).execute()
+    resposta = sb.table("alunos").insert(novo).execute()
+    return resposta.data[0]
 
 
-# ==========================================
+def listar_todos_alunos():
+    """Usado no painel administrativo para listar todos os alunos cadastrados."""
+    sb = get_supabase_client()
+    resposta = sb.table("alunos").select("*").order("criado_em", desc=True).execute()
+    return resposta.data
+
+
+def contar_alunos_por_filial():
+    """
+    Usado no painel administrativo: retorna um dicionário
+    {"Nome da Filial": [lista de alunos daquela filial]}, ordenado por
+    quantidade de alunos (da filial com mais alunos para a com menos).
+    Alunos sem filial definida (cadastros antigos) entram em "Sem filial".
+    """
+    alunos = listar_todos_alunos()
+    grupos: dict = {}
+    for aluno in alunos:
+        nome_filial = aluno.get("filial") or "Sem filial"
+        grupos.setdefault(nome_filial, []).append(aluno)
+    # Ordena as filiais da com mais alunos para a com menos
+    return dict(sorted(grupos.items(), key=lambda item: len(item[1]), reverse=True))
+
+
+# ---------------------------------------------------------------------------
 # CURSOS
-# ==========================================
+# ---------------------------------------------------------------------------
 
 def listar_cursos():
-    """Retorna a lista de todos os cursos cadastrados."""
     sb = get_supabase_client()
-    resposta = sb.table("cursos").select("*").order("created_at", desc=False).execute()
+    resposta = sb.table("cursos").select("*").order("criado_em", desc=True).execute()
     return resposta.data
 
 
 def buscar_curso(curso_id: int):
-    """Busca os detalhes de um curso específico pelo ID."""
     sb = get_supabase_client()
     resposta = sb.table("cursos").select("*").eq("id", curso_id).execute()
     dados = resposta.data
@@ -62,121 +80,94 @@ def buscar_curso(curso_id: int):
 
 
 def criar_curso(titulo: str, descricao: str, instrutor: str, carga_horaria: int):
-    """Cadastra um novo curso."""
     sb = get_supabase_client()
-    dados = {
-        "titulo": titulo,
-        "descricao": descricao,
-        "instrutor": instrutor,
+    novo = {
+        "titulo": titulo.strip(),
+        "descricao": descricao.strip() if descricao else None,
+        "instrutor": instrutor.strip(),
         "carga_horaria": carga_horaria,
     }
-    sb.table("cursos").insert(dados).execute()
+    resposta = sb.table("cursos").insert(novo).execute()
+    return resposta.data[0]
 
 
-def atualizar_curso(curso_id: int, titulo: str, descricao: str, instrutor: str, carga_horaria: int):
-    """Atualiza as informações de um curso existente."""
-    sb = get_supabase_client()
-    dados = {
-        "titulo": titulo,
-        "descricao": descricao,
-        "instrutor": instrutor,
-        "carga_horaria": carga_horaria,
-    }
-    sb.table("cursos").update(dados).eq("id", curso_id).execute()
-
-# Aliases para compatibilidade
-editar_curso = atualizar_curso
-
-
-def excluir_curso(curso_id: int):
-    """Exclui um curso pelo seu ID."""
-    sb = get_supabase_client()
-    sb.table("cursos").delete().eq("id", curso_id).execute()
-
-
-# ==========================================
+# ---------------------------------------------------------------------------
 # AULAS
-# ==========================================
+# ---------------------------------------------------------------------------
 
 def listar_aulas_do_curso(curso_id: int):
-    """Retorna todas as aulas pertencentes a um curso ordenadas pela ordem."""
     sb = get_supabase_client()
     resposta = (
         sb.table("aulas")
         .select("*")
         .eq("curso_id", curso_id)
-        .order("ordem", desc=False)
+        .order("ordem")
         .execute()
     )
     return resposta.data
 
 
-def buscar_aula(aula_id: int):
-    """Busca os detalhes de uma aula específica pelo ID."""
-    sb = get_supabase_client()
-    resposta = sb.table("aulas").select("*").eq("id", aula_id).execute()
-    dados = resposta.data
-    return dados[0] if dados else None
-
-
 def criar_aula(curso_id: int, titulo: str, url_video: str, ordem: int, duracao_minutos: int):
-    """Cadastra uma nova aula em um curso."""
     sb = get_supabase_client()
-    dados = {
+    nova = {
         "curso_id": curso_id,
-        "titulo": titulo,
-        "url_video": url_video,
+        "titulo": titulo.strip(),
+        "url_video": url_video.strip(),
         "ordem": ordem,
         "duracao_minutos": duracao_minutos,
     }
-    sb.table("aulas").insert(dados).execute()
+    resposta = sb.table("aulas").insert(nova).execute()
+    return resposta.data[0]
 
 
-# ==========================================
-# PROGRESSO
-# ==========================================
+# ---------------------------------------------------------------------------
+# PROGRESSO DE AULAS
+# ---------------------------------------------------------------------------
 
 def marcar_aula_concluida(aluno_id: str, aula_id: int):
-    """Registra a conclusão de uma aula por parte do aluno."""
+    """Marca (ou atualiza) uma aula como concluída para o aluno."""
     sb = get_supabase_client()
-    dados = {"aluno_id": aluno_id, "aula_id": aula_id}
-    sb.table("progresso_aulas").upsert(dados, on_conflict="aluno_id,aula_id").execute()
+    registro = {
+        "aluno_id": aluno_id,
+        "aula_id": aula_id,
+        "concluida": True,
+        "concluida_em": datetime.now(timezone.utc).isoformat(),
+    }
+    sb.table("progresso_aulas").upsert(registro, on_conflict="aluno_id,aula_id").execute()
 
 
-def listar_aulas_concluidas_pelo_aluno(aluno_id: str):
-    """Retorna os IDs das aulas concluídas pelo aluno."""
+def aulas_concluidas_do_aluno(aluno_id: str, curso_id: int):
+    """Retorna a lista de IDs de aulas já concluídas pelo aluno, dentro de um curso."""
     sb = get_supabase_client()
+    aulas_do_curso = listar_aulas_do_curso(curso_id)
+    ids_aulas = [a["id"] for a in aulas_do_curso]
+    if not ids_aulas:
+        return []
     resposta = (
         sb.table("progresso_aulas")
         .select("aula_id")
         .eq("aluno_id", aluno_id)
+        .eq("concluida", True)
+        .in_("aula_id", ids_aulas)
         .execute()
     )
-    return [item["aula_id"] for item in resposta.data]
-
-# Aliases para compatibilidade
-aulas_concluidas_do_aluno = listar_aulas_concluidas_pelo_aluno
+    return [linha["aula_id"] for linha in resposta.data]
 
 
 def calcular_progresso_curso(aluno_id: str, curso_id: int) -> float:
-    """Calcula o percentual (0.0 a 1.0) de conclusão do curso pelo aluno."""
+    """Retorna o percentual (0.0 a 1.0) de aulas concluídas em um curso."""
     aulas = listar_aulas_do_curso(curso_id)
     if not aulas:
         return 0.0
-
-    aulas_concluidas = set(listar_aulas_concluidas_pelo_aluno(aluno_id))
-    total_aulas = len(aulas)
-    concluidas = sum(1 for a in aulas if a["id"] in aulas_concluidas)
-
-    return concluidas / total_aulas
+    concluidas = aulas_concluidas_do_aluno(aluno_id, curso_id)
+    return len(concluidas) / len(aulas)
 
 
-# ==========================================
+# ---------------------------------------------------------------------------
 # PROVAS E PERGUNTAS
-# ==========================================
+# ---------------------------------------------------------------------------
 
 def buscar_prova_do_curso(curso_id: int):
-    """Busca a avaliação atrelada a um curso."""
     sb = get_supabase_client()
     resposta = sb.table("provas").select("*").eq("curso_id", curso_id).execute()
     dados = resposta.data
@@ -184,93 +175,77 @@ def buscar_prova_do_curso(curso_id: int):
 
 
 def criar_prova(curso_id: int, titulo: str, nota_minima: float):
-    """Cadastra uma nova avaliação para o curso."""
     sb = get_supabase_client()
-    dados = {"curso_id": curso_id, "titulo": titulo, "nota_minima": nota_minima}
-    sb.table("provas").insert(dados).execute()
+    nova = {"curso_id": curso_id, "titulo": titulo.strip(), "nota_minima": nota_minima}
+    resposta = sb.table("provas").insert(nova).execute()
+    return resposta.data[0]
 
 
 def listar_perguntas(prova_id: int):
-    """Retorna as perguntas de uma avaliação."""
     sb = get_supabase_client()
     resposta = (
         sb.table("perguntas")
         .select("*")
         .eq("prova_id", prova_id)
-        .order("ordem", desc=False)
+        .order("ordem")
         .execute()
     )
     return resposta.data
 
 
-def criar_pergunta(
-    prova_id: int,
-    enunciado: str,
-    opcao_a: str,
-    opcao_b: str,
-    opcao_c: str,
-    opcao_d: str,
-    resposta_correta: str,
-    ordem: int,
-):
-    """Cadastra uma pergunta para uma avaliação."""
+def criar_pergunta(prova_id, enunciado, opcao_a, opcao_b, opcao_c, opcao_d, resposta_correta, ordem):
     sb = get_supabase_client()
-    dados = {
+    nova = {
         "prova_id": prova_id,
-        "enunciado": enunciado,
-        "opcao_a": opcao_a,
-        "opcao_b": opcao_b,
-        "opcao_c": opcao_c,
-        "opcao_d": opcao_d,
-        "resposta_correta": resposta_correta,
+        "enunciado": enunciado.strip(),
+        "opcao_a": opcao_a.strip(),
+        "opcao_b": opcao_b.strip(),
+        "opcao_c": opcao_c.strip(),
+        "opcao_d": opcao_d.strip(),
+        "resposta_correta": resposta_correta.upper().strip(),
         "ordem": ordem,
     }
-    sb.table("perguntas").insert(dados).execute()
+    resposta = sb.table("perguntas").insert(nova).execute()
+    return resposta.data[0]
 
+
+# ---------------------------------------------------------------------------
+# RESULTADOS DE PROVAS
+# ---------------------------------------------------------------------------
 
 def salvar_resultado_prova(aluno_id: str, prova_id: int, nota: float, aprovado: bool):
-    """Grava o resultado da tentativa de avaliação."""
     sb = get_supabase_client()
-    dados = {
+    registro = {
         "aluno_id": aluno_id,
         "prova_id": prova_id,
         "nota": nota,
         "aprovado": aprovado,
     }
-    sb.table("resultados_provas").insert(dados).execute()
+    resposta = sb.table("resultados_provas").insert(registro).execute()
+    return resposta.data[0]
 
 
-def buscar_ultimo_resultado(aluno_id: str, prova_id: int):
-    """Retorna a tentativa mais recente feita pelo aluno nesta prova."""
+def melhor_resultado(aluno_id: str, prova_id: int):
+    """Retorna o melhor resultado (maior nota) que o aluno já obteve nesta prova."""
     sb = get_supabase_client()
     resposta = (
         sb.table("resultados_provas")
         .select("*")
         .eq("aluno_id", aluno_id)
         .eq("prova_id", prova_id)
-        .order("id", desc=True)
+        .order("nota", desc=True)
         .limit(1)
         .execute()
     )
     dados = resposta.data
     return dados[0] if dados else None
 
-# Aliases para compatibilidade
-melhor_resultado = buscar_ultimo_resultado
 
-
-def reabrir_prova_aluno(aluno_id: str, prova_id: int):
-    """Remove os registros de resultado da prova para permitir uma nova tentativa."""
-    sb = get_supabase_client()
-    sb.table("resultados_provas").delete().eq("aluno_id", aluno_id).eq("prova_id", prova_id).execute()
-
-
-# ==========================================
+# ---------------------------------------------------------------------------
 # CERTIFICADOS
-# ==========================================
+# ---------------------------------------------------------------------------
 
 def buscar_certificado(aluno_id: str, curso_id: int):
-    """Busca o certificado emitido para o aluno em determinado curso."""
     sb = get_supabase_client()
     resposta = (
         sb.table("certificados")
@@ -283,130 +258,111 @@ def buscar_certificado(aluno_id: str, curso_id: int):
     return dados[0] if dados else None
 
 
-def emitir_certificado(aluno_id: str, curso_id: int, codigo_validacao: str = None):
-    """Registra a emissão de um certificado no banco de dados."""
+def emitir_certificado(aluno_id: str, curso_id: int, codigo_verificacao: str):
     sb = get_supabase_client()
-    dados = {
+    registro = {
         "aluno_id": aluno_id,
         "curso_id": curso_id,
+        "codigo_verificacao": codigo_verificacao,
     }
-    if codigo_validacao:
-        dados["codigo_validacao"] = codigo_validacao
-    resposta = sb.table("certificados").insert(dados).execute()
-    return resposta.data[0] if resposta.data else None
+    resposta = sb.table("certificados").insert(registro).execute()
+    return resposta.data[0]
 
 
-def listar_certificados_aluno(aluno_id: str):
-    """Lista todos os certificados obtidos por um aluno."""
+# ---------------------------------------------------------------------------
+# MATERIAIS (fotos, documentos e arquivos para download pelos alunos)
+# ---------------------------------------------------------------------------
+
+# Nome do "bucket" (pasta) no Supabase Storage onde os arquivos ficam guardados.
+# Precisa ser criado uma vez no painel do Supabase (Storage -> New bucket),
+# marcado como "Public bucket" para que os links de download funcionem.
+_BUCKET_MATERIAIS = "materiais"
+
+
+def enviar_material(titulo: str, descricao: str, categoria: str, arquivo_bytes: bytes, nome_arquivo: str):
+    """
+    Sobe o arquivo para o Supabase Storage e grava o registro (título, categoria,
+    descrição etc.) na tabela 'materiais'. Retorna o registro criado.
+    """
     sb = get_supabase_client()
-    resposta = (
-        sb.table("certificados")
-        .select("*, cursos(*)")
-        .eq("aluno_id", aluno_id)
-        .execute()
+
+    extensao = nome_arquivo.rsplit(".", 1)[-1].lower() if "." in nome_arquivo else ""
+    # Prefixamos com um código único para nunca haver conflito de nomes no Storage,
+    # mesmo que dois arquivos diferentes se chamem igual (ex: "manual.pdf").
+    caminho_storage = f"{uuid.uuid4().hex}_{nome_arquivo}"
+
+    sb.storage.from_(_BUCKET_MATERIAIS).upload(
+        caminho_storage,
+        arquivo_bytes,
+        file_options={"content-type": "application/octet-stream"},
     )
-    return resposta.data
 
+    novo = {
+        "titulo": titulo.strip(),
+        "descricao": descricao.strip() if descricao else None,
+        "categoria": categoria.strip(),
+        "nome_arquivo": nome_arquivo,
+        "caminho_storage": caminho_storage,
+        "tipo_arquivo": extensao,
+        "tamanho_bytes": len(arquivo_bytes),
+    }
+    resposta = sb.table("materiais").insert(novo).execute()
+    return resposta.data[0]
 
-# ==========================================
-# ALUNOS E FILIAIS
-# ==========================================
-
-def listar_todos_alunos():
-    """Retorna a lista de todos os alunos cadastrados."""
-    sb = get_supabase_client()
-    resposta = sb.table("usuarios").select("*").eq("is_admin", False).execute()
-    return resposta.data
-
-
-def contar_alunos_por_filial():
-    """Retorna um dicionário agrupando alunos por filial."""
-    alunos = listar_todos_alunos()
-    grupos = {}
-    for aluno in alunos:
-        filial = aluno.get("empresa") or "Sem Filial Definida"
-        if filial not in grupos:
-            grupos[filial] = []
-        grupos[filial].append(aluno)
-    return grupos
-
-
-# ==========================================
-# MATERIAIS
-# ==========================================
 
 def listar_materiais():
-    """Lista todos os materiais cadastrados."""
+    """Lista todos os materiais, do mais recente para o mais antigo."""
     sb = get_supabase_client()
-    resposta = sb.table("materiais").select("*").order("created_at", desc=True).execute()
+    resposta = sb.table("materiais").select("*").order("criado_em", desc=True).execute()
     return resposta.data
 
 
 def listar_categorias_materiais():
-    """Lista todas as categorias distintas de materiais."""
+    """Lista as categorias já usadas (sem repetir), em ordem alfabética."""
     materiais = listar_materiais()
-    categorias = sorted(list({m["categoria"] for m in materiais if m.get("categoria")}))
+    categorias = sorted({m["categoria"] for m in materiais if m.get("categoria")})
     return categorias
 
 
-def enviar_material(titulo: str, descricao: str, categoria: str, bytes_arquivo: bytes, nome_arquivo: str):
-    """Faz upload do arquivo para o Bucket do Supabase e registra na tabela materiais."""
+def url_publica_material(caminho_storage: str) -> str:
+    """Devolve o link direto de download do arquivo no Supabase Storage."""
     sb = get_supabase_client()
-    caminho_storage = f"materiais/{nome_arquivo}"
-
-    sb.storage.from_("materiais").upload(
-        path=caminho_storage,
-        file=bytes_arquivo,
-        file_options={"upsert": "true"},
-    )
-
-    dados = {
-        "titulo": titulo,
-        "descricao": descricao,
-        "categoria": categoria,
-        "caminho_storage": caminho_storage,
-        "nome_arquivo": nome_arquivo,
-    }
-    sb.table("materiais").insert(dados).execute()
+    return sb.storage.from_(_BUCKET_MATERIAIS).get_public_url(caminho_storage)
 
 
-def excluir_material(material_id: int, caminho_storage: str):
-    """Exclui o arquivo do Storage e apaga o registro do banco."""
+def excluir_material(material_id, caminho_storage: str):
+    """Remove o arquivo do Storage e o registro correspondente do banco."""
     sb = get_supabase_client()
-    try:
-        sb.storage.from_("materiais").remove([caminho_storage])
-    except Exception:
-        pass
+    sb.storage.from_(_BUCKET_MATERIAIS).remove([caminho_storage])
     sb.table("materiais").delete().eq("id", material_id).execute()
 
 
-# ==========================================
-# DÚVIDAS
-# ==========================================
+# ---------------------------------------------------------------------------
+# DÚVIDAS (perguntas do dia a dia enviadas pelos alunos na página inicial)
+# ---------------------------------------------------------------------------
 
 def enviar_duvida(aluno_id: str, aluno_nome: str, mensagem: str):
-    """Registra uma nova dúvida enviada por um aluno."""
+    """Salva a dúvida no banco (funciona como registro/backup)."""
     sb = get_supabase_client()
-    dados = {
+    registro = {
         "aluno_id": aluno_id,
         "aluno_nome": aluno_nome,
-        "mensagem": mensagem,
-        "respondida": False
+        "mensagem": mensagem.strip(),
     }
-    sb.table("duvidas").insert(dados).execute()
+    resposta = sb.table("duvidas").insert(registro).execute()
+    return resposta.data[0]
 
 
 def listar_duvidas(apenas_nao_respondidas: bool = False):
-    """Lista dúvidas enviadas pelos alunos."""
+    """Lista as dúvidas enviadas, da mais recente para a mais antiga."""
     sb = get_supabase_client()
-    query = sb.table("duvidas").select("*").order("criado_em", desc=True)
+    consulta = sb.table("duvidas").select("*")
     if apenas_nao_respondidas:
-        query = query.eq("respondida", False)
-    resposta = query.execute()
+        consulta = consulta.eq("respondida", False)
+    resposta = consulta.order("criado_em", desc=True).execute()
     return resposta.data
 
 
-def marcar_duvida_respondida(duvida_id: int):
-    """Marca uma dúvida como respondida."""
+def marcar_duvida_respondida(duvida_id):
     sb = get_supabase_client()
     sb.table("duvidas").update({"respondida": True}).eq("id", duvida_id).execute()
