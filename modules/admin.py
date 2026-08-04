@@ -3,7 +3,7 @@ Módulo de Administração.
 
 Permite que o instrutor/administrador cadastre cursos, aulas, provas e
 perguntas sem precisar mexer diretamente no banco de dados, além de
-acompanhar o progresso dos alunos. Só é exibido para contas com
+acompanhar o progresso dos alunos e reabrir avaliações. Só é exibido para contas com
 is_admin = True (ver instruções no arquivo database/schema.sql).
 """
 import streamlit as st
@@ -26,14 +26,33 @@ from database.repositorio import (
     excluir_material,
     listar_duvidas,
     marcar_duvida_respondida,
+    reabrir_prova_aluno,
 )
 
 
 def tela_admin():
     st.title("⚙️ Painel de Administração")
 
-    aba_cursos, aba_aulas, aba_provas, aba_alunos, aba_filiais, aba_materiais, aba_duvidas = st.tabs(
-        ["Cursos", "Aulas", "Provas e Perguntas", "Alunos", "Filiais", "Materiais", "Dúvidas"]
+    (
+        aba_cursos,
+        aba_aulas,
+        aba_provas,
+        aba_alunos,
+        aba_filiais,
+        aba_materiais,
+        aba_duvidas,
+        aba_reabrir,
+    ) = st.tabs(
+        [
+            "📚Cursos",
+            "👨‍🏫Aulas",
+            "📋Provas e Perguntas",
+            "👨‍🎓Alunos",
+            "🏫Filiais",
+            "🗂️Materiais",
+            "❓Dúvidas",
+            "🔓 Reabrir Avaliações",
+        ]
     )
 
     # ---------------- CURSOS ----------------
@@ -162,21 +181,7 @@ def tela_admin():
                         )
                         st.success("Pergunta adicionada com sucesso!")
                         st.rerun()
-def resetar_tentativa_aluno(id_usuario, id_prova):
-    """
-    Remove o registro da avaliação do aluno no Supabase, 
-    permitindo que ele faça a prova novamente do zero.
-    """
-    try:
-        supabase.table("tentativas_provas") \
-            .delete() \
-            .eq("id_usuario", id_usuario) \
-            .eq("id_prova", id_prova) \
-            .execute()
-        return True
-    except Exception as e:
-        print(f"Erro ao resetar prova: {e}")
-        return False
+
     # ---------------- ALUNOS ----------------
     with aba_alunos:
         st.subheader("Alunos cadastrados")
@@ -300,3 +305,38 @@ def resetar_tentativa_aluno(id_usuario, id_prova):
                                 st.rerun()
                         else:
                             st.caption("✅ Respondida")
+
+    # ---------------- REABRIR AVALIAÇÕES ----------------
+    with aba_reabrir:
+        st.subheader("🔓 Liberação de Avaliações")
+        st.caption("Utilize esta aba para reabrir a avaliação de um aluno após análise do suporte.")
+
+        alunos = listar_todos_alunos()
+        cursos = listar_cursos()
+
+        if not alunos:
+            st.info("Nenhum aluno cadastrado.")
+        elif not cursos:
+            st.info("Nenhum curso cadastrado.")
+        else:
+            opcoes_alunos = {f"{a['nome_completo']} ({a['email']})": a["id"] for a in alunos}
+            aluno_selecionado = st.selectbox("Selecione o Aluno:", list(opcoes_alunos.keys()), key="sel_aluno_reabrir")
+            aluno_id = opcoes_alunos[aluno_selecionado]
+
+            opcoes_cursos = {c["titulo"]: c["id"] for c in cursos}
+            curso_selecionado = st.selectbox("Selecione o Curso da Prova:", list(opcoes_cursos.keys()), key="sel_curso_reabrir")
+            curso_id = opcoes_cursos[curso_selecionado]
+
+            prova = buscar_prova_do_curso(curso_id)
+
+            if not prova:
+                st.warning("Este curso não possui uma avaliação cadastrada.")
+            else:
+                st.write("")
+                if st.button("Liberar Nova Tentativa", type="primary", key="btn_reabrir_prova"):
+                    reabrir_prova_aluno(aluno_id, prova["id"])
+                    st.success(
+                        f"✅ A avaliação do curso **'{curso_selecionado}'** foi liberada com sucesso "
+                        f"para o aluno **{aluno_selecionado.split(' (')[0]}**!"
+                    )
+                    st.info("O aluno já pode acessar a página da avaliação e refazê-la.")
