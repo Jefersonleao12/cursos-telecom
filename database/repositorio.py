@@ -17,6 +17,32 @@ def get_supabase_client() -> Client:
 
 
 # ==========================================
+# AUTENTICAÇÃO E USUÁRIOS
+# ==========================================
+
+def buscar_aluno_por_email(email: str):
+    """Busca um usuário no banco de dados pelo e-mail."""
+    sb = get_supabase_client()
+    resposta = sb.table("usuarios").select("*").eq("email", email).execute()
+    dados = resposta.data
+    return dados[0] if dados else None
+
+
+def criar_aluno(nome_completo: str, email: str, senha_hash: str, empresa: str = None, cargo: str = None):
+    """Cadastra um novo aluno no banco de dados."""
+    sb = get_supabase_client()
+    dados = {
+        "nome_completo": nome_completo,
+        "email": email,
+        "senha": senha_hash,
+        "empresa": empresa,
+        "cargo": cargo,
+        "is_admin": False
+    }
+    sb.table("usuarios").insert(dados).execute()
+
+
+# ==========================================
 # CURSOS
 # ==========================================
 
