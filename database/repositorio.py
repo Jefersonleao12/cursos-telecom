@@ -213,6 +213,10 @@ def criar_pergunta(prova_id, enunciado, opcao_a, opcao_b, opcao_c, opcao_d, resp
 # RESULTADOS DE PROVAS
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# RESULTADOS DE PROVAS
+# ---------------------------------------------------------------------------
+
 def salvar_resultado_prova(aluno_id: str, prova_id: int, nota: float, aprovado: bool):
     sb = get_supabase_client()
     registro = {
@@ -239,6 +243,39 @@ def melhor_resultado(aluno_id: str, prova_id: int):
     )
     dados = resposta.data
     return dados[0] if dados else None
+
+
+def buscar_ultimo_resultado(aluno_id: str, prova_id: int):
+    """
+    Retorna a tentativa mais recente feita pelo aluno nesta prova,
+    independentemente de ele ter sido aprovado ou reprovado.
+    Usado para travar o formulário no 'provas.py'.
+    """
+    sb = get_supabase_client()
+    resposta = (
+        sb.table("resultados_provas")
+        .select("*")
+        .eq("aluno_id", aluno_id)
+        .eq("prova_id", prova_id)
+        .order("criado_em", desc=True)
+        .limit(1)
+        .execute()
+    )
+    dados = resposta.data
+    return dados[0] if dados else None
+
+
+def reabrir_prova_aluno(aluno_id: str, prova_id: int):
+    """
+    Remove todos os registros de resultado da prova para o aluno.
+    Usado pelo painel do Administrador após análise para liberar um novo envio.
+    """
+    sb = get_supabase_client()
+    sb.table("resultados_provas") \
+        .delete() \
+        .eq("aluno_id", aluno_id) \
+        .eq("prova_id", prova_id) \
+        .execute()
 
 
 # ---------------------------------------------------------------------------
