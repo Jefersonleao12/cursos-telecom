@@ -252,6 +252,9 @@ def buscar_ultimo_resultado(aluno_id: str, prova_id: int):
     dados = resposta.data
     return dados[0] if dados else None
 
+# Alias para compatibilidade com o módulo provas.py
+melhor_resultado = buscar_ultimo_resultado
+
 
 def reabrir_prova_aluno(aluno_id: str, prova_id: int):
     """Remove os registros de resultado da prova para permitir uma nova tentativa."""
