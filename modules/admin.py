@@ -17,6 +17,8 @@ from database.repositorio import (
     criar_prova,
     listar_perguntas,
     criar_pergunta,
+    listar_resultados_da_prova,
+    liberar_nova_tentativa,
     listar_todos_alunos,
     calcular_progresso_curso,
     contar_alunos_por_filial,
@@ -162,6 +164,46 @@ def tela_admin():
                         )
                         st.success("Pergunta adicionada com sucesso!")
                         st.rerun()
+
+                st.divider()
+                st.subheader("Tentativas dos alunos")
+                st.caption(
+                    "Depois de UMA tentativa, o aluno não pode refazer a avaliação sozinho. "
+                    "Se ele reprovou e pedir uma nova chance, libere aqui — vale só para a próxima tentativa dele."
+                )
+
+                todos_resultados = listar_resultados_da_prova(prova["id"])
+                if not todos_resultados:
+                    st.caption("Nenhum aluno fez esta avaliação ainda.")
+                else:
+                    # Mantém só a tentativa mais recente de cada aluno (a lista já
+                    # vem ordenada da mais nova para a mais antiga).
+                    mais_recente_por_aluno = {}
+                    for r in todos_resultados:
+                        mais_recente_por_aluno.setdefault(r["aluno_id"], r)
+
+                    nomes_alunos = {a["id"]: a["nome_completo"] for a in listar_todos_alunos()}
+
+                    for aluno_id, r in mais_recente_por_aluno.items():
+                        nome = nomes_alunos.get(aluno_id, "Aluno removido")
+                        with st.container(border=True):
+                            col_info, col_acao = st.columns([3, 1])
+                            with col_info:
+                                status = "✅ Aprovado" if r["aprovado"] else "❌ Reprovado"
+                                st.write(f"**{nome}** — {status} (nota {r['nota']:.1f})")
+                            with col_acao:
+                                if not r["aprovado"]:
+                                    if r.get("liberado_para_nova_tentativa"):
+                                        st.caption("🔓 Liberado — aguardando nova tentativa")
+                                    else:
+                                        if st.button(
+                                            "🔓 Liberar nova tentativa",
+                                            key=f"liberar_tentativa_{r['id']}",
+                                            use_container_width=True,
+                                        ):
+                                            liberar_nova_tentativa(r["id"])
+                                            st.success(f"Nova tentativa liberada para {nome}.")
+                                            st.rerun()
 
     # ---------------- ALUNOS ----------------
     with aba_alunos:
