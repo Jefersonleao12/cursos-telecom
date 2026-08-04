@@ -246,18 +246,13 @@ def melhor_resultado(aluno_id: str, prova_id: int):
 
 
 def buscar_ultimo_resultado(aluno_id: str, prova_id: int):
-    """
-    Retorna a tentativa mais recente feita pelo aluno nesta prova,
-    independentemente de ele ter sido aprovado ou reprovado.
-    Usado para travar o formulário no 'provas.py'.
-    """
     sb = get_supabase_client()
     resposta = (
         sb.table("resultados_provas")
         .select("*")
         .eq("aluno_id", aluno_id)
         .eq("prova_id", prova_id)
-        .order("criado_em", desc=True)
+        .order("created_at", desc=True)  # Ajustado de 'criado_em' para 'created_at'
         .limit(1)
         .execute()
     )
