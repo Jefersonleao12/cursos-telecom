@@ -257,7 +257,7 @@ def buscar_ultimo_resultado(aluno_id: str, prova_id: int):
         .select("*")
         .eq("aluno_id", aluno_id)
         .eq("prova_id", prova_id)
-        .order("criado_em", desc=True)
+        .order("id", desc=True)
         .limit(1)
         .execute()
     )
