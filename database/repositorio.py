@@ -252,7 +252,7 @@ def buscar_ultimo_resultado(aluno_id: str, prova_id: int):
         .select("*")
         .eq("aluno_id", aluno_id)
         .eq("prova_id", prova_id)
-        .order("created_at", desc=True)  # Ajustado de 'criado_em' para 'created_at'
+        .order("id", desc=True)  # Ajustado de 'criado_em' para 'created_at'
         .limit(1)
         .execute()
     )
