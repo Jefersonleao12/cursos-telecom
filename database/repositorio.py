@@ -151,7 +151,7 @@ def listar_aulas_concluidas_pelo_aluno(aluno_id: str):
     )
     return [item["aula_id"] for item in resposta.data]
 
-# Alias para compatibilidade com o módulo cursos.py
+# Alias de compatibilidade
 aulas_concluidas_do_aluno = listar_aulas_concluidas_pelo_aluno
 
 
@@ -252,7 +252,7 @@ def buscar_ultimo_resultado(aluno_id: str, prova_id: int):
     dados = resposta.data
     return dados[0] if dados else None
 
-# Alias para compatibilidade com o módulo provas.py
+# Alias de compatibilidade
 melhor_resultado = buscar_ultimo_resultado
 
 
@@ -260,6 +260,49 @@ def reabrir_prova_aluno(aluno_id: str, prova_id: int):
     """Remove os registros de resultado da prova para permitir uma nova tentativa."""
     sb = get_supabase_client()
     sb.table("resultados_provas").delete().eq("aluno_id", aluno_id).eq("prova_id", prova_id).execute()
+
+
+# ==========================================
+# CERTIFICADOS
+# ==========================================
+
+def buscar_certificado(aluno_id: str, curso_id: int):
+    """Busca o certificado emitido para o aluno em determinado curso."""
+    sb = get_supabase_client()
+    resposta = (
+        sb.table("certificados")
+        .select("*")
+        .eq("aluno_id", aluno_id)
+        .eq("curso_id", curso_id)
+        .execute()
+    )
+    dados = resposta.data
+    return dados[0] if dados else None
+
+
+def emitir_certificado(aluno_id: str, curso_id: int, codigo_validacao: str = None):
+    """Registra a emissão de um certificado no banco de dados."""
+    sb = get_supabase_client()
+    dados = {
+        "aluno_id": aluno_id,
+        "curso_id": curso_id,
+    }
+    if codigo_validacao:
+        dados["codigo_validacao"] = codigo_validacao
+    resposta = sb.table("certificados").insert(dados).execute()
+    return resposta.data[0] if resposta.data else None
+
+
+def listar_certificados_aluno(aluno_id: str):
+    """Lista todos os certificados obtidos por um aluno."""
+    sb = get_supabase_client()
+    resposta = (
+        sb.table("certificados")
+        .select("*, cursos(*)")
+        .eq("aluno_id", aluno_id)
+        .execute()
+    )
+    return resposta.data
 
 
 # ==========================================
@@ -278,7 +321,7 @@ def contar_alunos_por_filial():
     alunos = listar_todos_alunos()
     grupos = {}
     for aluno in alunos:
-        filial = aluno.get("empresa") or "Sem Filial Defina"
+        filial = aluno.get("empresa") or "Sem Filial Definida"
         if filial not in grupos:
             grupos[filial] = []
         grupos[filial].append(aluno)
