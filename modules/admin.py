@@ -1,16 +1,17 @@
 """
 Módulo de Administração.
 
-Permite que o instrutor/administrador cadastre cursos, aulas, provas e
-perguntas sem precisar mexer diretamente no banco de dados, além de
-acompanhar o progresso dos alunos e reabrir avaliações. Só é exibido para contas com
-is_admin = True (ver instruções no arquivo database/schema.sql).
+Permite que o instrutor/administrador cadastre, edite e exclua cursos,
+além de gerenciar aulas, provas, alunos, filiais, materiais, dúvidas e
+reabertura de avaliações. Só é exibido para contas com is_admin = True.
 """
 import streamlit as st
 
 from database.repositorio import (
     listar_cursos,
     criar_curso,
+    atualizar_curso,
+    excluir_curso,
     listar_aulas_do_curso,
     criar_aula,
     buscar_prova_do_curso,
@@ -44,13 +45,13 @@ def tela_admin():
         aba_reabrir,
     ) = st.tabs(
         [
-            "📚Cursos",
-            "👨‍🏫Aulas",
-            "📋Provas e Perguntas",
-            "👨‍🎓Alunos",
-            "🏫Filiais",
-            "🗂️Materiais",
-            "❓Dúvidas",
+            "Cursos",
+            "Aulas",
+            "Provas e Perguntas",
+            "Alunos",
+            "Filiais",
+            "Materiais",
+            "Dúvidas",
             "🔓 Reabrir Avaliações",
         ]
     )
@@ -59,9 +60,71 @@ def tela_admin():
     with aba_cursos:
         st.subheader("Cursos cadastrados")
         cursos_existentes = listar_cursos()
+
         if cursos_existentes:
             for curso in cursos_existentes:
-                st.write(f"**{curso['titulo']}** — Instrutor: {curso['instrutor']}")
+                with st.container(border=True):
+                    col_info, col_acoes = st.columns([3, 1])
+
+                    with col_info:
+                        st.write(
+                            f"**{curso['titulo']}** — Instrutor: {curso['instrutor']} "
+                            f"({curso.get('carga_horaria', 0)}h)"
+                        )
+                        if curso.get("descricao"):
+                            st.caption(curso["descricao"])
+
+                    with col_acoes:
+                        btn_editar = st.button(
+                            "✏️ Editar",
+                            key=f"btn_edit_curso_{curso['id']}",
+                            use_container_width=True,
+                        )
+                        btn_excluir = st.button(
+                            "🗑️ Excluir",
+                            key=f"btn_del_curso_{curso['id']}",
+                            use_container_width=True,
+                        )
+
+                    # Form de Edição (expande se clicar no botão Editar)
+                    if btn_editar:
+                        chave_edit = f"editando_curso_{curso['id']}"
+                        st.session_state[chave_edit] = not st.session_state.get(chave_edit, False)
+
+                    if st.session_state.get(f"editando_curso_{curso['id']}", False):
+                        with st.form(key=f"form_editar_curso_{curso['id']}"):
+                            st.markdown("##### Editar Curso")
+                            novo_titulo = st.text_input("Título do curso *", value=curso["titulo"])
+                            nova_desc = st.text_area("Descrição", value=curso.get("descricao") or "")
+                            novo_instrutor = st.text_input("Nome do instrutor *", value=curso["instrutor"])
+                            nova_carga = st.number_input(
+                                "Carga horária (horas)",
+                                min_value=1,
+                                value=int(curso.get("carga_horaria") or 8),
+                            )
+
+                            salvar_edit = st.form_submit_button("Salvar Alterações", type="primary")
+
+                            if salvar_edit:
+                                if not novo_titulo or not novo_instrutor:
+                                    st.warning("Preencha os campos obrigatórios (*).")
+                                else:
+                                    atualizar_curso(
+                                        curso["id"],
+                                        novo_titulo,
+                                        nova_desc,
+                                        novo_instrutor,
+                                        int(nova_carga),
+                                    )
+                                    st.session_state[f"editando_curso_{curso['id']}"] = False
+                                    st.success("Curso atualizado com sucesso!")
+                                    st.rerun()
+
+                    # Lógica de Exclusão
+                    if btn_excluir:
+                        excluir_curso(curso["id"])
+                        st.success(f"Curso '{curso['titulo']}' excluído com sucesso!")
+                        st.rerun()
         else:
             st.caption("Nenhum curso cadastrado ainda.")
 
@@ -89,7 +152,9 @@ def tela_admin():
             st.info("Cadastre um curso primeiro, na aba 'Cursos'.")
         else:
             opcoes_curso = {c["titulo"]: c["id"] for c in cursos}
-            titulo_escolhido = st.selectbox("Selecione o curso", list(opcoes_curso.keys()), key="sel_curso_aula")
+            titulo_escolhido = st.selectbox(
+                "Selecione o curso", list(opcoes_curso.keys()), key="sel_curso_aula"
+            )
             curso_id = opcoes_curso[titulo_escolhido]
 
             st.subheader("Aulas deste curso")
@@ -140,7 +205,10 @@ def tela_admin():
                     titulo_prova = st.text_input("Título da avaliação *", value="Avaliação Final")
                     nota_minima = st.number_input(
                         "Nota mínima para aprovação (0 a 10)",
-                        min_value=0.0, max_value=10.0, value=7.0, step=0.5,
+                        min_value=0.0,
+                        max_value=10.0,
+                        value=7.0,
+                        step=0.5,
                     )
                     criar_prova_btn = st.form_submit_button("Criar avaliação", type="primary")
                 if criar_prova_btn:
@@ -151,12 +219,16 @@ def tela_admin():
                         st.success("Avaliação criada! Agora adicione as perguntas abaixo.")
                         st.rerun()
             else:
-                st.success(f"Avaliação atual: **{prova['titulo']}** (nota mínima {prova['nota_minima']:.1f})")
+                st.success(
+                    f"Avaliação atual: **{prova['titulo']}** (nota mínima {prova['nota_minima']:.1f})"
+                )
 
                 perguntas = listar_perguntas(prova["id"])
                 st.write(f"**{len(perguntas)} pergunta(s) cadastrada(s)**")
                 for i, p in enumerate(perguntas, start=1):
-                    st.caption(f"{i}. {p['enunciado']} (resposta correta: {p['resposta_correta']})")
+                    st.caption(
+                        f"{i}. {p['enunciado']} (resposta correta: {p['resposta_correta']})"
+                    )
 
                 st.divider()
                 st.subheader("Adicionar pergunta")
@@ -167,7 +239,9 @@ def tela_admin():
                     opcao_c = st.text_input("Alternativa C *")
                     opcao_d = st.text_input("Alternativa D *")
                     correta = st.selectbox("Alternativa correta *", ["A", "B", "C", "D"])
-                    ordem_pergunta = st.number_input("Ordem", min_value=1, value=len(perguntas) + 1)
+                    ordem_pergunta = st.number_input(
+                        "Ordem", min_value=1, value=len(perguntas) + 1
+                    )
                     salvar_pergunta = st.form_submit_button("Salvar pergunta", type="primary")
 
                 if salvar_pergunta:
@@ -176,8 +250,14 @@ def tela_admin():
                         st.warning("Preencha todos os campos obrigatórios (*).")
                     else:
                         criar_pergunta(
-                            prova["id"], enunciado, opcao_a, opcao_b, opcao_c, opcao_d,
-                            correta, int(ordem_pergunta),
+                            prova["id"],
+                            enunciado,
+                            opcao_a,
+                            opcao_b,
+                            opcao_c,
+                            opcao_d,
+                            correta,
+                            int(ordem_pergunta),
                         )
                         st.success("Pergunta adicionada com sucesso!")
                         st.rerun()
@@ -193,7 +273,9 @@ def tela_admin():
             for aluno in alunos:
                 with st.container(border=True):
                     st.write(f"**{aluno['nome_completo']}** — {aluno['email']}")
-                    st.caption(f"Empresa: {aluno.get('empresa') or '-'} · Cargo: {aluno.get('cargo') or '-'}")
+                    st.caption(
+                        f"Empresa: {aluno.get('empresa') or '-'} · Cargo: {aluno.get('cargo') or '-'}"
+                    )
                     if cursos:
                         linhas_progresso = []
                         for curso in cursos:
@@ -214,7 +296,6 @@ def tela_admin():
             total_alunos = sum(len(lista) for lista in grupos.values())
             st.caption(f"Total geral: {total_alunos} aluno(s) em {len(grupos)} filial(is).")
 
-            # Resumo rápido: quantidade por filial, em colunas
             colunas = st.columns(3)
             for i, (nome_filial, lista_alunos) in enumerate(grupos.items()):
                 with colunas[i % 3]:
@@ -222,7 +303,6 @@ def tela_admin():
 
             st.divider()
 
-            # Detalhe: lista de nomes dentro de cada filial (em expansores)
             for nome_filial, lista_alunos in grupos.items():
                 with st.expander(f"📍 {nome_filial} — {len(lista_alunos)} aluno(s)"):
                     for aluno in lista_alunos:
@@ -241,7 +321,11 @@ def tela_admin():
                         st.write(f"**{m['titulo']}** — categoria: {m.get('categoria') or '-'}")
                         st.caption(f"Arquivo original: {m['nome_arquivo']}")
                     with col_excluir:
-                        if st.button("🗑️ Excluir", key=f"excluir_material_{m['id']}", use_container_width=True):
+                        if st.button(
+                            "🗑️ Excluir",
+                            key=f"excluir_material_{m['id']}",
+                            use_container_width=True,
+                        ):
                             excluir_material(m["id"], m["caminho_storage"])
                             st.success("Material excluído.")
                             st.rerun()
@@ -269,14 +353,19 @@ def tela_admin():
 
         if enviar:
             categoria_final = (
-                nova_categoria.strip() if categoria_opcao == "+ Nova categoria..." else categoria_opcao
+                nova_categoria.strip()
+                if categoria_opcao == "+ Nova categoria..."
+                else categoria_opcao
             )
             if not titulo_material or not categoria_final or arquivo is None:
                 st.warning("Preencha todos os campos obrigatórios (*) e escolha um arquivo.")
             else:
                 enviar_material(
-                    titulo_material, descricao_material, categoria_final,
-                    arquivo.getvalue(), arquivo.name,
+                    titulo_material,
+                    descricao_material,
+                    categoria_final,
+                    arquivo.getvalue(),
+                    arquivo.name,
                 )
                 st.success(f"Material '{titulo_material}' enviado com sucesso!")
                 st.rerun()
@@ -289,7 +378,11 @@ def tela_admin():
         duvidas = listar_duvidas(apenas_nao_respondidas=apenas_pendentes)
 
         if not duvidas:
-            st.info("Nenhuma dúvida pendente." if apenas_pendentes else "Nenhuma dúvida registrada ainda.")
+            st.info(
+                "Nenhuma dúvida pendente."
+                if apenas_pendentes
+                else "Nenhuma dúvida registrada ainda."
+            )
         else:
             for d in duvidas:
                 with st.container(border=True):
@@ -300,7 +393,11 @@ def tela_admin():
                         st.caption(f"Enviada em: {d['criado_em'][:16].replace('T', ' ')}")
                     with col_acao:
                         if not d["respondida"]:
-                            if st.button("✅ Marcar respondida", key=f"resp_duvida_{d['id']}", use_container_width=True):
+                            if st.button(
+                                "✅ Marcar respondida",
+                                key=f"resp_duvida_{d['id']}",
+                                use_container_width=True,
+                            ):
                                 marcar_duvida_respondida(d["id"])
                                 st.rerun()
                         else:
@@ -320,11 +417,15 @@ def tela_admin():
             st.info("Nenhum curso cadastrado.")
         else:
             opcoes_alunos = {f"{a['nome_completo']} ({a['email']})": a["id"] for a in alunos}
-            aluno_selecionado = st.selectbox("Selecione o Aluno:", list(opcoes_alunos.keys()), key="sel_aluno_reabrir")
+            aluno_selecionado = st.selectbox(
+                "Selecione o Aluno:", list(opcoes_alunos.keys()), key="sel_aluno_reabrir"
+            )
             aluno_id = opcoes_alunos[aluno_selecionado]
 
             opcoes_cursos = {c["titulo"]: c["id"] for c in cursos}
-            curso_selecionado = st.selectbox("Selecione o Curso da Prova:", list(opcoes_cursos.keys()), key="sel_curso_reabrir")
+            curso_selecionado = st.selectbox(
+                "Selecione o Curso da Prova:", list(opcoes_cursos.keys()), key="sel_curso_reabrir"
+            )
             curso_id = opcoes_cursos[curso_selecionado]
 
             prova = buscar_prova_do_curso(curso_id)
