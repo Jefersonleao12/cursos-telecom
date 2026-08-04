@@ -12,7 +12,7 @@ from database.repositorio import (
     buscar_prova_do_curso,
     listar_perguntas,
     salvar_resultado_prova,
-    melhor_resultado,
+    ultimo_resultado,
     calcular_progresso_curso,
 )
 
@@ -43,11 +43,23 @@ def tela_prova():
         st.info("Esta avaliação ainda não possui perguntas cadastradas.")
         return
 
-    resultado_anterior = melhor_resultado(aluno_id, prova["id"])
+    resultado_anterior = ultimo_resultado(aluno_id, prova["id"])
     if resultado_anterior and resultado_anterior["aprovado"]:
         st.success(
             f"Você já foi aprovado nesta avaliação com nota "
             f"{resultado_anterior['nota']:.1f}. Vá até 'Meus Certificados' para baixar o seu certificado."
+        )
+        return
+
+    if resultado_anterior and not resultado_anterior.get("liberado_para_nova_tentativa"):
+        st.error(
+            f"Você já enviou esta avaliação e não atingiu a nota mínima "
+            f"(sua nota: {resultado_anterior['nota']:.1f} de {prova['nota_minima']:.1f} necessários)."
+        )
+        st.info(
+            "A nota fica registrada e não pode ser refeita livremente. "
+            "Se quiser uma nova chance, entre em contato com a equipe responsável — "
+            "após uma análise, a avaliação pode ser liberada novamente para você."
         )
         return
 
