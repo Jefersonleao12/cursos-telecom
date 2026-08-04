@@ -241,6 +241,51 @@ def melhor_resultado(aluno_id: str, prova_id: int):
     return dados[0] if dados else None
 
 
+def ultimo_resultado(aluno_id: str, prova_id: int):
+    """
+    Retorna a tentativa MAIS RECENTE do aluno nesta prova (não necessariamente
+    a de maior nota). É essa tentativa que decide se ele pode ou não tentar de
+    novo: uma vez enviada, a nota fica travada até um admin liberar.
+    """
+    sb = get_supabase_client()
+    resposta = (
+        sb.table("resultados_provas")
+        .select("*")
+        .eq("aluno_id", aluno_id)
+        .eq("prova_id", prova_id)
+        .order("realizada_em", desc=True)
+        .limit(1)
+        .execute()
+    )
+    dados = resposta.data
+    return dados[0] if dados else None
+
+
+def listar_resultados_da_prova(prova_id: int):
+    """Lista todas as tentativas desta prova (todos os alunos), mais recentes primeiro."""
+    sb = get_supabase_client()
+    resposta = (
+        sb.table("resultados_provas")
+        .select("*")
+        .eq("prova_id", prova_id)
+        .order("realizada_em", desc=True)
+        .execute()
+    )
+    return resposta.data
+
+
+def liberar_nova_tentativa(resultado_id):
+    """
+    Usado pelo admin: libera para o aluno refazer a prova mesmo já tendo um
+    resultado reprovado salvo. Essa liberação vale só para a PRÓXIMA
+    tentativa — depois que ele enviar de novo, volta a ficar travado.
+    """
+    sb = get_supabase_client()
+    sb.table("resultados_provas").update(
+        {"liberado_para_nova_tentativa": True}
+    ).eq("id", resultado_id).execute()
+
+
 # ---------------------------------------------------------------------------
 # CERTIFICADOS
 # ---------------------------------------------------------------------------
