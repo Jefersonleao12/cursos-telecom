@@ -2,8 +2,8 @@
 Módulo de Provas/Avaliações.
 
 Aplica o questionário de múltipla escolha, calcula a nota automaticamente
-(0 a 10, proporcional aos acertos) e impede re-tentativas automáticas.
-Liberativo apenas via intervenção administrativa/suporte.
+(0 a 10, proporcional aos acertos) e libera a emissão do certificado em
+caso de aprovação.
 """
 import streamlit as st
 
@@ -14,9 +14,6 @@ from database.repositorio import (
     salvar_resultado_prova,
     melhor_resultado,
     calcular_progresso_curso,
-    # Importante: certifique-se de que essa função exista no repositorio.py
-    # para buscar o último resultado do aluno (seja aprovado ou reprovado)
-    buscar_ultimo_resultado, 
 )
 
 
@@ -46,31 +43,13 @@ def tela_prova():
         st.info("Esta avaliação ainda não possui perguntas cadastradas.")
         return
 
-    # 1. Verifica se já existe QUALQUER resultado anterior gravado para este aluno nesta prova
-    # (Pode usar buscar_ultimo_resultado ou adaptar para verificar se há registro)
-    tentativa_anterior = buscar_ultimo_resultado(aluno_id, prova["id"])
-
-    # Se já existir uma tentativa gravada, trava a avaliação
-    ja_respondeu = tentativa_anterior is not None
-
-    if ja_respondeu:
-        nota_anterior = tentativa_anterior["nota"]
-        aprovado_anterior = tentativa_anterior["aprovado"]
-
-        if aprovado_anterior:
-            st.success(
-                f"🎉 Você já foi aprovado nesta avaliação com nota {nota_anterior:.1f}. "
-                f"Vá até 'Meus Certificados' para baixar o seu certificado."
-            )
-        else:
-            st.error(
-                f"❌ Você já realizou esta avaliação e obteve a nota **{nota_anterior:.1f}** "
-                f"(Nota mínima necessária: {prova['nota_minima']:.1f})."
-            )
-            st.info(
-                "Sua avaliação foi finalizada e não é possível alterar as respostas. "
-                "Entre em contato com o suporte/instrutor para análise detalhada do seu caso e solicitação de nova liberação."
-            )
+    resultado_anterior = melhor_resultado(aluno_id, prova["id"])
+    if resultado_anterior and resultado_anterior["aprovado"]:
+        st.success(
+            f"Você já foi aprovado nesta avaliação com nota "
+            f"{resultado_anterior['nota']:.1f}. Vá até 'Meus Certificados' para baixar o seu certificado."
+        )
+        return
 
     st.caption(
         f"A avaliação tem {len(perguntas)} pergunta(s). "
@@ -78,8 +57,6 @@ def tela_prova():
     )
 
     respostas_aluno = {}
-    
-    # Form/Campos desabilitados se já respondeu (disabled=ja_respondeu)
     with st.form("form_prova"):
         for i, pergunta in enumerate(perguntas, start=1):
             st.markdown(f"**{i}. {pergunta['enunciado']}**")
@@ -95,19 +72,13 @@ def tela_prova():
                 format_func=lambda letra, opcoes=opcoes: f"{letra}) {opcoes[letra]}",
                 key=f"pergunta_{pergunta['id']}",
                 index=None,
-                disabled=ja_respondeu,  # TRAVA O CAMPO
             )
             respostas_aluno[pergunta["id"]] = escolha
             st.write("")
 
-        enviar = st.form_submit_button(
-            "Enviar Avaliação", 
-            type="primary", 
-            use_container_width=True,
-            disabled=ja_respondeu  # TRAVA O BOTÃO DE ENVIO
-        )
+        enviar = st.form_submit_button("Enviar Avaliação", type="primary", use_container_width=True)
 
-    if enviar and not ja_respondeu:
+    if enviar:
         if any(resposta is None for resposta in respostas_aluno.values()):
             st.warning("Responda todas as perguntas antes de enviar.")
             return
@@ -116,11 +87,10 @@ def tela_prova():
             1 for pergunta in perguntas
             if respostas_aluno[pergunta["id"]] == pergunta["resposta_correta"]
         )
-        
+        # Cálculo automático da nota, numa escala de 0 a 10
         nota = round((acertos / len(perguntas)) * 10, 1)
         aprovado = nota >= prova["nota_minima"]
 
-        # Grava a tentativa no banco de dados
         salvar_resultado_prova(aluno_id, prova["id"], nota, aprovado)
 
         st.divider()
@@ -133,8 +103,5 @@ def tela_prova():
         else:
             st.error(
                 f"Você não atingiu a nota mínima ({prova['nota_minima']:.1f}). "
-                f"Sua resposta foi registrada. Entre em contato com a administração para análise."
+                f"Revise as aulas e tente novamente."
             )
-        
-        # Atualiza a página para aplicar a trava imediatamente
-        st.rerun()
