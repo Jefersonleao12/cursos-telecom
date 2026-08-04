@@ -27,16 +27,22 @@ def tela_lista_cursos():
 
     aluno_id = st.session_state["aluno_id"]
 
-    for curso in cursos:
+for curso in cursos:
         progresso = calcular_progresso_curso(aluno_id, curso["id"])
         with st.container(border=True):
-            col_info, col_botao = st.columns([4, 1])
+            col_info, col_botao = st.columns([3, 1])
+            
             with col_info:
                 st.markdown(f"### {curso['titulo']}")
                 st.caption(f"Instrutor: {curso['instrutor']}")
+                
+                # Descrição minimizada por padrão
                 if curso.get("descricao"):
-                    st.write(curso["descricao"])
+                    with st.expander("📖 Ver descrição do curso", expanded=False):
+                        st.write(curso["descricao"])
+                
                 st.progress(progresso, text=f"{int(progresso * 100)}% concluído")
+                
             with col_botao:
                 st.write("")
                 st.write("")
@@ -44,13 +50,6 @@ def tela_lista_cursos():
                     st.session_state["curso_atual_id"] = curso["id"]
                     st.session_state["pagina_atual"] = "detalhe_curso"
                     st.rerun()
-                    # Descrição minimizada por padrão
-                    if curso.get("descricao"):
-                        with st.expander("📖 Ver descrição do curso", expanded=False):
-                            st.write(curso["descricao"])
-                    # Progresso do curso
-                    st.caption(f"{int(progresso * 100)}% concluído")
-                    st.progress(progresso)
 
 def tela_detalhe_curso():
     curso_id = st.session_state.get("curso_atual_id")
