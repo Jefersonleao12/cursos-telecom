@@ -26,11 +26,20 @@ def tela_lista_cursos():
         return
 
     aluno_id = st.session_state["aluno_id"]
+def tela_lista_cursos():
+    st.title("📚 Meus Cursos")
 
-for curso in cursos:
+    cursos = listar_cursos()
+    if not cursos:
+        st.info("Nenhum curso disponível no momento. Volte em breve!")
+        return
+
+    aluno_id = st.session_state["aluno_id"]
+
+    for curso in cursos:
         progresso = calcular_progresso_curso(aluno_id, curso["id"])
         with st.container(border=True):
-            col_info, col_botao = st.columns([3, 1])
+            col_info, col_botao = st.columns([4, 1])
             
             with col_info:
                 st.markdown(f"### {curso['titulo']}")
@@ -50,7 +59,7 @@ for curso in cursos:
                     st.session_state["curso_atual_id"] = curso["id"]
                     st.session_state["pagina_atual"] = "detalhe_curso"
                     st.rerun()
-
+                    
 def tela_detalhe_curso():
     curso_id = st.session_state.get("curso_atual_id")
     curso = buscar_curso(curso_id)
