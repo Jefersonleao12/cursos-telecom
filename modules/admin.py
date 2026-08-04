@@ -162,7 +162,21 @@ def tela_admin():
                         )
                         st.success("Pergunta adicionada com sucesso!")
                         st.rerun()
-
+def resetar_tentativa_aluno(id_usuario, id_prova):
+    """
+    Remove o registro da avaliação do aluno no Supabase, 
+    permitindo que ele faça a prova novamente do zero.
+    """
+    try:
+        supabase.table("tentativas_provas") \
+            .delete() \
+            .eq("id_usuario", id_usuario) \
+            .eq("id_prova", id_prova) \
+            .execute()
+        return True
+    except Exception as e:
+        print(f"Erro ao resetar prova: {e}")
+        return False
     # ---------------- ALUNOS ----------------
     with aba_alunos:
         st.subheader("Alunos cadastrados")
