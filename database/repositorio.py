@@ -151,6 +151,9 @@ def listar_aulas_concluidas_pelo_aluno(aluno_id: str):
     )
     return [item["aula_id"] for item in resposta.data]
 
+# Alias para compatibilidade com o módulo cursos.py
+aulas_concluidas_do_aluno = listar_aulas_concluidas_pelo_aluno
+
 
 def calcular_progresso_curso(aluno_id: str, curso_id: int) -> float:
     """Calcula o percentual (0.0 a 1.0) de conclusão do curso pelo aluno."""
