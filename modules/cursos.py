@@ -5,6 +5,8 @@ Mostra a lista de cursos disponíveis, o player de vídeo de cada aula
 (usando o próprio st.video, que já suporta links do YouTube) e a barra
 de progresso do curso.
 """
+import time
+
 import streamlit as st
 
 from database.repositorio import (
@@ -14,18 +16,10 @@ from database.repositorio import (
     aulas_concluidas_do_aluno,
     calcular_progresso_curso,
     marcar_aula_concluida,
+    registrar_inicio_curso,
 )
 
 
-def tela_lista_cursos():
-    st.title("📚 Meus Cursos")
-
-    cursos = listar_cursos()
-    if not cursos:
-        st.info("Nenhum curso disponível no momento. Volte em breve!")
-        return
-
-    aluno_id = st.session_state["aluno_id"]
 def tela_lista_cursos():
     st.title("📚 Meus Cursos")
 
@@ -40,18 +34,12 @@ def tela_lista_cursos():
         progresso = calcular_progresso_curso(aluno_id, curso["id"])
         with st.container(border=True):
             col_info, col_botao = st.columns([4, 1])
-            
             with col_info:
                 st.markdown(f"### {curso['titulo']}")
                 st.caption(f"Instrutor: {curso['instrutor']}")
-                
-                # Descrição minimizada por padrão
                 if curso.get("descricao"):
-                    with st.expander("📖 Ver descrição do curso", expanded=False):
-                        st.write(curso["descricao"])
-                
+                    st.write(curso["descricao"])
                 st.progress(progresso, text=f"{int(progresso * 100)}% concluído")
-                
             with col_botao:
                 st.write("")
                 st.write("")
@@ -59,7 +47,8 @@ def tela_lista_cursos():
                     st.session_state["curso_atual_id"] = curso["id"]
                     st.session_state["pagina_atual"] = "detalhe_curso"
                     st.rerun()
-                    
+
+
 def tela_detalhe_curso():
     curso_id = st.session_state.get("curso_atual_id")
     curso = buscar_curso(curso_id)
@@ -84,6 +73,12 @@ def tela_detalhe_curso():
         st.info("Este curso ainda não possui aulas cadastradas.")
         return
 
+    # Registra (uma única vez) o instante em que o aluno começou este curso,
+    # usado depois para calcular quanto tempo ele levou para concluir.
+    if not st.session_state.get(f"inicio_registrado_curso_{curso_id}"):
+        registrar_inicio_curso(aluno_id, curso_id)
+        st.session_state[f"inicio_registrado_curso_{curso_id}"] = True
+
     concluidas = set(aulas_concluidas_do_aluno(aluno_id, curso_id))
     progresso = len(concluidas) / len(aulas)
     st.progress(progresso, text=f"Progresso do curso: {int(progresso * 100)}%")
@@ -98,9 +93,35 @@ def tela_detalhe_curso():
             if aula_concluida:
                 st.success("Você já concluiu esta aula.")
             else:
-                if st.button("Marcar aula como concluída", key=f"concluir_{aula['id']}"):
-                    marcar_aula_concluida(aluno_id, aula["id"])
-                    st.rerun()
+                # Trava simples: exige que um tempo mínimo (baseado na duração
+                # cadastrada da aula) tenha passado desde que o aluno abriu o
+                # vídeo, antes de liberar o botão de concluir. Não é uma prova
+                # cabal de que ele assistiu (não temos esse controle com um
+                # link do YouTube), mas evita o "clique instantâneo" que
+                # marcava a aula como concluída sem sequer abrir o vídeo.
+                chave_abertura = f"abertura_aula_{aula['id']}"
+                if chave_abertura not in st.session_state:
+                    st.session_state[chave_abertura] = time.time()
+
+                duracao_min = aula.get("duracao_minutos") or 0
+                segundos_exigidos = int(duracao_min * 60 * 0.9)  # 90% da duração cadastrada
+                segundos_passados = int(time.time() - st.session_state[chave_abertura])
+
+                if segundos_exigidos > 0 and segundos_passados < segundos_exigidos:
+                    faltam = segundos_exigidos - segundos_passados
+                    minutos_faltam = faltam // 60 + 1
+                    st.button(
+                        f"Marcar aula como concluída (assista mais ~{minutos_faltam} min)",
+                        key=f"concluir_{aula['id']}",
+                        disabled=True,
+                        use_container_width=True,
+                    )
+                    if st.button("🔄 Já assisti, verificar novamente", key=f"verificar_{aula['id']}"):
+                        st.rerun()
+                else:
+                    if st.button("Marcar aula como concluída", key=f"concluir_{aula['id']}", type="primary"):
+                        marcar_aula_concluida(aluno_id, aula["id"])
+                        st.rerun()
 
     st.divider()
     if progresso >= 1.0:
