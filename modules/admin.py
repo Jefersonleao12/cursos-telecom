@@ -7,12 +7,17 @@ acompanhar o progresso dos alunos. Só é exibido para contas com
 is_admin = True (ver instruções no arquivo database/schema.sql).
 """
 import streamlit as st
+from datetime import datetime
 
 from database.repositorio import (
     listar_cursos,
     criar_curso,
+    editar_curso,
+    excluir_curso,
     listar_aulas_do_curso,
     criar_aula,
+    editar_aula,
+    excluir_aula,
     buscar_prova_do_curso,
     criar_prova,
     listar_perguntas,
@@ -22,13 +27,28 @@ from database.repositorio import (
     listar_todos_alunos,
     calcular_progresso_curso,
     contar_alunos_por_filial,
+    obter_tempos_curso,
     listar_materiais,
     listar_categorias_materiais,
     enviar_material,
     excluir_material,
+    editar_material,
     listar_duvidas,
     marcar_duvida_respondida,
 )
+
+
+def _formatar_duracao(segundos: float) -> str:
+    """Converte segundos em um texto curto tipo '2d 3h', '4h 12min' ou '18min'."""
+    segundos = int(segundos)
+    dias, resto = divmod(segundos, 86400)
+    horas, resto = divmod(resto, 3600)
+    minutos, _ = divmod(resto, 60)
+    if dias > 0:
+        return f"{dias}d {horas}h"
+    if horas > 0:
+        return f"{horas}h {minutos}min"
+    return f"{minutos}min"
 
 
 def tela_admin():
@@ -44,7 +64,64 @@ def tela_admin():
         cursos_existentes = listar_cursos()
         if cursos_existentes:
             for curso in cursos_existentes:
-                st.write(f"**{curso['titulo']}** — Instrutor: {curso['instrutor']}")
+                with st.container(border=True):
+                    col_info, col_editar, col_excluir = st.columns([3, 1, 1])
+                    with col_info:
+                        st.write(f"**{curso['titulo']}** — Instrutor: {curso['instrutor']}")
+                    with col_editar:
+                        if st.button("✏️ Editar", key=f"editar_curso_btn_{curso['id']}", use_container_width=True):
+                            st.session_state["curso_em_edicao"] = curso["id"]
+                            st.rerun()
+                    with col_excluir:
+                        if st.button("🗑️ Excluir", key=f"excluir_curso_btn_{curso['id']}", use_container_width=True):
+                            st.session_state["curso_para_excluir"] = curso["id"]
+                            st.rerun()
+
+                    # Confirmação de exclusão (evita apagar um curso sem querer,
+                    # já que isso apaga junto aulas, provas e resultados dele).
+                    if st.session_state.get("curso_para_excluir") == curso["id"]:
+                        st.warning(
+                            f"Tem certeza que quer excluir **{curso['titulo']}**? "
+                            f"Isso apaga também as aulas, a prova e os resultados desse curso. Essa ação não pode ser desfeita."
+                        )
+                        col_sim, col_nao = st.columns(2)
+                        with col_sim:
+                            if st.button("Sim, excluir", key=f"confirma_excluir_curso_{curso['id']}", type="primary", use_container_width=True):
+                                excluir_curso(curso["id"])
+                                st.session_state.pop("curso_para_excluir", None)
+                                st.success("Curso excluído.")
+                                st.rerun()
+                        with col_nao:
+                            if st.button("Cancelar", key=f"cancela_excluir_curso_{curso['id']}", use_container_width=True):
+                                st.session_state.pop("curso_para_excluir", None)
+                                st.rerun()
+
+                    # Formulário de edição (aparece só para o curso selecionado acima)
+                    if st.session_state.get("curso_em_edicao") == curso["id"]:
+                        with st.form(f"form_editar_curso_{curso['id']}"):
+                            novo_titulo = st.text_input("Título do curso *", value=curso["titulo"])
+                            nova_descricao = st.text_area("Descrição", value=curso.get("descricao") or "")
+                            novo_instrutor = st.text_input("Nome do instrutor *", value=curso["instrutor"])
+                            nova_carga = st.number_input(
+                                "Carga horária (horas)", min_value=1, value=curso.get("carga_horaria") or 8
+                            )
+                            col_salvar, col_cancelar = st.columns(2)
+                            with col_salvar:
+                                salvar_edicao = st.form_submit_button("Salvar alterações", type="primary", use_container_width=True)
+                            with col_cancelar:
+                                cancelar_edicao = st.form_submit_button("Cancelar", use_container_width=True)
+
+                        if salvar_edicao:
+                            if not novo_titulo or not novo_instrutor:
+                                st.warning("Preencha os campos obrigatórios (*).")
+                            else:
+                                editar_curso(curso["id"], novo_titulo, nova_descricao, novo_instrutor, int(nova_carga))
+                                st.session_state.pop("curso_em_edicao", None)
+                                st.success("Curso atualizado.")
+                                st.rerun()
+                        if cancelar_edicao:
+                            st.session_state.pop("curso_em_edicao", None)
+                            st.rerun()
         else:
             st.caption("Nenhum curso cadastrado ainda.")
 
@@ -79,7 +156,46 @@ def tela_admin():
             aulas = listar_aulas_do_curso(curso_id)
             if aulas:
                 for aula in aulas:
-                    st.write(f"{aula['ordem']}. {aula['titulo']} — {aula['url_video']}")
+                    with st.container(border=True):
+                        col_info, col_editar, col_excluir = st.columns([3, 1, 1])
+                        with col_info:
+                            st.write(f"**{aula['ordem']}. {aula['titulo']}**")
+                            st.caption(aula["url_video"])
+                        with col_editar:
+                            if st.button("✏️ Editar", key=f"editar_aula_btn_{aula['id']}", use_container_width=True):
+                                st.session_state["aula_em_edicao"] = aula["id"]
+                                st.rerun()
+                        with col_excluir:
+                            if st.button("🗑️ Excluir", key=f"excluir_aula_btn_{aula['id']}", use_container_width=True):
+                                excluir_aula(aula["id"])
+                                st.success("Aula excluída.")
+                                st.rerun()
+
+                        if st.session_state.get("aula_em_edicao") == aula["id"]:
+                            with st.form(f"form_editar_aula_{aula['id']}"):
+                                novo_titulo_aula = st.text_input("Título da aula *", value=aula["titulo"])
+                                novo_url = st.text_input("Link do vídeo *", value=aula["url_video"])
+                                nova_ordem = st.number_input("Ordem de exibição", min_value=1, value=aula["ordem"])
+                                nova_duracao = st.number_input(
+                                    "Duração (minutos)", min_value=0, value=aula.get("duracao_minutos") or 0
+                                )
+                                col_salvar, col_cancelar = st.columns(2)
+                                with col_salvar:
+                                    salvar_edicao_aula = st.form_submit_button("Salvar alterações", type="primary", use_container_width=True)
+                                with col_cancelar:
+                                    cancelar_edicao_aula = st.form_submit_button("Cancelar", use_container_width=True)
+
+                            if salvar_edicao_aula:
+                                if not novo_titulo_aula or not novo_url:
+                                    st.warning("Preencha os campos obrigatórios (*).")
+                                else:
+                                    editar_aula(aula["id"], novo_titulo_aula, novo_url, int(nova_ordem), int(nova_duracao))
+                                    st.session_state.pop("aula_em_edicao", None)
+                                    st.success("Aula atualizada.")
+                                    st.rerun()
+                            if cancelar_edicao_aula:
+                                st.session_state.pop("aula_em_edicao", None)
+                                st.rerun()
             else:
                 st.caption("Nenhuma aula cadastrada ainda.")
 
@@ -191,6 +307,8 @@ def tela_admin():
                             with col_info:
                                 status = "✅ Aprovado" if r["aprovado"] else "❌ Reprovado"
                                 st.write(f"**{nome}** — {status} (nota {r['nota']:.1f})")
+                                if r.get("tempo_gasto_segundos"):
+                                    st.caption(f"Tempo gasto na prova: {_formatar_duracao(r['tempo_gasto_segundos'])}")
                             with col_acao:
                                 if not r["aprovado"]:
                                     if r.get("liberado_para_nova_tentativa"):
@@ -218,13 +336,19 @@ def tela_admin():
                     st.write(f"**{aluno['nome_completo']}** — {aluno['email']}")
                     st.caption(f"Empresa: {aluno.get('empresa') or '-'} · Cargo: {aluno.get('cargo') or '-'}")
                     if cursos:
-                        linhas_progresso = []
                         for curso in cursos:
                             p = calcular_progresso_curso(aluno["id"], curso["id"])
-                            if p > 0:
-                                linhas_progresso.append(f"{curso['titulo']}: {int(p * 100)}%")
-                        if linhas_progresso:
-                            st.caption(" · ".join(linhas_progresso))
+                            if p <= 0:
+                                continue
+                            linha = f"**{curso['titulo']}**: {int(p * 100)}%"
+                            tempos = obter_tempos_curso(aluno["id"], curso["id"])
+                            if tempos and tempos.get("finalizado_em"):
+                                inicio = datetime.fromisoformat(tempos["iniciado_em"])
+                                fim = datetime.fromisoformat(tempos["finalizado_em"])
+                                linha += f" · concluído em {_formatar_duracao((fim - inicio).total_seconds())}"
+                            elif tempos:
+                                linha += " · em andamento"
+                            st.caption(linha)
 
     # ---------------- FILIAIS ----------------
     with aba_filiais:
@@ -259,14 +383,42 @@ def tela_admin():
         if materiais:
             for m in materiais:
                 with st.container(border=True):
-                    col_info, col_excluir = st.columns([4, 1])
+                    col_info, col_editar, col_excluir = st.columns([3, 1, 1])
                     with col_info:
                         st.write(f"**{m['titulo']}** — categoria: {m.get('categoria') or '-'}")
                         st.caption(f"Arquivo original: {m['nome_arquivo']}")
+                    with col_editar:
+                        if st.button("✏️ Editar", key=f"editar_material_btn_{m['id']}", use_container_width=True):
+                            st.session_state["material_em_edicao"] = m["id"]
+                            st.rerun()
                     with col_excluir:
                         if st.button("🗑️ Excluir", key=f"excluir_material_{m['id']}", use_container_width=True):
                             excluir_material(m["id"], m["caminho_storage"])
                             st.success("Material excluído.")
+                            st.rerun()
+
+                    if st.session_state.get("material_em_edicao") == m["id"]:
+                        with st.form(f"form_editar_material_{m['id']}"):
+                            novo_titulo_material = st.text_input("Título *", value=m["titulo"])
+                            nova_descricao_material = st.text_area("Descrição", value=m.get("descricao") or "")
+                            nova_categoria_material = st.text_input("Categoria *", value=m.get("categoria") or "")
+                            st.caption("O arquivo em si não muda aqui — exclua e suba de novo se precisar trocar o arquivo.")
+                            col_salvar, col_cancelar = st.columns(2)
+                            with col_salvar:
+                                salvar_edicao_material = st.form_submit_button("Salvar alterações", type="primary", use_container_width=True)
+                            with col_cancelar:
+                                cancelar_edicao_material = st.form_submit_button("Cancelar", use_container_width=True)
+
+                        if salvar_edicao_material:
+                            if not novo_titulo_material or not nova_categoria_material:
+                                st.warning("Preencha os campos obrigatórios (*).")
+                            else:
+                                editar_material(m["id"], novo_titulo_material, nova_descricao_material, nova_categoria_material)
+                                st.session_state.pop("material_em_edicao", None)
+                                st.success("Material atualizado.")
+                                st.rerun()
+                        if cancelar_edicao_material:
+                            st.session_state.pop("material_em_edicao", None)
                             st.rerun()
         else:
             st.caption("Nenhum material cadastrado ainda.")
