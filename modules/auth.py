@@ -50,7 +50,7 @@ def tela_login():
     with st.form("form_login", clear_on_submit=False):
         email = st.text_input("E-mail")
         senha = st.text_input("Senha", type="password")
-        entrar = st.form_submit_button("Entrar", use_container_width=True, type="primary")
+        entrar = st.form_submit_button("Entrar", width="stretch", type="primary")
 
     if entrar:
         if not email or not senha:
@@ -70,7 +70,7 @@ def tela_login():
 
     st.divider()
     st.caption("Ainda não tem uma conta?")
-    if st.button("Criar cadastro", use_container_width=True):
+    if st.button("Criar cadastro", width="stretch"):
         st.session_state["pagina_auth"] = "cadastro"
         st.rerun()
 
@@ -86,7 +86,7 @@ def tela_cadastro():
         filial = st.selectbox("Filial (cidade) *", options=[""] + FILIAIS, format_func=lambda v: "Selecione..." if v == "" else v)
         senha = st.text_input("Senha *", type="password")
         confirmar_senha = st.text_input("Confirmar senha *", type="password")
-        cadastrar = st.form_submit_button("Cadastrar", use_container_width=True, type="primary")
+        cadastrar = st.form_submit_button("Cadastrar", width="stretch", type="primary")
 
     if cadastrar:
         if not nome or not email or not senha:
