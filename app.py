@@ -8,6 +8,10 @@ Responsável por:
 
 Para rodar localmente:  streamlit run app.py
 """
+import streamlit as st
+
+st.write(st.__version__)
+
 import base64
 import streamlit as st
 from pathlib import Path
