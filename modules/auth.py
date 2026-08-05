@@ -140,7 +140,7 @@ def exigir_login():
         # porque o HTML bruto sofre um corte no topo em alguns navegadores.
         sub_esq, sub_centro, sub_dir = st.columns([1, 3, 1])
         with sub_centro:
-            st.image(str(_CAMINHO_LOGO), use_container_width=True)
+            st.image(str(_CAMINHO_LOGO), width="stretch")
         if st.session_state.get("pagina_auth") == "cadastro":
             tela_cadastro()
         else:
