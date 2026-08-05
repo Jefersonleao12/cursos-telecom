@@ -5,6 +5,8 @@ Aplica o questionário de múltipla escolha, calcula a nota automaticamente
 (0 a 10, proporcional aos acertos) e libera a emissão do certificado em
 caso de aprovação.
 """
+import time
+
 import streamlit as st
 
 from database.repositorio import (
@@ -14,6 +16,7 @@ from database.repositorio import (
     salvar_resultado_prova,
     ultimo_resultado,
     calcular_progresso_curso,
+    finalizar_progresso_curso,
 )
 
 
@@ -68,6 +71,12 @@ def tela_prova():
         f"Nota mínima para aprovação: {prova['nota_minima']:.1f} de 10."
     )
 
+    # Marca o instante em que o aluno começou esta tentativa (para calcular
+    # quanto tempo ele levou até enviar). Só é marcado uma vez por tentativa.
+    chave_tempo = f"prova_iniciada_{prova['id']}"
+    if chave_tempo not in st.session_state:
+        st.session_state[chave_tempo] = time.time()
+
     respostas_aluno = {}
     with st.form("form_prova"):
         for i, pergunta in enumerate(perguntas, start=1):
@@ -103,12 +112,18 @@ def tela_prova():
         nota = round((acertos / len(perguntas)) * 10, 1)
         aprovado = nota >= prova["nota_minima"]
 
-        salvar_resultado_prova(aluno_id, prova["id"], nota, aprovado)
+        tempo_gasto = int(time.time() - st.session_state.get(chave_tempo, time.time()))
+        st.session_state.pop(chave_tempo, None)  # limpa para a próxima tentativa (se for liberada)
+
+        salvar_resultado_prova(aluno_id, prova["id"], nota, aprovado, tempo_gasto)
 
         st.divider()
+        minutos, segundos = divmod(tempo_gasto, 60)
         st.metric("Sua nota", f"{nota:.1f} / 10", f"{acertos}/{len(perguntas)} acertos")
+        st.caption(f"Tempo gasto nesta avaliação: {minutos}min {segundos}s")
 
         if aprovado:
+            finalizar_progresso_curso(aluno_id, curso_id)
             st.success("🎉 Parabéns, você foi APROVADO! Seu certificado já está disponível para download.")
             st.session_state["pagina_atual"] = "certificados"
             st.balloons()
