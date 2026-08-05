@@ -91,6 +91,23 @@ def criar_curso(titulo: str, descricao: str, instrutor: str, carga_horaria: int)
     return resposta.data[0]
 
 
+def editar_curso(curso_id: int, titulo: str, descricao: str, instrutor: str, carga_horaria: int):
+    sb = get_supabase_client()
+    dados = {
+        "titulo": titulo.strip(),
+        "descricao": descricao.strip() if descricao else None,
+        "instrutor": instrutor.strip(),
+        "carga_horaria": carga_horaria,
+    }
+    sb.table("cursos").update(dados).eq("id", curso_id).execute()
+
+
+def excluir_curso(curso_id: int):
+    """Exclui o curso e, em cascata, suas aulas, provas, resultados e certificados."""
+    sb = get_supabase_client()
+    sb.table("cursos").delete().eq("id", curso_id).execute()
+
+
 # ---------------------------------------------------------------------------
 # AULAS
 # ---------------------------------------------------------------------------
@@ -118,6 +135,22 @@ def criar_aula(curso_id: int, titulo: str, url_video: str, ordem: int, duracao_m
     }
     resposta = sb.table("aulas").insert(nova).execute()
     return resposta.data[0]
+
+
+def editar_aula(aula_id: int, titulo: str, url_video: str, ordem: int, duracao_minutos: int):
+    sb = get_supabase_client()
+    dados = {
+        "titulo": titulo.strip(),
+        "url_video": url_video.strip(),
+        "ordem": ordem,
+        "duracao_minutos": duracao_minutos,
+    }
+    sb.table("aulas").update(dados).eq("id", aula_id).execute()
+
+
+def excluir_aula(aula_id: int):
+    sb = get_supabase_client()
+    sb.table("aulas").delete().eq("id", aula_id).execute()
 
 
 # ---------------------------------------------------------------------------
@@ -161,6 +194,52 @@ def calcular_progresso_curso(aluno_id: str, curso_id: int) -> float:
         return 0.0
     concluidas = aulas_concluidas_do_aluno(aluno_id, curso_id)
     return len(concluidas) / len(aulas)
+
+
+# ---------------------------------------------------------------------------
+# TEMPO DE CONCLUSÃO DO CURSO (quando começou, quando terminou)
+# ---------------------------------------------------------------------------
+
+def registrar_inicio_curso(aluno_id: str, curso_id: int):
+    """
+    Registra o instante em que o aluno começou o curso (primeira vez que
+    abriu a tela do curso). Não faz nada se já existir um registro — ou
+    seja, é seguro chamar isso toda vez que a tela é aberta.
+    """
+    sb = get_supabase_client()
+    existente = (
+        sb.table("progresso_cursos")
+        .select("id")
+        .eq("aluno_id", aluno_id)
+        .eq("curso_id", curso_id)
+        .execute()
+    )
+    if not existente.data:
+        sb.table("progresso_cursos").insert(
+            {"aluno_id": aluno_id, "curso_id": curso_id}
+        ).execute()
+
+
+def finalizar_progresso_curso(aluno_id: str, curso_id: int):
+    """Marca o instante em que o aluno concluiu o curso (foi aprovado na prova final)."""
+    sb = get_supabase_client()
+    sb.table("progresso_cursos").update(
+        {"finalizado_em": datetime.now(timezone.utc).isoformat()}
+    ).eq("aluno_id", aluno_id).eq("curso_id", curso_id).is_("finalizado_em", "null").execute()
+
+
+def obter_tempos_curso(aluno_id: str, curso_id: int):
+    """Retorna o registro de início/fim do curso para este aluno (ou None)."""
+    sb = get_supabase_client()
+    resposta = (
+        sb.table("progresso_cursos")
+        .select("*")
+        .eq("aluno_id", aluno_id)
+        .eq("curso_id", curso_id)
+        .execute()
+    )
+    dados = resposta.data
+    return dados[0] if dados else None
 
 
 # ---------------------------------------------------------------------------
@@ -213,13 +292,14 @@ def criar_pergunta(prova_id, enunciado, opcao_a, opcao_b, opcao_c, opcao_d, resp
 # RESULTADOS DE PROVAS
 # ---------------------------------------------------------------------------
 
-def salvar_resultado_prova(aluno_id: str, prova_id: int, nota: float, aprovado: bool):
+def salvar_resultado_prova(aluno_id: str, prova_id: int, nota: float, aprovado: bool, tempo_gasto_segundos: int = None):
     sb = get_supabase_client()
     registro = {
         "aluno_id": aluno_id,
         "prova_id": prova_id,
         "nota": nota,
         "aprovado": aprovado,
+        "tempo_gasto_segundos": tempo_gasto_segundos,
     }
     resposta = sb.table("resultados_provas").insert(registro).execute()
     return resposta.data[0]
@@ -380,6 +460,17 @@ def excluir_material(material_id, caminho_storage: str):
     sb = get_supabase_client()
     sb.storage.from_(_BUCKET_MATERIAIS).remove([caminho_storage])
     sb.table("materiais").delete().eq("id", material_id).execute()
+
+
+def editar_material(material_id, titulo: str, descricao: str, categoria: str):
+    """Atualiza só os dados (título/descrição/categoria) — o arquivo continua o mesmo."""
+    sb = get_supabase_client()
+    dados = {
+        "titulo": titulo.strip(),
+        "descricao": descricao.strip() if descricao else None,
+        "categoria": categoria.strip(),
+    }
+    sb.table("materiais").update(dados).eq("id", material_id).execute()
 
 
 # ---------------------------------------------------------------------------
