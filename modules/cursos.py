@@ -19,6 +19,18 @@ from database.repositorio import (
     registrar_inicio_curso,
 )
 
+def _selo_status(progresso: float) -> str:
+    """Retorna um selo HTML colorido de acordo com o progresso do curso."""
+    if progresso >= 1.0:
+        cor_fundo, cor_texto, texto = "#E3F5E9", "#1E7A46", "✅ Concluído"
+    elif progresso > 0:
+        cor_fundo, cor_texto, texto = "#FFF4D9", "#8A6100", "⏳ Em andamento"
+    else:
+        cor_fundo, cor_texto, texto = "#EDEFF5", "#4A4F5E", "🆕 Não iniciado"
+    return (
+        f"<span style='background:{cor_fundo}; color:{cor_texto}; padding:3px 10px; "
+        f"border-radius:999px; font-size:0.78rem; font-weight:600;'>{texto}</span>"
+    )
 
 def tela_lista_cursos():
     st.title("📚 Meus Cursos")
