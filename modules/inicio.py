@@ -156,13 +156,15 @@ def tela_inicio():
         </div>
         """,
         unsafe_allow_html=True,
-        st.write("")
+          )
+    
+    st.write("")
     resumo = _resumo_do_aluno(st.session_state["aluno_id"])
     col_a, col_b, col_c = st.columns(3)
     col_a.metric("📚 Em andamento", resumo["em_andamento"])
     col_b.metric("✅ Concluídos", resumo["concluidos"])
     col_c.metric("🏆 Certificados", resumo["certificados"])
-        )
+      
     st.write("")
     _esq, col_botao, _dir = st.columns([2, 1, 2])
     with col_botao:
