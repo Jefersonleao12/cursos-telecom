@@ -11,6 +11,14 @@ from zoneinfo import ZoneInfo
 
 import streamlit as st
 
+from database.repositorio import (
+    enviar_duvida,
+    listar_cursos,
+    calcular_progresso_curso,
+    buscar_prova_do_curso,
+    melhor_resultado,
+)
+
 from database.repositorio import enviar_duvida
 from modules.whatsapp import notificar_nova_duvida
 
@@ -75,6 +83,27 @@ def _data_por_extenso() -> str:
     agora = datetime.now(_FUSO_HORARIO)
     return f"{_DIAS_SEMANA[agora.weekday()]}, {agora.day} de {_MESES[agora.month]} de {agora.year}"
 
+def _resumo_do_aluno(aluno_id: str) -> dict:
+    """Calcula um resumo rápido do progresso do aluno em todos os cursos."""
+    cursos = listar_cursos()
+    concluidos = 0
+    em_andamento = 0
+    certificados = 0
+
+    for curso in cursos:
+        progresso = calcular_progresso_curso(aluno_id, curso["id"])
+        if progresso >= 1.0:
+            concluidos += 1
+        elif progresso > 0:
+            em_andamento += 1
+
+        prova = buscar_prova_do_curso(curso["id"])
+        if prova:
+            resultado = melhor_resultado(aluno_id, prova["id"])
+            if resultado and resultado["aprovado"]:
+                certificados += 1
+
+    return {"concluidos": concluidos, "em_andamento": em_andamento, "certificados": certificados}
 
 def tela_inicio():
     # Sorteia uma frase só na primeira vez (fica guardada na sessão), para não
@@ -128,6 +157,12 @@ def tela_inicio():
         </div>
         """,
         unsafe_allow_html=True,
+        st.write("")
+    resumo = _resumo_do_aluno(st.session_state["aluno_id"])
+    col_a, col_b, col_c = st.columns(3)
+    col_a.metric("📚 Em andamento", resumo["em_andamento"])
+    col_b.metric("✅ Concluídos", resumo["concluidos"])
+    col_c.metric("🏆 Certificados", resumo["certificados"])
     )
 
     st.write("")
