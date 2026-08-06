@@ -114,7 +114,7 @@ def tela_inicio():
     primeiro_nome = st.session_state["aluno_nome"].split(" ")[0]
 
     st.markdown(
-        f"""
+        """
         <style>
             @keyframes apareceSuaveInicio {{
                 from {{ opacity: 0; transform: translateY(14px); }}
@@ -157,7 +157,6 @@ def tela_inicio():
         """,
         unsafe_allow_html=True,
         st.write("")
-        (
     resumo = _resumo_do_aluno(st.session_state["aluno_id"])
     col_a, col_b, col_c = st.columns(3)
     col_a.metric("📚 Em andamento", resumo["em_andamento"])
