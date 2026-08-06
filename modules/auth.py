@@ -154,6 +154,15 @@ def _estilos_auth():
             flex-direction: column;
             justify-content: center;
         }
+        /* Centraliza o bloco de login/cadastro e limita a largura máxima
+           em telas grandes — mas, ao usar max-width em vez de colunas com
+           proporção fixa, no celular (onde a tela já é menor que esse
+           limite) o bloco ocupa a largura toda, sem sobrar margem lateral
+           artificial. */
+        div[data-testid="stHorizontalBlock"]:has(.auth-hero) {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
         /* No desktop, o painel azul (hero) e o card de login/cadastro ficam
            lado a lado. O card (menor) sobrava um espaço em branco embaixo
            porque cada um só ocupa a altura do seu próprio conteúdo. Em vez
@@ -185,12 +194,9 @@ def _estilos_auth():
             line-height: 1.35;
             margin: 0 0 .6rem 0;
             font-weight: 700;
-            /* Deixa o navegador balancear as linhas em vez de quebrar de
-               forma feia (ex: uma letra sozinha na última linha)... */
-            text-wrap: balance;
-            /* ...e, quando mesmo assim uma palavra não couber inteira numa
-               linha, hifeniza corretamente em português (ex:
-               "Telecomunica-ções") em vez de deixar uma letra solta. */
+            /* Hifeniza corretamente em português (ex: "Telecomunica-ções")
+               só nos casos raros em que uma palavra não cabe inteira numa
+               linha, em vez de deixar uma letra solta. */
             -webkit-hyphens: auto;
             hyphens: auto;
         }
@@ -365,23 +371,21 @@ def exigir_login():
 
     _estilos_auth()
 
-    _esq, centro, _dir = st.columns([1, 5, 1])
-    with centro:
-        col_hero, col_form = st.columns([5, 6], gap="large")
+    col_hero, col_form = st.columns([5, 6], gap="large")
 
-        with col_hero:
-            sub_esq, sub_centro, sub_dir = st.columns([1, 3, 1])
-            with sub_centro:
-                st.image(str(_CAMINHO_LOGO), width="stretch")
-            _painel_hero()
+    with col_hero:
+        sub_esq, sub_centro, sub_dir = st.columns([1, 3, 1])
+        with sub_centro:
+            st.image(str(_CAMINHO_LOGO), width="stretch")
+        _painel_hero()
 
-        with col_form:
-            st.markdown('<div class="auth-card-spacer"></div>', unsafe_allow_html=True)
-            with st.container(border=True):
-                _seletor_login_cadastro()
-                if st.session_state.get("pagina_auth") == "cadastro":
-                    tela_cadastro()
-                else:
-                    tela_login()
+    with col_form:
+        st.markdown('<div class="auth-card-spacer"></div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            _seletor_login_cadastro()
+            if st.session_state.get("pagina_auth") == "cadastro":
+                tela_cadastro()
+            else:
+                tela_login()
 
     st.stop()
