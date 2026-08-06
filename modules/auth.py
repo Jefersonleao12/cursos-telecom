@@ -17,7 +17,6 @@ Para resolver isso, ao logar guardamos um "token de sessão" assinado
 app consegue ler esse token, validar a assinatura e restaurar a sessão do
 aluno automaticamente — sem precisar guardar nada extra no banco.
 """
-import base64
 import hmac
 import hashlib
 import time
@@ -31,13 +30,6 @@ from utils.helpers import email_valido, FILIAIS
 
 # Caminho da logo: assets/logo.png, na raiz do projeto (um nível acima de modules/)
 _CAMINHO_LOGO = Path(__file__).resolve().parent.parent / "assets" / "logo.png"
-
-
-@st.cache_data(show_spinner=False)
-def _logo_base64() -> str:
-    """Lê a logo como base64 para poder embuti-la direto no HTML do painel azul."""
-    with open(_CAMINHO_LOGO, "rb") as arquivo:
-        return base64.b64encode(arquivo.read()).decode("utf-8")
 
 # Sessão fica válida por 30 dias (o token é renovado a cada novo login).
 _DURACAO_SESSAO_SEGUNDOS = 30 * 24 * 60 * 60
@@ -179,18 +171,14 @@ def _estilos_auth():
                 flex-direction: column;
                 justify-content: center;
             }
-        }
-        .auth-logo-wrap {
-            background: #FFFFFF;
-            border-radius: 14px;
-            padding: .7rem 1.1rem;
-            align-self: flex-start;
-            margin-bottom: 1.4rem;
-        }
-        .auth-logo-wrap img {
-            display: block;
-            height: 34px;
-            width: auto;
+            /* Empurra o card para baixo na mesma proporção que a logo (que
+               fica acima do painel azul) ocupa de altura, usando % da
+               largura da própria coluna — assim acompanha o redimensionar
+               da tela, igual a logo acompanha. */
+            .auth-card-spacer {
+                width: 100%;
+                padding-top: 19.2%;
+            }
         }
         .auth-hero h1 {
             font-size: 1.55rem;
@@ -239,11 +227,8 @@ def _estilos_auth():
 
 def _painel_hero():
     st.markdown(
-        f"""
+        """
         <div class="auth-hero">
-            <div class="auth-logo-wrap">
-                <img src="data:image/png;base64,{_logo_base64()}" alt="Norte Tel" />
-            </div>
             <h1>Bem-vindo à Plataforma de Treinamentos em Telecomunicações</h1>
             <p class="auth-sub">
                 Cursos, avaliações e certificados da equipe, tudo em um só lugar —
@@ -378,9 +363,13 @@ def exigir_login():
         col_hero, col_form = st.columns([5, 6], gap="large")
 
         with col_hero:
+            sub_esq, sub_centro, sub_dir = st.columns([1, 3, 1])
+            with sub_centro:
+                st.image(str(_CAMINHO_LOGO), width="stretch")
             _painel_hero()
 
         with col_form:
+            st.markdown('<div class="auth-card-spacer"></div>', unsafe_allow_html=True)
             with st.container(border=True):
                 _seletor_login_cadastro()
                 if st.session_state.get("pagina_auth") == "cadastro":
