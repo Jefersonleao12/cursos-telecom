@@ -39,6 +39,18 @@ def criar_aluno(nome_completo: str, email: str, senha_hash: str, empresa: str, c
     return resposta.data[0]
 
 
+def buscar_aluno_por_id(aluno_id: str):
+    """Retorna o registro do aluno pelo id, ou None se não existir.
+
+    Usado para restaurar a sessão do aluno após um F5 / recarregamento de
+    página, a partir do token de sessão guardado na URL (ver modules/auth.py).
+    """
+    sb = get_supabase_client()
+    resposta = sb.table("alunos").select("*").eq("id", aluno_id).execute()
+    dados = resposta.data
+    return dados[0] if dados else None
+
+
 def listar_todos_alunos():
     """Usado no painel administrativo para listar todos os alunos cadastrados."""
     sb = get_supabase_client()

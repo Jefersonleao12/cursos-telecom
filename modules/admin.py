@@ -51,11 +51,66 @@ def _formatar_duracao(segundos: float) -> str:
     return f"{minutos}min"
 
 
+def _estilos_admin():
+    st.markdown(
+        """
+        <style>
+        .admin-header {
+            background: linear-gradient(120deg, #0F2E56 0%, #143C6E 100%);
+            border-radius: 16px;
+            padding: 1.6rem 1.8rem;
+            color: #FFFFFF;
+            margin-bottom: 1.2rem;
+        }
+        .admin-header h1 { font-size: 1.5rem; margin: 0 0 .2rem 0; }
+        .admin-header p { margin: 0; opacity: .85; font-size: .92rem; }
+        div[data-testid="stMetric"] {
+            background: #FFFFFF;
+            border: 1px solid #E6ECF3;
+            border-radius: 12px;
+            padding: .9rem 1rem .7rem 1rem;
+            box-shadow: 0 2px 8px rgba(20, 60, 110, 0.06);
+        }
+        button[data-baseweb="tab"] {
+            font-size: .95rem;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def _painel_visao_geral():
+    cursos = listar_cursos()
+    alunos = listar_todos_alunos()
+    duvidas_pendentes = listar_duvidas(apenas_nao_respondidas=True)
+
+    total_perguntas = sum(len(listar_perguntas(p["id"])) for p in [buscar_prova_do_curso(c["id"]) for c in cursos] if p)
+
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("📚 Cursos", len(cursos))
+    col2.metric("🧑‍🎓 Alunos cadastrados", len(alunos))
+    col3.metric("❓ Dúvidas pendentes", len(duvidas_pendentes))
+    col4.metric("📝 Perguntas de prova", total_perguntas)
+
+
 def tela_admin():
-    st.title("⚙️ Painel de Administração")
+    _estilos_admin()
+    st.markdown(
+        """
+        <div class="admin-header">
+            <h1>⚙️ Painel de Administração</h1>
+            <p>Gerencie cursos, aulas, provas, materiais e acompanhe os alunos da plataforma.</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    _painel_visao_geral()
+    st.write("")
 
     aba_cursos, aba_aulas, aba_provas, aba_alunos, aba_filiais, aba_materiais, aba_duvidas = st.tabs(
-        ["Cursos", "Aulas", "Provas e Perguntas", "Alunos", "Filiais", "Materiais", "Dúvidas"]
+        ["📚 Cursos", "🎬 Aulas", "📝 Provas e Perguntas", "🧑‍🎓 Alunos", "📍 Filiais", "🗂️ Materiais", "❓ Dúvidas"]
     )
 
     # ---------------- CURSOS ----------------
@@ -330,6 +385,20 @@ def tela_admin():
         if not alunos:
             st.info("Nenhum aluno cadastrado ainda.")
         else:
+            busca = st.text_input(
+                "🔎 Buscar por nome, e-mail ou empresa",
+                placeholder="Digite para filtrar a lista abaixo...",
+            )
+            if busca:
+                termo = busca.strip().lower()
+                alunos = [
+                    a for a in alunos
+                    if termo in a["nome_completo"].lower()
+                    or termo in a["email"].lower()
+                    or termo in (a.get("empresa") or "").lower()
+                ]
+                st.caption(f"{len(alunos)} aluno(s) encontrado(s).")
+
             cursos = listar_cursos()
             for aluno in alunos:
                 with st.container(border=True):

@@ -3,18 +3,42 @@ Módulo de Autenticação: cadastro e login de alunos.
 
 A senha NUNCA é salva em texto puro — usamos bcrypt para gerar um hash
 seguro e irreversível, que é o que fica armazenado no banco de dados.
+
+Sessão persistente (sobrevive a F5)
+------------------------------------
+Por padrão, o `st.session_state` do Streamlit vive apenas enquanto a conexão
+do navegador com o servidor estiver ativa: um recarregamento de página (F5)
+cria uma sessão nova e o aluno cai de volta na tela de login, mesmo tendo
+acabado de entrar.
+
+Para resolver isso, ao logar guardamos um "token de sessão" assinado
+(aluno_id + validade + assinatura HMAC) como parâmetro na URL
+(`st.query_params`). Como a URL não muda num F5, ao recarregar a página o
+app consegue ler esse token, validar a assinatura e restaurar a sessão do
+aluno automaticamente — sem precisar guardar nada extra no banco.
 """
+import hmac
+import hashlib
+import time
 from pathlib import Path
 
 import streamlit as st
 import bcrypt
 
-from database.repositorio import criar_aluno, buscar_aluno_por_email
+from database.repositorio import criar_aluno, buscar_aluno_por_email, buscar_aluno_por_id
 from utils.helpers import email_valido, FILIAIS
 
 # Caminho da logo: assets/logo.png, na raiz do projeto (um nível acima de modules/)
 _CAMINHO_LOGO = Path(__file__).resolve().parent.parent / "assets" / "logo.png"
 
+# Sessão fica válida por 30 dias (o token é renovado a cada novo login).
+_DURACAO_SESSAO_SEGUNDOS = 30 * 24 * 60 * 60
+_PARAM_SESSAO = "sessao"
+
+
+# ---------------------------------------------------------------------------
+# Senhas
+# ---------------------------------------------------------------------------
 
 def gerar_hash_senha(senha: str) -> str:
     """Transforma a senha digitada em um hash seguro (irreversível)."""
@@ -26,7 +50,46 @@ def verificar_senha(senha_digitada: str, senha_hash_salva: str) -> bool:
     return bcrypt.checkpw(senha_digitada.encode("utf-8"), senha_hash_salva.encode("utf-8"))
 
 
-def _login_efetuado(aluno: dict):
+# ---------------------------------------------------------------------------
+# Token de sessão (mantém o aluno logado mesmo depois de um F5)
+# ---------------------------------------------------------------------------
+
+def _chave_secreta() -> bytes:
+    """
+    Chave usada para assinar o token de sessão. Reaproveita a chave de
+    serviço do Supabase (já configurada em secrets.toml) para não exigir
+    nenhuma configuração extra do usuário.
+    """
+    chave = st.secrets.get("SUPABASE_SERVICE_KEY", "chave-padrao-troque-em-producao")
+    return f"cursos-telecom::token-sessao::{chave}".encode("utf-8")
+
+
+def _gerar_token_sessao(aluno_id: str) -> str:
+    validade = int(time.time()) + _DURACAO_SESSAO_SEGUNDOS
+    mensagem = f"{aluno_id}.{validade}"
+    assinatura = hmac.new(_chave_secreta(), mensagem.encode("utf-8"), hashlib.sha256).hexdigest()
+    return f"{mensagem}.{assinatura}"
+
+
+def _validar_token_sessao(token: str):
+    """Retorna o aluno_id se o token for válido e ainda não tiver expirado, senão None."""
+    try:
+        aluno_id, validade_str, assinatura = token.split(".")
+        validade = int(validade_str)
+    except (ValueError, AttributeError):
+        return None
+
+    mensagem = f"{aluno_id}.{validade_str}"
+    assinatura_esperada = hmac.new(_chave_secreta(), mensagem.encode("utf-8"), hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(assinatura, assinatura_esperada):
+        return None  # token adulterado ou assinado com outra chave
+    if validade < int(time.time()):
+        return None  # expirado
+
+    return aluno_id
+
+
+def _login_efetuado(aluno: dict, lembrar: bool = True):
     """Guarda os dados do aluno logado na sessão do navegador (st.session_state)."""
     st.session_state["aluno_logado"] = True
     st.session_state["aluno_id"] = aluno["id"]
@@ -36,20 +99,150 @@ def _login_efetuado(aluno: dict):
     st.session_state["aluno_filial"] = aluno.get("filial") or ""
     st.session_state["aluno_is_admin"] = aluno.get("is_admin", False)
 
+    if lembrar:
+        # Grava o token na URL para sobreviver a um F5 (ver docstring do módulo).
+        st.query_params[_PARAM_SESSAO] = _gerar_token_sessao(aluno["id"])
+
 
 def fazer_logout():
-    """Remove todos os dados da sessão e volta para a tela de login."""
+    """Remove todos os dados da sessão, apaga o token da URL e volta para o login."""
     for chave in list(st.session_state.keys()):
         del st.session_state[chave]
+    st.query_params.clear()
     st.rerun()
 
 
+def _restaurar_sessao_da_url() -> bool:
+    """
+    Tenta restaurar a sessão a partir do token salvo em st.query_params
+    (ou seja, sobrevivente a um recarregamento de página). Retorna True se
+    conseguiu logar o aluno automaticamente.
+    """
+    token = st.query_params.get(_PARAM_SESSAO)
+    if not token:
+        return False
+
+    aluno_id = _validar_token_sessao(token)
+    if not aluno_id:
+        st.query_params.clear()  # token inválido/expirado: limpa pra não tentar de novo
+        return False
+
+    aluno = buscar_aluno_por_id(aluno_id)
+    if not aluno:
+        st.query_params.clear()  # conta pode ter sido excluída
+        return False
+
+    _login_efetuado(aluno, lembrar=False)  # o token já está na URL, não precisa regravar
+    return True
+
+
+# ---------------------------------------------------------------------------
+# Visual das telas de login / cadastro
+# ---------------------------------------------------------------------------
+
+def _estilos_auth():
+    st.markdown(
+        """
+        <style>
+        .auth-hero {
+            background: linear-gradient(150deg, #0F2E56 0%, #143C6E 55%, #1F5AA8 100%);
+            border-radius: 20px;
+            padding: 2.6rem 2.2rem;
+            color: #FFFFFF;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .auth-hero h1 {
+            font-size: 1.55rem;
+            line-height: 1.35;
+            margin: 0 0 .6rem 0;
+            font-weight: 700;
+        }
+        .auth-hero p.auth-sub {
+            opacity: .88;
+            font-size: .96rem;
+            margin-bottom: 1.6rem;
+        }
+        .auth-feature {
+            display: flex;
+            align-items: center;
+            gap: .65rem;
+            margin: .5rem 0;
+            font-size: .92rem;
+            opacity: .95;
+        }
+        .auth-feature span.ico {
+            font-size: 1.1rem;
+        }
+        div[data-testid="stVerticalBlockBorderWrapper"]:has(> div > div[data-testid="stForm"]) {
+            border-radius: 18px !important;
+        }
+        .auth-card-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #143C6E;
+            margin-bottom: .2rem;
+        }
+        .auth-card-sub {
+            color: #6B7A8F;
+            font-size: .9rem;
+            margin-bottom: 1.1rem;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def _painel_hero():
+    st.markdown(
+        """
+        <div class="auth-hero">
+            <h1>Bem-vindo à Plataforma de<br>Treinamentos em Telecomunicações</h1>
+            <p class="auth-sub">
+                Cursos, avaliações e certificados da equipe, tudo em um só lugar —
+                de qualquer filial, no computador ou no celular.
+            </p>
+            <div class="auth-feature"><span class="ico">📚</span> Cursos e aulas em vídeo</div>
+            <div class="auth-feature"><span class="ico">📝</span> Avaliações com certificado</div>
+            <div class="auth-feature"><span class="ico">🗂️</span> Materiais para consulta</div>
+            <div class="auth-feature"><span class="ico">🏆</span> Acompanhamento do seu progresso</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def _seletor_login_cadastro():
+    """Alterna entre login/cadastro com dois botões estilo 'abas'."""
+    pagina_atual = st.session_state.get("pagina_auth", "login")
+    col_login, col_cadastro = st.columns(2)
+    with col_login:
+        if st.button(
+            "Entrar", use_container_width=True,
+            type="primary" if pagina_atual == "login" else "secondary",
+        ):
+            st.session_state["pagina_auth"] = "login"
+            st.rerun()
+    with col_cadastro:
+        if st.button(
+            "Criar cadastro", use_container_width=True,
+            type="primary" if pagina_atual == "cadastro" else "secondary",
+        ):
+            st.session_state["pagina_auth"] = "cadastro"
+            st.rerun()
+    st.write("")
+
+
 def tela_login():
-    st.subheader("🔐 Entrar na Plataforma")
+    st.markdown('<div class="auth-card-title">🔐 Entrar na plataforma</div>', unsafe_allow_html=True)
+    st.markdown('<div class="auth-card-sub">Use o e-mail e a senha do seu cadastro.</div>', unsafe_allow_html=True)
 
     with st.form("form_login", clear_on_submit=False):
-        email = st.text_input("E-mail")
-        senha = st.text_input("Senha", type="password")
+        email = st.text_input("📧 E-mail", placeholder="voce@empresa.com")
+        senha = st.text_input("🔒 Senha", type="password", placeholder="Sua senha")
         entrar = st.form_submit_button("Entrar", width="stretch", type="primary")
 
     if entrar:
@@ -59,7 +252,7 @@ def tela_login():
 
         aluno = buscar_aluno_por_email(email)
         if aluno is None:
-            st.error("E-mail não encontrado. Verifique ou cadastre-se abaixo.")
+            st.error("E-mail não encontrado. Verifique ou cadastre-se acima.")
             return
 
         if verificar_senha(senha, aluno["senha_hash"]):
@@ -68,24 +261,29 @@ def tela_login():
         else:
             st.error("Senha incorreta. Tente novamente.")
 
-    st.divider()
-    st.caption("Ainda não tem uma conta?")
-    if st.button("Criar cadastro", width="stretch"):
-        st.session_state["pagina_auth"] = "cadastro"
-        st.rerun()
-
 
 def tela_cadastro():
-    st.subheader("📝 Criar Cadastro de Aluno")
+    st.markdown('<div class="auth-card-title">📝 Criar cadastro de aluno</div>', unsafe_allow_html=True)
+    st.markdown('<div class="auth-card-sub">Leva menos de um minuto.</div>', unsafe_allow_html=True)
 
     with st.form("form_cadastro", clear_on_submit=False):
         nome = st.text_input("Nome completo *")
         email = st.text_input("E-mail *")
-        empresa = st.text_input("Empresa")
-        cargo = st.text_input("Cargo / Função")
-        filial = st.selectbox("Filial (cidade) *", options=[""] + FILIAIS, format_func=lambda v: "Selecione..." if v == "" else v)
-        senha = st.text_input("Senha *", type="password")
-        confirmar_senha = st.text_input("Confirmar senha *", type="password")
+        col_empresa, col_cargo = st.columns(2)
+        with col_empresa:
+            empresa = st.text_input("Empresa")
+        with col_cargo:
+            cargo = st.text_input("Cargo / Função")
+        filial = st.selectbox(
+            "Filial (cidade) *",
+            options=[""] + FILIAIS,
+            format_func=lambda v: "Selecione..." if v == "" else v,
+        )
+        col_senha, col_confirmar = st.columns(2)
+        with col_senha:
+            senha = st.text_input("Senha *", type="password", help="Mínimo de 6 caracteres.")
+        with col_confirmar:
+            confirmar_senha = st.text_input("Confirmar senha *", type="password")
         cadastrar = st.form_submit_button("Cadastrar", width="stretch", type="primary")
 
     if cadastrar:
@@ -105,7 +303,7 @@ def tela_cadastro():
             st.warning("As senhas não coincidem.")
             return
         if buscar_aluno_por_email(email) is not None:
-            st.error("Já existe um cadastro com este e-mail. Faça login.")
+            st.error("Já existe um cadastro com este e-mail. Faça login acima.")
             return
 
         senha_hash = gerar_hash_senha(senha)
@@ -114,36 +312,39 @@ def tela_cadastro():
         _login_efetuado(novo_aluno)
         st.rerun()
 
-    st.divider()
-    st.caption("Já tem uma conta?")
-    if st.button("Voltar para login", use_container_width=True):
-        st.session_state["pagina_auth"] = "login"
-        st.rerun()
-
 
 def exigir_login():
     """
-    Função 'porteira': se o usuário não estiver logado, mostra as telas
-    de login/cadastro e interrompe a execução do restante do app (st.stop()).
+    Função 'porteira': se o usuário não estiver logado, tenta primeiro
+    restaurar a sessão a partir do token na URL (sobrevive a F5); se não
+    conseguir, mostra as telas de login/cadastro e interrompe a execução
+    do restante do app (st.stop()).
     Chame esta função no início do app.py, antes de montar o resto da interface.
     """
     if st.session_state.get("aluno_logado"):
         return  # já está logado, o app.py segue o fluxo normal
 
-    # As colunas laterais (vazias) empurram o conteúdo para o centro em telas
-    # largas (PC). Em telas estreitas (celular), o Streamlit empilha as
-    # colunas automaticamente, então a coluna do meio ocupa 100% da largura.
-    _esq, centro, _dir = st.columns([1, 2, 1])
+    if _restaurar_sessao_da_url():
+        return  # sessão restaurada a partir do token da URL — sem precisar logar de novo
+
+    _estilos_auth()
+
+    _esq, centro, _dir = st.columns([1, 5, 1])
     with centro:
-        # Logo centralizada, com largura proporcional à tela (mobile e desktop).
-        # Usamos st.image (nativo do Streamlit) em vez de um <img> via HTML bruto,
-        # porque o HTML bruto sofre um corte no topo em alguns navegadores.
-        sub_esq, sub_centro, sub_dir = st.columns([1, 3, 1])
-        with sub_centro:
-            st.image(str(_CAMINHO_LOGO), width="stretch")
-        if st.session_state.get("pagina_auth") == "cadastro":
-            tela_cadastro()
-        else:
-            tela_login()
+        col_hero, col_form = st.columns([5, 6], gap="large")
+
+        with col_hero:
+            sub_esq, sub_centro, sub_dir = st.columns([1, 3, 1])
+            with sub_centro:
+                st.image(str(_CAMINHO_LOGO), width="stretch")
+            _painel_hero()
+
+        with col_form:
+            with st.container(border=True):
+                _seletor_login_cadastro()
+                if st.session_state.get("pagina_auth") == "cadastro":
+                    tela_cadastro()
+                else:
+                    tela_login()
 
     st.stop()
