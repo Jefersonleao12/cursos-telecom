@@ -17,9 +17,8 @@ from database.repositorio import (
     calcular_progresso_curso,
     buscar_prova_do_curso,
     melhor_resultado,
+    enviar_duvida,
 )
-
-from database.repositorio import enviar_duvida
 from modules.whatsapp import notificar_nova_duvida
 
 # Horário de Rondônia (onde ficam as filiais da Norte Tel), usado para decidir
