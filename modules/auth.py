@@ -308,11 +308,8 @@ def tela_cadastro():
             options=[""] + FILIAIS,
             format_func=lambda v: "Selecione..." if v == "" else v,
         )
-        col_senha, col_confirmar = st.columns(2)
-        with col_senha:
-            senha = st.text_input("Senha *", type="password", help="Mínimo de 6 caracteres.")
-        with col_confirmar:
-            confirmar_senha = st.text_input("Confirmar senha *", type="password")
+        senha = st.text_input("Senha *", type="password", help="Mínimo de 6 caracteres.")
+        confirmar_senha = st.text_input("Confirmar senha *", type="password")
         cadastrar = st.form_submit_button("Cadastrar", width="stretch", type="primary")
 
     if cadastrar:
