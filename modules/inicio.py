@@ -114,7 +114,7 @@ def tela_inicio():
     primeiro_nome = st.session_state["aluno_nome"].split(" ")[0]
 
     st.markdown(
-        """
+        f"""
         <style>
             @keyframes apareceSuaveInicio {{
                 from {{ opacity: 0; transform: translateY(14px); }}
