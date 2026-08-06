@@ -42,12 +42,27 @@ def tela_lista_cursos():
 
     aluno_id = st.session_state["aluno_id"]
 
+    termo_busca = st.text_input(
+        "🔎 Buscar curso",
+        placeholder="Digite o nome do curso...",
+        label_visibility="collapsed",
+    )
+    if termo_busca:
+        termo = termo_busca.lower().strip()
+        cursos = [c for c in cursos if termo in c["titulo"].lower()]
+        if not cursos:
+            st.warning("Nenhum curso encontrado com esse nome.")
+            return
+
+    st.write("")
+
     for curso in cursos:
         progresso = calcular_progresso_curso(aluno_id, curso["id"])
         with st.container(border=True):
             col_info, col_botao = st.columns([4, 1])
             with col_info:
                 st.markdown(f"### {curso['titulo']}")
+                st.markdown(_selo_status(progresso), unsafe_allow_html=True)
                 st.caption(f"Instrutor: {curso['instrutor']}")
                 if curso.get("descricao"):
                     st.write(curso["descricao"])
