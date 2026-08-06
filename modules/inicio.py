@@ -162,7 +162,6 @@ def tela_inicio():
     col_a.metric("📚 Em andamento", resumo["em_andamento"])
     col_b.metric("✅ Concluídos", resumo["concluidos"])
     col_c.metric("🏆 Certificados", resumo["certificados"])
-    )
 
     st.write("")
     _esq, col_botao, _dir = st.columns([2, 1, 2])
