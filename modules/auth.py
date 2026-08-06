@@ -154,6 +154,37 @@ def _estilos_auth():
             flex-direction: column;
             justify-content: center;
         }
+        /* No desktop, o painel azul (hero) e o card de login/cadastro ficam
+           lado a lado dentro da mesma linha (st.columns). Por padrão o
+           Streamlit só dá a cada coluna a altura do seu próprio conteúdo,
+           então o card (menor) sobrava um espaço em branco embaixo enquanto
+           o painel azul (maior) ia até mais embaixo. As regras abaixo fazem
+           as duas colunas "esticarem" para a mesma altura e centralizam o
+           conteúdo de cada uma verticalmente, alinhando as bordas. */
+        @media (min-width: 768px) {
+            div[data-testid="stHorizontalBlock"]:has(.auth-hero) {
+                align-items: stretch;
+            }
+            div[data-testid="stHorizontalBlock"]:has(.auth-hero) > div[data-testid="stColumn"],
+            div[data-testid="stHorizontalBlock"]:has(.auth-hero) > div[data-testid="column"] {
+                display: flex;
+            }
+            div[data-testid="stHorizontalBlock"]:has(.auth-hero) > div[data-testid="stColumn"] > div,
+            div[data-testid="stHorizontalBlock"]:has(.auth-hero) > div[data-testid="column"] > div {
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+            }
+            div[data-testid="stHorizontalBlock"]:has(.auth-hero) .auth-hero {
+                flex: 1;
+            }
+            div[data-testid="stHorizontalBlock"]:has(.auth-hero) div[data-testid="stVerticalBlockBorderWrapper"]:has(div[data-testid="stForm"]) {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+        }
         .auth-hero h1 {
             font-size: 1.55rem;
             line-height: 1.35;
