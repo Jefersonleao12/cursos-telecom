@@ -180,14 +180,24 @@ def _estilos_auth():
                 padding-top: 23.2%;
             }
         }
-        .auth-hero h1 {
+        .auth-hero-title {
             font-size: 1.55rem;
             line-height: 1.35;
             margin: 0 0 .6rem 0;
             font-weight: 700;
             /* Deixa o navegador balancear as linhas em vez de quebrar de
-               forma feia (ex: uma letra sozinha na última linha). */
+               forma feia (ex: uma letra sozinha na última linha)... */
             text-wrap: balance;
+            /* ...e, quando mesmo assim uma palavra não couber inteira numa
+               linha, hifeniza corretamente em português (ex:
+               "Telecomunica-ções") em vez de deixar uma letra solta. */
+            -webkit-hyphens: auto;
+            hyphens: auto;
+        }
+        @media (max-width: 420px) {
+            .auth-hero-title {
+                font-size: 1.4rem;
+            }
         }
         .auth-hero p.auth-sub {
             opacity: .88;
@@ -229,7 +239,7 @@ def _painel_hero():
     st.markdown(
         """
         <div class="auth-hero">
-            <h1>Bem-vindo à Plataforma de Treinamentos em Telecomunicações</h1>
+            <div class="auth-hero-title" lang="pt-BR">Bem-vindo à Plataforma de Treinamentos em Telecomunicações</div>
             <p class="auth-sub">
                 Cursos, avaliações e certificados da equipe, tudo em um só lugar —
                 de qualquer filial, no computador ou no celular.
