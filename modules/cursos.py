@@ -148,6 +148,7 @@ def tela_detalhe_curso():
                 else:
                     if st.button("Marcar aula como concluída", key=f"concluir_{aula['id']}", type="primary"):
                         marcar_aula_concluida(aluno_id, aula["id"])
+                        st.toast("Aula concluída! 🎉", icon="✅")
                         st.rerun()
 
     st.divider()
