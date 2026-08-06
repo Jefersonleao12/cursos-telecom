@@ -46,7 +46,7 @@ st.markdown(
         .block-container {
             padding-top: 2rem;
             padding-bottom: 3rem;
-            max-width: 1100px;   /* evita que o conteúdo fique esticado em monitores muito largos */
+            max-width: 1100px;
             margin: 0 auto;
         }
         div[data-testid="stForm"] { border: 1px solid #e6e6e6; border-radius: 10px; padding: 1.2rem; }
@@ -57,6 +57,27 @@ st.markdown(
             min-width: 300px !important;
             max-width: 300px !important;
             width: 300px !important;
+        }
+
+        /* Cartões (st.container(border=True)) com sombra suave e efeito hover */
+        div[data-testid="stVerticalBlockBorderWrapper"] {
+            border-radius: 14px !important;
+            box-shadow: 0 2px 10px rgba(20, 60, 110, 0.08);
+            transition: box-shadow 0.25s ease, transform 0.25s ease;
+        }
+        div[data-testid="stVerticalBlockBorderWrapper"]:hover {
+            box-shadow: 0 8px 24px rgba(20, 60, 110, 0.16);
+            transform: translateY(-2px);
+        }
+
+        /* Botões com transição mais suave */
+        div.stButton > button {
+            border-radius: 8px;
+            transition: all 0.15s ease;
+        }
+        div.stButton > button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(20, 60, 110, 0.18);
         }
     </style>
     """,
@@ -88,27 +109,22 @@ def main():
             st.caption(st.session_state["aluno_empresa"])
         st.divider()
 
-        if st.button("🏠 Início", use_container_width=True):
-            st.session_state["pagina_atual"] = "inicio"
-            st.rerun()
+        pagina_ativa = st.session_state["pagina_atual"]
 
-        if st.button("📚 Meus Cursos", use_container_width=True):
-            st.session_state["pagina_atual"] = "lista_cursos"
-            st.rerun()
+        def _botao_menu(rotulo, destino, grupo=None):
+            ativo = pagina_ativa == destino or (grupo and pagina_ativa in grupo)
+            if st.button(rotulo, use_container_width=True, type="primary" if ativo else "secondary"):
+                st.session_state["pagina_atual"] = destino
+                st.rerun()
 
-        if st.button("🏆 Meus Certificados", use_container_width=True):
-            st.session_state["pagina_atual"] = "certificados"
-            st.rerun()
-
-        if st.button("🗂️ Materiais", use_container_width=True):
-            st.session_state["pagina_atual"] = "materiais"
-            st.rerun()
+        _botao_menu("🏠 Início", "inicio")
+        _botao_menu("📚 Meus Cursos", "lista_cursos", grupo={"lista_cursos", "detalhe_curso", "prova"})
+        _botao_menu("🏆 Meus Certificados", "certificados")
+        _botao_menu("🗂️ Materiais", "materiais")
 
         if st.session_state.get("aluno_is_admin"):
             st.divider()
-            if st.button("⚙️ Administração", use_container_width=True):
-                st.session_state["pagina_atual"] = "admin"
-                st.rerun()
+            _botao_menu("⚙️ Administração", "admin")
 
         st.divider()
         if st.button("🚪 Sair", use_container_width=True):
