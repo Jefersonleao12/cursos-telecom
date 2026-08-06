@@ -155,31 +155,18 @@ def _estilos_auth():
             justify-content: center;
         }
         /* No desktop, o painel azul (hero) e o card de login/cadastro ficam
-           lado a lado dentro da mesma linha (st.columns). Por padrão o
-           Streamlit só dá a cada coluna a altura do seu próprio conteúdo,
-           então o card (menor) sobrava um espaço em branco embaixo enquanto
-           o painel azul (maior) ia até mais embaixo. As regras abaixo fazem
-           as duas colunas "esticarem" para a mesma altura e centralizam o
-           conteúdo de cada uma verticalmente, alinhando as bordas. */
+           lado a lado. O card (menor) sobrava um espaço em branco embaixo
+           porque cada um só ocupa a altura do seu próprio conteúdo. Em vez
+           de depender de "esticar" as colunas do Streamlit (frágil, pois
+           existem várias divs internas entre a coluna e o conteúdo), damos
+           uma altura mínima igual para os dois e centralizamos o conteúdo
+           do card dentro dela — assim as bordas ficam alinhadas. */
         @media (min-width: 768px) {
-            div[data-testid="stHorizontalBlock"]:has(.auth-hero) {
-                align-items: stretch;
+            .auth-hero {
+                min-height: 620px;
             }
-            div[data-testid="stHorizontalBlock"]:has(.auth-hero) > div[data-testid="stColumn"],
-            div[data-testid="stHorizontalBlock"]:has(.auth-hero) > div[data-testid="column"] {
-                display: flex;
-            }
-            div[data-testid="stHorizontalBlock"]:has(.auth-hero) > div[data-testid="stColumn"] > div,
-            div[data-testid="stHorizontalBlock"]:has(.auth-hero) > div[data-testid="column"] > div {
-                width: 100%;
-                display: flex;
-                flex-direction: column;
-            }
-            div[data-testid="stHorizontalBlock"]:has(.auth-hero) .auth-hero {
-                flex: 1;
-            }
-            div[data-testid="stHorizontalBlock"]:has(.auth-hero) div[data-testid="stVerticalBlockBorderWrapper"]:has(div[data-testid="stForm"]) {
-                flex: 1;
+            div[data-testid="stVerticalBlockBorderWrapper"]:has(> div > div[data-testid="stForm"]) {
+                min-height: 620px;
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
@@ -349,33 +336,3 @@ def exigir_login():
     Função 'porteira': se o usuário não estiver logado, tenta primeiro
     restaurar a sessão a partir do token na URL (sobrevive a F5); se não
     conseguir, mostra as telas de login/cadastro e interrompe a execução
-    do restante do app (st.stop()).
-    Chame esta função no início do app.py, antes de montar o resto da interface.
-    """
-    if st.session_state.get("aluno_logado"):
-        return  # já está logado, o app.py segue o fluxo normal
-
-    if _restaurar_sessao_da_url():
-        return  # sessão restaurada a partir do token da URL — sem precisar logar de novo
-
-    _estilos_auth()
-
-    _esq, centro, _dir = st.columns([1, 5, 1])
-    with centro:
-        col_hero, col_form = st.columns([5, 6], gap="large")
-
-        with col_hero:
-            sub_esq, sub_centro, sub_dir = st.columns([1, 3, 1])
-            with sub_centro:
-                st.image(str(_CAMINHO_LOGO), width="stretch")
-            _painel_hero()
-
-        with col_form:
-            with st.container(border=True):
-                _seletor_login_cadastro()
-                if st.session_state.get("pagina_auth") == "cadastro":
-                    tela_cadastro()
-                else:
-                    tela_login()
-
-    st.stop()
