@@ -177,7 +177,7 @@ def _estilos_auth():
                da tela, igual a logo acompanha. */
             .auth-card-spacer {
                 width: 100%;
-                padding-top: 19.2%;
+                padding-top: 19.8%;
             }
         }
         .auth-hero h1 {
