@@ -336,3 +336,33 @@ def exigir_login():
     Função 'porteira': se o usuário não estiver logado, tenta primeiro
     restaurar a sessão a partir do token na URL (sobrevive a F5); se não
     conseguir, mostra as telas de login/cadastro e interrompe a execução
+    do restante do app (st.stop()).
+    Chame esta função no início do app.py, antes de montar o resto da interface.
+    """
+    if st.session_state.get("aluno_logado"):
+        return  # já está logado, o app.py segue o fluxo normal
+
+    if _restaurar_sessao_da_url():
+        return  # sessão restaurada a partir do token da URL — sem precisar logar de novo
+
+    _estilos_auth()
+
+    _esq, centro, _dir = st.columns([1, 5, 1])
+    with centro:
+        col_hero, col_form = st.columns([5, 6], gap="large")
+
+        with col_hero:
+            sub_esq, sub_centro, sub_dir = st.columns([1, 3, 1])
+            with sub_centro:
+                st.image(str(_CAMINHO_LOGO), width="stretch")
+            _painel_hero()
+
+        with col_form:
+            with st.container(border=True):
+                _seletor_login_cadastro()
+                if st.session_state.get("pagina_auth") == "cadastro":
+                    tela_cadastro()
+                else:
+                    tela_login()
+
+    st.stop()
