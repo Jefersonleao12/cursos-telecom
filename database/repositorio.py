@@ -260,24 +260,68 @@ def excluir_curso(curso_id: int):
 
 
 # ---------------------------------------------------------------------------
-# AULAS
+# MÓDULOS (assuntos dentro de um curso)
 # ---------------------------------------------------------------------------
 
-def listar_aulas_do_curso(curso_id: int):
+def listar_modulos_do_curso(curso_id: int):
+    sb = get_supabase_client()
+    resposta = sb.table("modulos").select("*").eq("curso_id", curso_id).order("ordem").execute()
+    return resposta.data
+
+
+def buscar_modulo(modulo_id: int):
+    sb = get_supabase_client()
+    resposta = sb.table("modulos").select("*").eq("id", modulo_id).execute()
+    dados = resposta.data
+    return dados[0] if dados else None
+
+
+def criar_modulo(curso_id: int, titulo: str, ordem: int):
+    sb = get_supabase_client()
+    novo = {"curso_id": curso_id, "titulo": titulo.strip(), "ordem": ordem}
+    resposta = sb.table("modulos").insert(novo).execute()
+    return resposta.data[0]
+
+
+def editar_modulo(modulo_id: int, titulo: str, ordem: int):
+    sb = get_supabase_client()
+    sb.table("modulos").update({"titulo": titulo.strip(), "ordem": ordem}).eq("id", modulo_id).execute()
+
+
+def excluir_modulo(modulo_id: int):
+    """Exclui o módulo e, em cascata, suas aulas, prova e resultados."""
+    sb = get_supabase_client()
+    sb.table("modulos").delete().eq("id", modulo_id).execute()
+
+
+# ---------------------------------------------------------------------------
+# AULAS (agora pertencem a um módulo)
+# ---------------------------------------------------------------------------
+
+def listar_aulas_do_modulo(modulo_id: int):
     sb = get_supabase_client()
     resposta = (
         sb.table("aulas")
         .select("*")
-        .eq("curso_id", curso_id)
+        .eq("modulo_id", modulo_id)
         .order("ordem")
         .execute()
     )
     return resposta.data
 
 
-def criar_aula(curso_id: int, titulo: str, url_video: str, ordem: int, duracao_minutos: int):
+def listar_aulas_do_curso(curso_id: int):
+    """Todas as aulas do curso, de TODOS os módulos juntos — usado para
+    calcular o progresso geral do curso (barra de progresso no topo)."""
+    sb = get_supabase_client()
+    resposta = sb.table("aulas").select("*").eq("curso_id", curso_id).execute()
+    return resposta.data
+
+
+def criar_aula(modulo_id: int, curso_id: int, titulo: str, url_video: str, ordem: int, duracao_minutos: int):
     sb = get_supabase_client()
     nova = {
+        "modulo_id": modulo_id,
         "curso_id": curso_id,
         "titulo": titulo.strip(),
         "url_video": url_video.strip(),
@@ -320,13 +364,11 @@ def marcar_aula_concluida(aluno_id: str, aula_id: int):
     sb.table("progresso_aulas").upsert(registro, on_conflict="aluno_id,aula_id").execute()
 
 
-def aulas_concluidas_do_aluno(aluno_id: str, curso_id: int):
-    """Retorna a lista de IDs de aulas já concluídas pelo aluno, dentro de um curso."""
-    sb = get_supabase_client()
-    aulas_do_curso = listar_aulas_do_curso(curso_id)
-    ids_aulas = [a["id"] for a in aulas_do_curso]
+def _ids_aulas_concluidas(aluno_id: str, ids_aulas: list):
+    """Função interna: dado uma lista de IDs de aula, devolve quais delas o aluno já concluiu."""
     if not ids_aulas:
         return []
+    sb = get_supabase_client()
     resposta = (
         sb.table("progresso_aulas")
         .select("aula_id")
@@ -338,13 +380,75 @@ def aulas_concluidas_do_aluno(aluno_id: str, curso_id: int):
     return [linha["aula_id"] for linha in resposta.data]
 
 
+def aulas_concluidas_do_aluno(aluno_id: str, curso_id: int):
+    """Retorna a lista de IDs de aulas já concluídas pelo aluno, dentro de um curso (todos os módulos)."""
+    ids_aulas = [a["id"] for a in listar_aulas_do_curso(curso_id)]
+    return _ids_aulas_concluidas(aluno_id, ids_aulas)
+
+
+def aulas_concluidas_do_modulo(aluno_id: str, modulo_id: int):
+    """Retorna a lista de IDs de aulas já concluídas pelo aluno, dentro de um módulo específico."""
+    ids_aulas = [a["id"] for a in listar_aulas_do_modulo(modulo_id)]
+    return _ids_aulas_concluidas(aluno_id, ids_aulas)
+
+
 def calcular_progresso_curso(aluno_id: str, curso_id: int) -> float:
-    """Retorna o percentual (0.0 a 1.0) de aulas concluídas em um curso."""
+    """Retorna o percentual (0.0 a 1.0) de aulas concluídas em um curso (visão geral)."""
     aulas = listar_aulas_do_curso(curso_id)
     if not aulas:
         return 0.0
     concluidas = aulas_concluidas_do_aluno(aluno_id, curso_id)
     return len(concluidas) / len(aulas)
+
+
+def modulo_esta_completo(aluno_id: str, modulo_id: int) -> bool:
+    """
+    Um módulo está completo quando: todas as suas aulas foram concluídas E
+    (se o módulo tiver uma prova) o aluno foi aprovado nela. Módulos sem
+    nenhuma aula cadastrada ainda contam como incompletos.
+    """
+    aulas = listar_aulas_do_modulo(modulo_id)
+    if not aulas:
+        return False
+    concluidas = aulas_concluidas_do_modulo(aluno_id, modulo_id)
+    if len(concluidas) < len(aulas):
+        return False
+
+    prova = buscar_prova_do_modulo(modulo_id)
+    if prova:
+        resultado = melhor_resultado(aluno_id, prova["id"])
+        if not resultado or not resultado["aprovado"]:
+            return False
+
+    return True
+
+
+def curso_totalmente_concluido(aluno_id: str, curso_id: int) -> bool:
+    """O curso só é considerado concluído quando TODOS os seus módulos estão completos."""
+    modulos = listar_modulos_do_curso(curso_id)
+    if not modulos:
+        return False
+    return all(modulo_esta_completo(aluno_id, m["id"]) for m in modulos)
+
+
+def nota_final_curso(aluno_id: str, curso_id: int):
+    """
+    Nota final do curso para o certificado: a média das notas obtidas nas
+    provas dos módulos que têm avaliação. Se nenhum módulo tiver prova
+    (curso só com vídeos), devolve None — o certificado mostra 'Concluído'
+    em vez de uma nota numérica nesse caso.
+    """
+    modulos = listar_modulos_do_curso(curso_id)
+    notas = []
+    for modulo in modulos:
+        prova = buscar_prova_do_modulo(modulo["id"])
+        if prova:
+            resultado = melhor_resultado(aluno_id, prova["id"])
+            if resultado:
+                notas.append(float(resultado["nota"]))
+    if not notas:
+        return None
+    return sum(notas) / len(notas)
 
 
 # ---------------------------------------------------------------------------
@@ -397,16 +501,36 @@ def obter_tempos_curso(aluno_id: str, curso_id: int):
 # PROVAS E PERGUNTAS
 # ---------------------------------------------------------------------------
 
+def buscar_prova_do_modulo(modulo_id: int):
+    sb = get_supabase_client()
+    resposta = sb.table("provas").select("*").eq("modulo_id", modulo_id).execute()
+    dados = resposta.data
+    return dados[0] if dados else None
+
+
 def buscar_prova_do_curso(curso_id: int):
+    """Compatibilidade: retorna a primeira prova encontrada entre os módulos do curso."""
     sb = get_supabase_client()
     resposta = sb.table("provas").select("*").eq("curso_id", curso_id).execute()
     dados = resposta.data
     return dados[0] if dados else None
 
 
-def criar_prova(curso_id: int, titulo: str, nota_minima: float):
+def listar_provas_do_curso(curso_id: int):
+    """Todas as provas do curso, uma por módulo (útil para o dashboard/admin)."""
     sb = get_supabase_client()
-    nova = {"curso_id": curso_id, "titulo": titulo.strip(), "nota_minima": nota_minima}
+    resposta = sb.table("provas").select("*").eq("curso_id", curso_id).execute()
+    return resposta.data
+
+
+def criar_prova(modulo_id: int, curso_id: int, titulo: str, nota_minima: float):
+    sb = get_supabase_client()
+    nova = {
+        "modulo_id": modulo_id,
+        "curso_id": curso_id,
+        "titulo": titulo.strip(),
+        "nota_minima": nota_minima,
+    }
     resposta = sb.table("provas").insert(nova).execute()
     return resposta.data[0]
 
