@@ -96,13 +96,29 @@ def main():
 
     # 3) Menu lateral (em celulares, o Streamlit já transforma isto num menu ☰ recolhível)
     with st.sidebar:
-        st.markdown(
-            f"<div style='text-align:center; margin-top:-0.5rem; margin-bottom:0.3rem;'>"
-            f"<img src='data:image/png;base64,{_icone_base64()}' alt='Norte Tel' "
-            f"style='width:90px; max-width:35%; height:auto;' />"
-            f"</div>",
-            unsafe_allow_html=True,
-        )
+        foto_aluno = st.session_state.get("aluno_foto_url")
+        if foto_aluno:
+            # Ícone da empresa e foto do aluno lado a lado, mesmo tamanho,
+            # como um "par" bem proporcionado acima do nome.
+            st.markdown(
+                f"<div style='display:flex; align-items:center; justify-content:center; "
+                f"gap:14px; margin-top:-0.5rem; margin-bottom:0.5rem;'>"
+                f"<img src='data:image/png;base64,{_icone_base64()}' alt='Norte Tel' "
+                f"style='width:64px; height:64px; object-fit:contain;' />"
+                f"<img src='{foto_aluno}' alt='Foto do aluno' "
+                f"style='width:64px; height:64px; border-radius:50%; object-fit:cover; "
+                f"border:2px solid #E6ECF3;' />"
+                f"</div>",
+                unsafe_allow_html=True,
+            )
+        else:
+            st.markdown(
+                f"<div style='text-align:center; margin-top:-0.5rem; margin-bottom:0.3rem;'>"
+                f"<img src='data:image/png;base64,{_icone_base64()}' alt='Norte Tel' "
+                f"style='width:90px; max-width:35%; height:auto;' />"
+                f"</div>",
+                unsafe_allow_html=True,
+            )
 
         primeiro_nome = st.session_state["aluno_nome"].split(" ")[0]
         st.markdown(f"### 👋 Olá, {primeiro_nome}!")
