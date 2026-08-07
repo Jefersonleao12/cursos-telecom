@@ -4,4 +4,4 @@ bcrypt==4.2.0
 fpdf2==2.8.1
 requests==2.32.3
 starlette==0.37.2
-Pillow>=10.0.0
+Pillow==11.1.0
