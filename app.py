@@ -9,6 +9,7 @@ Responsável por:
 Para rodar localmente:  streamlit run app.py
 """
 import streamlit as st
+import streamlit.components.v1 as components
 import base64
 from pathlib import Path
 
@@ -26,6 +27,68 @@ st.set_page_config(
     page_icon="📡",
     layout="wide",
     initial_sidebar_state="expanded",
+)
+
+# ----------------------------------------------------------------------------
+# PWA (permite "Instalar" o app no celular): o Streamlit não deixa a gente
+# editar o <head> da página diretamente pelo Python, então usamos esse
+# componente para "empurrar" as tags necessárias (manifest, ícone, cor do
+# tema) para o documento de verdade e registrar o service worker.
+# Isso roda em toda página, silenciosamente — não aparece nada na tela.
+# ----------------------------------------------------------------------------
+components.html(
+    """
+    <script>
+        (function () {
+            try {
+                const doc = window.parent.document;
+
+                if (!doc.querySelector('link[rel="manifest"]')) {
+                    const manifest = doc.createElement('link');
+                    manifest.rel = 'manifest';
+                    manifest.href = '/app/static/manifest.json';
+                    doc.head.appendChild(manifest);
+                }
+
+                if (!doc.querySelector('link[rel="apple-touch-icon"]')) {
+                    const appleIcon = doc.createElement('link');
+                    appleIcon.rel = 'apple-touch-icon';
+                    appleIcon.href = '/app/static/apple-touch-icon.png';
+                    doc.head.appendChild(appleIcon);
+                }
+
+                if (!doc.querySelector('meta[name="theme-color"]')) {
+                    const themeColor = doc.createElement('meta');
+                    themeColor.name = 'theme-color';
+                    themeColor.content = '#143C6E';
+                    doc.head.appendChild(themeColor);
+                }
+
+                if (!doc.querySelector('meta[name="apple-mobile-web-app-capable"]')) {
+                    const appleCapable = doc.createElement('meta');
+                    appleCapable.name = 'apple-mobile-web-app-capable';
+                    appleCapable.content = 'yes';
+                    doc.head.appendChild(appleCapable);
+                }
+
+                if (!doc.querySelector('meta[name="apple-mobile-web-app-title"]')) {
+                    const appleTitle = doc.createElement('meta');
+                    appleTitle.name = 'apple-mobile-web-app-title';
+                    appleTitle.content = 'Norte Tel';
+                    doc.head.appendChild(appleTitle);
+                }
+
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.register('/app/static/sw.js').catch(function () {});
+                }
+            } catch (erro) {
+                console.log('PWA setup:', erro);
+            }
+        })();
+    </script>
+    """,
+    height=0,
+    width=0,
 )
 
 # Ícone (só o "N" circular, sem o texto) usado no topo da barra lateral.
