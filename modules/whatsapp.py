@@ -16,11 +16,10 @@ import streamlit as st
 import requests
 
 
-def notificar_nova_duvida(aluno_nome: str, mensagem: str) -> bool:
+def _enviar_mensagem(texto: str) -> bool:
     """
-    Tenta enviar uma notificação no WhatsApp sobre uma nova dúvida.
-    Retorna True se a mensagem foi enviada, False se não foi possível
-    (por exemplo, se as credenciais do CallMeBot não estiverem configuradas).
+    Função interna que faz a chamada HTTP ao CallMeBot. Retorna True se
+    enviou, False se não foi possível (credenciais ausentes ou erro de rede).
     Nunca interrompe o fluxo do app: qualquer erro é silenciado aqui.
     """
     try:
@@ -28,12 +27,6 @@ def notificar_nova_duvida(aluno_nome: str, mensagem: str) -> bool:
         apikey = st.secrets["WHATSAPP_APIKEY"]
     except (KeyError, FileNotFoundError):
         return False
-
-    texto = (
-        f"📡 Nova dúvida na Plataforma Norte Tel\n\n"
-        f"Aluno: {aluno_nome}\n"
-        f"Mensagem: {mensagem}"
-    )
 
     try:
         resposta = requests.get(
@@ -44,3 +37,24 @@ def notificar_nova_duvida(aluno_nome: str, mensagem: str) -> bool:
         return resposta.status_code == 200
     except requests.RequestException:
         return False
+
+
+def notificar_nova_duvida(aluno_nome: str, mensagem: str) -> bool:
+    """Tenta enviar uma notificação no WhatsApp sobre uma nova dúvida."""
+    texto = (
+        f"📡 Nova dúvida na Plataforma Norte Tel\n\n"
+        f"Aluno: {aluno_nome}\n"
+        f"Mensagem: {mensagem}"
+    )
+    return _enviar_mensagem(texto)
+
+
+def notificar_pedido_redefinicao_senha(aluno_nome: str, aluno_email: str) -> bool:
+    """Tenta enviar uma notificação no WhatsApp sobre um pedido de 'esqueci minha senha'."""
+    texto = (
+        f"🔑 Pedido de redefinição de senha\n\n"
+        f"Aluno: {aluno_nome}\n"
+        f"E-mail: {aluno_email}\n\n"
+        f"Acesse o Painel de Administração > Alunos para gerar uma nova senha."
+    )
+    return _enviar_mensagem(texto)
