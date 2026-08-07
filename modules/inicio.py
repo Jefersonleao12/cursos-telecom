@@ -15,8 +15,7 @@ from database.repositorio import (
     enviar_duvida,
     listar_cursos,
     calcular_progresso_curso,
-    buscar_prova_do_curso,
-    melhor_resultado,
+    curso_totalmente_concluido,
     listar_avisos_ativos,
 )
 from modules.whatsapp import notificar_nova_duvida
@@ -97,11 +96,8 @@ def _resumo_do_aluno(aluno_id: str) -> dict:
         elif progresso > 0:
             em_andamento += 1
 
-        prova = buscar_prova_do_curso(curso["id"])
-        if prova:
-            resultado = melhor_resultado(aluno_id, prova["id"])
-            if resultado and resultado["aprovado"]:
-                certificados += 1
+        if curso_totalmente_concluido(aluno_id, curso["id"]):
+            certificados += 1
 
     return {"concluidos": concluidos, "em_andamento": em_andamento, "certificados": certificados}
 
