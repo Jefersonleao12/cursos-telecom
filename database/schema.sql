@@ -26,6 +26,7 @@ create table if not exists public.alunos (
     ativo          boolean not null default true,   -- acesso pode ser bloqueado pelo admin sem excluir a conta
     deve_trocar_senha            boolean not null default false, -- true após o admin gerar uma senha temporária
     solicitou_redefinicao_senha  boolean not null default false, -- "esqueci minha senha", aguardando o admin
+    foto_url       text,                -- link público da foto de perfil (Supabase Storage)
     criado_em      timestamptz not null default now()
 );
 
@@ -42,16 +43,33 @@ create table if not exists public.cursos (
 );
 
 -- ----------------------------------------------------------------------------
--- AULAS (vídeos de cada curso)
+-- MÓDULOS (assuntos dentro de um curso — ex: "Módulo 1: Fundamentos de Fibra")
+-- Cada módulo tem seus próprios vídeos e sua própria prova. O aluno só
+-- desbloqueia o módulo seguinte depois de concluir o atual (vídeos + prova,
+-- se houver). Isso permite cursos mais longos e completos, com carga
+-- horária que realmente justifica o certificado.
+-- ----------------------------------------------------------------------------
+create table if not exists public.modulos (
+    id         bigint generated always as identity primary key,
+    curso_id   bigint not null references public.cursos(id) on delete cascade,
+    titulo     text not null,
+    ordem      int not null default 1
+);
+create index if not exists idx_modulos_curso on public.modulos(curso_id);
+
+-- ----------------------------------------------------------------------------
+-- AULAS (vídeos de cada módulo)
 -- ----------------------------------------------------------------------------
 create table if not exists public.aulas (
     id               bigint generated always as identity primary key,
-    curso_id         bigint not null references public.cursos(id) on delete cascade,
+    modulo_id        bigint not null references public.modulos(id) on delete cascade,
+    curso_id         bigint not null references public.cursos(id) on delete cascade,  -- denormalizado, facilita consultas de progresso geral
     titulo           text not null,
     url_video        text not null,     -- link do YouTube (não listado) ou outro host de vídeo
     ordem            int not null default 1,
     duracao_minutos  int default 0
 );
+create index if not exists idx_aulas_modulo on public.aulas(modulo_id);
 create index if not exists idx_aulas_curso on public.aulas(curso_id);
 
 -- ----------------------------------------------------------------------------
@@ -72,10 +90,12 @@ create index if not exists idx_progresso_aluno on public.progresso_aulas(aluno_i
 -- ----------------------------------------------------------------------------
 create table if not exists public.provas (
     id             bigint generated always as identity primary key,
-    curso_id       bigint not null references public.cursos(id) on delete cascade,
+    modulo_id      bigint not null references public.modulos(id) on delete cascade,
+    curso_id       bigint not null references public.cursos(id) on delete cascade,  -- denormalizado, facilita consultas
     titulo         text not null,
     nota_minima    numeric not null default 7.0   -- escala de 0 a 10
 );
+create unique index if not exists idx_provas_modulo_unico on public.provas(modulo_id);
 create index if not exists idx_provas_curso on public.provas(curso_id);
 
 -- ----------------------------------------------------------------------------
