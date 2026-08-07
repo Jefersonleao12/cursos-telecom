@@ -573,11 +573,23 @@ def tela_admin():
                 destaque = " 🔑" if aluno.get("solicitou_redefinicao_senha") else ""
                 inativo_label = " · 🚫 acesso desativado" if not aluno.get("ativo", True) else ""
                 with st.container(border=True):
-                    st.write(f"**{aluno['nome_completo']}**{destaque} — {aluno['email']}{inativo_label}")
-                    st.caption(
-                        f"Empresa: {aluno.get('empresa') or '-'} · Cargo: {aluno.get('cargo') or '-'} · "
-                        f"Filial: {aluno.get('filial') or '-'}"
-                    )
+                    col_foto, col_texto = st.columns([1, 8])
+                    with col_foto:
+                        if aluno.get("foto_url"):
+                            st.image(aluno["foto_url"], width=52)
+                        else:
+                            st.markdown(
+                                "<div style='width:52px; height:52px; border-radius:50%; "
+                                "background:#EAF1FB; display:flex; align-items:center; justify-content:center; "
+                                "font-size:1.4rem;'>👤</div>",
+                                unsafe_allow_html=True,
+                            )
+                    with col_texto:
+                        st.write(f"**{aluno['nome_completo']}**{destaque} — {aluno['email']}{inativo_label}")
+                        st.caption(
+                            f"Empresa: {aluno.get('empresa') or '-'} · Cargo: {aluno.get('cargo') or '-'} · "
+                            f"Filial: {aluno.get('filial') or '-'}"
+                        )
                     if aluno.get("is_admin"):
                         st.caption("⭐ Administrador")
 
