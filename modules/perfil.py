@@ -11,6 +11,7 @@ import streamlit as st
 from database.repositorio import (
     atualizar_perfil_aluno,
     trocar_senha_aluno,
+    atualizar_foto_perfil,
     listar_cursos,
     calcular_progresso_curso,
     obter_tempos_curso,
@@ -45,9 +46,33 @@ def tela_perfil():
 
     # ---------------- MEUS DADOS ----------------
     with aba_dados:
-        st.caption(f"Nome: **{st.session_state['aluno_nome']}**")
-        st.caption(f"E-mail: **{st.session_state['aluno_email']}**")
-        st.caption("Para trocar nome ou e-mail, entre em contato com o administrador.")
+        col_foto, col_dados = st.columns([1, 3])
+        with col_foto:
+            foto_atual = st.session_state.get("aluno_foto_url")
+            if foto_atual:
+                st.image(foto_atual, width=120)
+            else:
+                st.markdown(
+                    "<div style='width:120px; height:120px; border-radius:50%; "
+                    "background:#EAF1FB; display:flex; align-items:center; justify-content:center; "
+                    "font-size:2.5rem;'>👤</div>",
+                    unsafe_allow_html=True,
+                )
+        with col_dados:
+            st.caption(f"Nome: **{st.session_state['aluno_nome']}**")
+            st.caption(f"E-mail: **{st.session_state['aluno_email']}**")
+            st.caption("Para trocar nome ou e-mail, entre em contato com o administrador.")
+
+        nova_foto = st.file_uploader(
+            "Trocar foto de perfil", type=["jpg", "jpeg", "png"], key="upload_foto_perfil"
+        )
+        if nova_foto is not None:
+            if st.button("📷 Salvar foto de perfil"):
+                nova_url = atualizar_foto_perfil(aluno_id, nova_foto.getvalue())
+                st.session_state["aluno_foto_url"] = nova_url
+                st.success("Foto atualizada com sucesso!")
+                st.rerun()
+
         st.divider()
 
         with st.form("form_editar_perfil"):
