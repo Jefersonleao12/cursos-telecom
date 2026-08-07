@@ -18,6 +18,7 @@ from modules.cursos import tela_lista_cursos, tela_detalhe_curso
 from modules.provas import tela_prova
 from modules.certificado import tela_certificados
 from modules.materiais import tela_materiais
+from modules.perfil import tela_perfil
 from modules.admin import tela_admin
 
 
@@ -121,6 +122,7 @@ def main():
         _botao_menu("📚 Meus Cursos", "lista_cursos", grupo={"lista_cursos", "detalhe_curso", "prova"})
         _botao_menu("🏆 Meus Certificados", "certificados")
         _botao_menu("🗂️ Materiais", "materiais")
+        _botao_menu("👤 Meu Perfil", "perfil")
 
         if st.session_state.get("aluno_is_admin"):
             st.divider()
@@ -145,6 +147,8 @@ def main():
         tela_certificados()
     elif pagina == "materiais":
         tela_materiais()
+    elif pagina == "perfil":
+        tela_perfil()
     elif pagina == "admin" and st.session_state.get("aluno_is_admin"):
         tela_admin()
     else:
