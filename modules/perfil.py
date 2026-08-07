@@ -15,8 +15,10 @@ from database.repositorio import (
     listar_cursos,
     calcular_progresso_curso,
     obter_tempos_curso,
-    buscar_prova_do_curso,
+    listar_modulos_do_curso,
+    buscar_prova_do_modulo,
     melhor_resultado,
+    nota_final_curso,
 )
 from modules.auth import gerar_hash_senha, verificar_senha
 from utils.helpers import FILIAIS
@@ -146,19 +148,21 @@ def tela_perfil():
                     else:
                         st.metric("Status do curso", "Em andamento")
 
-                prova = buscar_prova_do_curso(curso["id"])
-                if prova:
-                    resultado = melhor_resultado(aluno_id, prova["id"])
-                    with col2:
-                        if resultado:
-                            st.metric("Nota na avaliação", f"{resultado['nota']:.1f}/10")
-                        else:
-                            st.metric("Nota na avaliação", "-")
-                    with col3:
-                        if resultado and resultado.get("tempo_gasto_segundos"):
-                            st.metric("Tempo na prova", _formatar_duracao(resultado["tempo_gasto_segundos"]))
-                        else:
-                            st.metric("Tempo na prova", "-")
+                prova_ids_do_curso = [
+                    p["id"] for p in (buscar_prova_do_modulo(m["id"]) for m in listar_modulos_do_curso(curso["id"]))
+                    if p
+                ]
+                nota_media = nota_final_curso(aluno_id, curso["id"])
+                tempo_total_provas = 0
+                for pid in prova_ids_do_curso:
+                    resultado_modulo = melhor_resultado(aluno_id, pid)
+                    if resultado_modulo and resultado_modulo.get("tempo_gasto_segundos"):
+                        tempo_total_provas += resultado_modulo["tempo_gasto_segundos"]
+
+                with col2:
+                    st.metric("Nota média nas avaliações", f"{nota_media:.1f}/10" if nota_media is not None else "-")
+                with col3:
+                    st.metric("Tempo total nas provas", _formatar_duracao(tempo_total_provas) if tempo_total_provas else "-")
 
         if not algum_curso_iniciado:
             st.info("Você ainda não começou nenhum curso. Vá até 'Meus Cursos' para começar!")
