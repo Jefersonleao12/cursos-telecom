@@ -17,7 +17,7 @@ from database.repositorio import (
     calcular_progresso_curso,
     buscar_prova_do_curso,
     melhor_resultado,
-    enviar_duvida,
+    listar_avisos_ativos,
 )
 from modules.whatsapp import notificar_nova_duvida
 
@@ -158,6 +158,12 @@ def tela_inicio():
         unsafe_allow_html=True,
           )
     
+    st.write("")
+    avisos = listar_avisos_ativos()
+    if avisos:
+        for aviso in avisos:
+            st.info(f"📢 **{aviso['titulo']}**\n\n{aviso['mensagem']}")
+
     st.write("")
     resumo = _resumo_do_aluno(st.session_state["aluno_id"])
     col_a, col_b, col_c = st.columns(3)
