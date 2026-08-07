@@ -25,7 +25,14 @@ from pathlib import Path
 import streamlit as st
 import bcrypt
 
-from database.repositorio import criar_aluno, buscar_aluno_por_email, buscar_aluno_por_id
+from database.repositorio import (
+    criar_aluno,
+    buscar_aluno_por_email,
+    buscar_aluno_por_id,
+    solicitar_redefinicao_senha,
+    trocar_senha_aluno,
+)
+from modules.whatsapp import notificar_pedido_redefinicao_senha
 from utils.helpers import email_valido, FILIAIS
 
 # Caminho da logo: assets/logo.png, na raiz do projeto (um nível acima de modules/)
@@ -96,8 +103,10 @@ def _login_efetuado(aluno: dict, lembrar: bool = True):
     st.session_state["aluno_nome"] = aluno["nome_completo"]
     st.session_state["aluno_email"] = aluno["email"]
     st.session_state["aluno_empresa"] = aluno.get("empresa") or ""
+    st.session_state["aluno_cargo"] = aluno.get("cargo") or ""
     st.session_state["aluno_filial"] = aluno.get("filial") or ""
     st.session_state["aluno_is_admin"] = aluno.get("is_admin", False)
+    st.session_state["aluno_deve_trocar_senha"] = aluno.get("deve_trocar_senha", False)
 
     if lembrar:
         # Grava o token na URL para sobreviver a um F5 (ver docstring do módulo).
@@ -130,6 +139,9 @@ def _restaurar_sessao_da_url() -> bool:
     aluno = buscar_aluno_por_id(aluno_id)
     if not aluno:
         st.query_params.clear()  # conta pode ter sido excluída
+        return False
+    if not aluno.get("ativo", True):
+        st.query_params.clear()  # acesso foi desativado pelo admin
         return False
 
     _login_efetuado(aluno, lembrar=False)  # o token já está na URL, não precisa regravar
@@ -300,11 +312,40 @@ def tela_login():
             st.error("E-mail não encontrado. Verifique ou cadastre-se acima.")
             return
 
+        if not aluno.get("ativo", True):
+            st.error("Este acesso foi desativado. Entre em contato com o administrador da plataforma.")
+            return
+
         if verificar_senha(senha, aluno["senha_hash"]):
             _login_efetuado(aluno)
             st.rerun()
         else:
             st.error("Senha incorreta. Tente novamente.")
+
+    with st.expander("Esqueci minha senha"):
+        st.caption(
+            "Informe o e-mail do seu cadastro. Um pedido de redefinição será "
+            "enviado para o administrador, que vai gerar uma nova senha para você."
+        )
+        with st.form("form_esqueci_senha", clear_on_submit=True):
+            email_recuperacao = st.text_input("E-mail cadastrado", key="email_recuperacao_senha")
+            pedir_redefinicao = st.form_submit_button("Solicitar redefinição de senha")
+
+        if pedir_redefinicao:
+            if not email_recuperacao:
+                st.warning("Digite o e-mail do seu cadastro.")
+            else:
+                aluno_encontrado = solicitar_redefinicao_senha(email_recuperacao)
+                if aluno_encontrado:
+                    notificar_pedido_redefinicao_senha(
+                        aluno_encontrado["nome_completo"], aluno_encontrado["email"]
+                    )
+                # Mesma mensagem independente de o e-mail existir ou não,
+                # para não revelar quais e-mails têm cadastro na plataforma.
+                st.success(
+                    "Se este e-mail estiver cadastrado, o pedido foi enviado. "
+                    "Aguarde o administrador entrar em contato com sua nova senha."
+                )
 
 
 def tela_cadastro():
@@ -355,6 +396,37 @@ def tela_cadastro():
         st.rerun()
 
 
+def _tela_trocar_senha_obrigatoria():
+    """
+    Mostrada quando o aluno está logado com uma senha temporária (gerada
+    pelo admin após um reset). Bloqueia o uso do resto do app até que ele
+    defina uma senha nova, só dele.
+    """
+    st.title("🔒 Defina uma nova senha")
+    st.info(
+        "Sua senha foi redefinida pelo administrador. Por segurança, "
+        "defina uma nova senha só sua antes de continuar."
+    )
+
+    _esq, centro, _dir = st.columns([1, 2, 1])
+    with centro:
+        with st.form("form_trocar_senha_obrigatoria"):
+            nova_senha = st.text_input("Nova senha *", type="password", help="Mínimo de 6 caracteres.")
+            confirmar = st.text_input("Confirmar nova senha *", type="password")
+            salvar = st.form_submit_button("Salvar nova senha", width="stretch", type="primary")
+
+        if salvar:
+            if not nova_senha or len(nova_senha) < 6:
+                st.warning("A senha deve ter pelo menos 6 caracteres.")
+            elif nova_senha != confirmar:
+                st.warning("As senhas não coincidem.")
+            else:
+                trocar_senha_aluno(st.session_state["aluno_id"], gerar_hash_senha(nova_senha))
+                st.session_state["aluno_deve_trocar_senha"] = False
+                st.success("Senha atualizada! Redirecionando...")
+                st.rerun()
+
+
 def exigir_login():
     """
     Função 'porteira': se o usuário não estiver logado, tenta primeiro
@@ -364,9 +436,15 @@ def exigir_login():
     Chame esta função no início do app.py, antes de montar o resto da interface.
     """
     if st.session_state.get("aluno_logado"):
+        if st.session_state.get("aluno_deve_trocar_senha"):
+            _tela_trocar_senha_obrigatoria()
+            st.stop()
         return  # já está logado, o app.py segue o fluxo normal
 
     if _restaurar_sessao_da_url():
+        if st.session_state.get("aluno_deve_trocar_senha"):
+            _tela_trocar_senha_obrigatoria()
+            st.stop()
         return  # sessão restaurada a partir do token da URL — sem precisar logar de novo
 
     _estilos_auth()
