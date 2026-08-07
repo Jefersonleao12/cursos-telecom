@@ -1,9 +1,10 @@
 """
-Módulo de Cursos e Aulas.
+Módulo de Cursos, Módulos e Aulas.
 
-Mostra a lista de cursos disponíveis, o player de vídeo de cada aula
-(usando o próprio st.video, que já suporta links do YouTube) e a barra
-de progresso do curso.
+Mostra a lista de cursos disponíveis e a tela de um curso, agora organizada
+em MÓDULOS (assuntos) sequenciais: o aluno assiste os vídeos de um módulo,
+faz a prova daquele módulo (se houver) e só então o módulo seguinte é
+desbloqueado — até concluir o curso inteiro.
 """
 import time
 
@@ -12,12 +13,20 @@ import streamlit as st
 from database.repositorio import (
     listar_cursos,
     buscar_curso,
-    listar_aulas_do_curso,
+    listar_modulos_do_curso,
+    listar_aulas_do_modulo,
     aulas_concluidas_do_aluno,
+    aulas_concluidas_do_modulo,
     calcular_progresso_curso,
     marcar_aula_concluida,
     registrar_inicio_curso,
+    finalizar_progresso_curso,
+    buscar_prova_do_modulo,
+    modulo_esta_completo,
+    curso_totalmente_concluido,
 )
+from modules.provas import renderizar_prova_modulo
+
 
 def _selo_status(progresso: float) -> str:
     """Retorna um selo HTML colorido de acordo com o progresso do curso."""
@@ -31,6 +40,7 @@ def _selo_status(progresso: float) -> str:
         f"<span style='background:{cor_fundo}; color:{cor_texto}; padding:3px 10px; "
         f"border-radius:999px; font-size:0.78rem; font-weight:600;'>{texto}</span>"
     )
+
 
 def tela_lista_cursos():
     st.title("📚 Meus Cursos")
@@ -63,7 +73,7 @@ def tela_lista_cursos():
             with col_info:
                 st.markdown(f"### {curso['titulo']}")
                 st.markdown(_selo_status(progresso), unsafe_allow_html=True)
-                st.caption(f"Instrutor: {curso['instrutor']}")
+                st.caption(f"Instrutor: {curso['instrutor']} · Carga horária: {curso.get('carga_horaria', '-')}h")
                 if curso.get("descricao"):
                     st.write(curso["descricao"])
                 st.progress(progresso, text=f"{int(progresso * 100)}% concluído")
@@ -74,6 +84,44 @@ def tela_lista_cursos():
                     st.session_state["curso_atual_id"] = curso["id"]
                     st.session_state["pagina_atual"] = "detalhe_curso"
                     st.rerun()
+
+
+def _bloco_aula(aluno_id: str, aula: dict, aula_concluida: bool):
+    """Desenha o vídeo de uma aula e o botão de concluir (com a trava de tempo mínimo)."""
+    st.video(aula["url_video"])
+    if aula_concluida:
+        st.success("Você já concluiu esta aula.")
+        return
+
+    # Trava simples: exige que um tempo mínimo (baseado na duração cadastrada
+    # da aula) tenha passado desde que o aluno abriu o vídeo, antes de
+    # liberar o botão de concluir. Não é uma prova cabal de que ele assistiu
+    # (não temos esse controle com um link do YouTube), mas evita o "clique
+    # instantâneo" que marcava a aula como concluída sem sequer abrir o vídeo.
+    chave_abertura = f"abertura_aula_{aula['id']}"
+    if chave_abertura not in st.session_state:
+        st.session_state[chave_abertura] = time.time()
+
+    duracao_min = aula.get("duracao_minutos") or 0
+    segundos_exigidos = int(duracao_min * 60 * 0.9)  # 90% da duração cadastrada
+    segundos_passados = int(time.time() - st.session_state[chave_abertura])
+
+    if segundos_exigidos > 0 and segundos_passados < segundos_exigidos:
+        faltam = segundos_exigidos - segundos_passados
+        minutos_faltam = faltam // 60 + 1
+        st.button(
+            f"Marcar aula como concluída (assista mais ~{minutos_faltam} min)",
+            key=f"concluir_{aula['id']}",
+            disabled=True,
+            use_container_width=True,
+        )
+        if st.button("🔄 Já assisti, verificar novamente", key=f"verificar_{aula['id']}"):
+            st.rerun()
+    else:
+        if st.button("Marcar aula como concluída", key=f"concluir_{aula['id']}", type="primary"):
+            marcar_aula_concluida(aluno_id, aula["id"])
+            st.toast("Aula concluída! 🎉", icon="✅")
+            st.rerun()
 
 
 def tela_detalhe_curso():
@@ -94,68 +142,78 @@ def tela_detalhe_curso():
         st.write(curso["descricao"])
 
     aluno_id = st.session_state["aluno_id"]
-    aulas = listar_aulas_do_curso(curso_id)
+    modulos = listar_modulos_do_curso(curso_id)
 
-    if not aulas:
-        st.info("Este curso ainda não possui aulas cadastradas.")
+    if not modulos:
+        st.info("Este curso ainda não possui módulos cadastrados.")
         return
 
-    # Registra (uma única vez) o instante em que o aluno começou este curso,
-    # usado depois para calcular quanto tempo ele levou para concluir.
+    # Registra (uma única vez por sessão) o instante em que o aluno começou
+    # este curso, usado depois para calcular quanto tempo ele levou para concluir.
     if not st.session_state.get(f"inicio_registrado_curso_{curso_id}"):
         registrar_inicio_curso(aluno_id, curso_id)
         st.session_state[f"inicio_registrado_curso_{curso_id}"] = True
 
-    concluidas = set(aulas_concluidas_do_aluno(aluno_id, curso_id))
-    progresso = len(concluidas) / len(aulas)
-    st.progress(progresso, text=f"Progresso do curso: {int(progresso * 100)}%")
+    progresso_geral = calcular_progresso_curso(aluno_id, curso_id)
+    st.progress(progresso_geral, text=f"Progresso geral do curso: {int(progresso_geral * 100)}%")
+    st.caption(f"{len(modulos)} módulo(s) neste curso")
 
     st.divider()
 
-    for aula in aulas:
-        aula_concluida = aula["id"] in concluidas
-        icone = "✅" if aula_concluida else "▶️"
-        with st.expander(f"{icone} Aula {aula['ordem']}: {aula['titulo']}", expanded=not aula_concluida):
-            st.video(aula["url_video"])
-            if aula_concluida:
-                st.success("Você já concluiu esta aula.")
+    # Percorre os módulos em ordem. Cada um só é liberado depois que o
+    # anterior estiver 100% completo (aulas + prova, se houver).
+    modulo_anterior_completo = True
+    curso_recem_concluido = False
+
+    for indice, modulo in enumerate(modulos, start=1):
+        desbloqueado = modulo_anterior_completo
+        completo = modulo_esta_completo(aluno_id, modulo["id"]) if desbloqueado else False
+
+        if not desbloqueado:
+            st.markdown(f"##### 🔒 Módulo {indice}: {modulo['titulo']}")
+            st.caption("Conclua o módulo anterior para desbloquear este.")
+            st.write("")
+            modulo_anterior_completo = False
+            continue
+
+        icone = "✅" if completo else "▶️"
+        with st.expander(f"{icone} Módulo {indice}: {modulo['titulo']}", expanded=not completo):
+            aulas = listar_aulas_do_modulo(modulo["id"])
+
+            if not aulas:
+                st.caption("Este módulo ainda não possui aulas cadastradas.")
             else:
-                # Trava simples: exige que um tempo mínimo (baseado na duração
-                # cadastrada da aula) tenha passado desde que o aluno abriu o
-                # vídeo, antes de liberar o botão de concluir. Não é uma prova
-                # cabal de que ele assistiu (não temos esse controle com um
-                # link do YouTube), mas evita o "clique instantâneo" que
-                # marcava a aula como concluída sem sequer abrir o vídeo.
-                chave_abertura = f"abertura_aula_{aula['id']}"
-                if chave_abertura not in st.session_state:
-                    st.session_state[chave_abertura] = time.time()
+                concluidas_modulo = set(aulas_concluidas_do_modulo(aluno_id, modulo["id"]))
+                for aula in aulas:
+                    aula_concluida = aula["id"] in concluidas_modulo
+                    st.markdown(f"**Aula {aula['ordem']}: {aula['titulo']}**")
+                    _bloco_aula(aluno_id, aula, aula_concluida)
+                    st.write("")
 
-                duracao_min = aula.get("duracao_minutos") or 0
-                segundos_exigidos = int(duracao_min * 60 * 0.9)  # 90% da duração cadastrada
-                segundos_passados = int(time.time() - st.session_state[chave_abertura])
+                todas_aulas_concluidas = len(concluidas_modulo) == len(aulas)
 
-                if segundos_exigidos > 0 and segundos_passados < segundos_exigidos:
-                    faltam = segundos_exigidos - segundos_passados
-                    minutos_faltam = faltam // 60 + 1
-                    st.button(
-                        f"Marcar aula como concluída (assista mais ~{minutos_faltam} min)",
-                        key=f"concluir_{aula['id']}",
-                        disabled=True,
-                        use_container_width=True,
-                    )
-                    if st.button("🔄 Já assisti, verificar novamente", key=f"verificar_{aula['id']}"):
-                        st.rerun()
-                else:
-                    if st.button("Marcar aula como concluída", key=f"concluir_{aula['id']}", type="primary"):
-                        marcar_aula_concluida(aluno_id, aula["id"])
-                        st.toast("Aula concluída! 🎉", icon="✅")
-                        st.rerun()
+                if todas_aulas_concluidas:
+                    prova = buscar_prova_do_modulo(modulo["id"])
+                    if prova:
+                        st.divider()
+                        st.markdown(f"#### 📝 Avaliação — {prova['titulo']}")
+                        aprovado_agora = renderizar_prova_modulo(aluno_id, prova)
+                        if aprovado_agora:
+                            if curso_totalmente_concluido(aluno_id, curso_id):
+                                finalizar_progresso_curso(aluno_id, curso_id)
+                                curso_recem_concluido = True
+                            st.rerun()
+                    elif not completo:
+                        st.success("Módulo concluído! Siga para o próximo. 🎉")
+
+        modulo_anterior_completo = completo
 
     st.divider()
-    if progresso >= 1.0:
-        st.success("🎉 Você concluiu todas as aulas! Agora faça a avaliação final para obter seu certificado.")
-        if st.button("Ir para a Avaliação", type="primary"):
-            st.session_state["pagina_atual"] = "prova"
+
+    if curso_totalmente_concluido(aluno_id, curso_id):
+        st.success("🎉 Parabéns! Você concluiu TODOS os módulos deste curso.")
+        if st.button("Ver meu certificado", type="primary"):
+            st.session_state["pagina_atual"] = "certificados"
             st.rerun()
     else:
-        st.info("Conclua todas as aulas para liberar a avaliação final do curso.")
+        st.info("Conclua os vídeos e as avaliações de cada módulo, em ordem, para liberar o certificado.")
