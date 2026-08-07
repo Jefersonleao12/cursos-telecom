@@ -15,7 +15,6 @@ from pathlib import Path
 from modules.auth import exigir_login, fazer_logout
 from modules.inicio import tela_inicio
 from modules.cursos import tela_lista_cursos, tela_detalhe_curso
-from modules.provas import tela_prova
 from modules.certificado import tela_certificados
 from modules.materiais import tela_materiais
 from modules.perfil import tela_perfil
@@ -135,7 +134,7 @@ def main():
                 st.rerun()
 
         _botao_menu("🏠 Início", "inicio")
-        _botao_menu("📚 Meus Cursos", "lista_cursos", grupo={"lista_cursos", "detalhe_curso", "prova"})
+        _botao_menu("📚 Meus Cursos", "lista_cursos", grupo={"lista_cursos", "detalhe_curso"})
         _botao_menu("🏆 Meus Certificados", "certificados")
         _botao_menu("🗂️ Materiais", "materiais")
         _botao_menu("👤 Meu Perfil", "perfil")
@@ -157,8 +156,6 @@ def main():
         tela_lista_cursos()
     elif pagina == "detalhe_curso":
         tela_detalhe_curso()
-    elif pagina == "prova":
-        tela_prova()
     elif pagina == "certificados":
         tela_certificados()
     elif pagina == "materiais":
