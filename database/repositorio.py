@@ -5,6 +5,7 @@ Concentra TODAS as consultas ao Supabase em um único lugar. Isso facilita a
 manutenção: se um dia você quiser trocar de banco de dados ou entender como
 alguma tela busca suas informações, é só olhar aqui.
 """
+import io
 import uuid
 from datetime import datetime, timezone
 
@@ -78,6 +79,50 @@ def trocar_senha_aluno(aluno_id: str, novo_hash_senha: str):
     sb.table("alunos").update(
         {"senha_hash": novo_hash_senha, "deve_trocar_senha": False}
     ).eq("id", aluno_id).execute()
+
+
+# Nome do bucket no Supabase Storage onde ficam as fotos de perfil.
+_BUCKET_FOTOS_PERFIL = "fotos-perfil"
+
+
+def _processar_foto_perfil(arquivo_bytes: bytes) -> bytes:
+    """Recorta a imagem em um quadrado centralizado e redimensiona, para
+    todas as fotos ficarem com a mesma proporção (400x400) na plataforma."""
+    from PIL import Image
+
+    imagem = Image.open(io.BytesIO(arquivo_bytes)).convert("RGB")
+    lado = min(imagem.size)
+    esquerda = (imagem.width - lado) // 2
+    topo = (imagem.height - lado) // 2
+    imagem_quadrada = imagem.crop((esquerda, topo, esquerda + lado, topo + lado))
+    imagem_quadrada = imagem_quadrada.resize((400, 400))
+
+    buffer = io.BytesIO()
+    imagem_quadrada.save(buffer, format="JPEG", quality=85)
+    return buffer.getvalue()
+
+
+def atualizar_foto_perfil(aluno_id: str, arquivo_bytes: bytes) -> str:
+    """
+    Processa (recorta/redimensiona) e sobe a foto de perfil do aluno para o
+    Storage, sempre no mesmo caminho (substitui a foto antiga, se houver).
+    Salva o link público na tabela alunos e devolve esse link.
+    """
+    sb = get_supabase_client()
+    foto_processada = _processar_foto_perfil(arquivo_bytes)
+    caminho = f"{aluno_id}.jpg"
+
+    try:
+        sb.storage.from_(_BUCKET_FOTOS_PERFIL).remove([caminho])
+    except Exception:
+        pass  # ainda não existia uma foto anterior — tudo bem
+
+    sb.storage.from_(_BUCKET_FOTOS_PERFIL).upload(
+        caminho, foto_processada, file_options={"content-type": "image/jpeg"}
+    )
+    url = sb.storage.from_(_BUCKET_FOTOS_PERFIL).get_public_url(caminho)
+    sb.table("alunos").update({"foto_url": url}).eq("id", aluno_id).execute()
+    return url
 
 
 # ---------------------------------------------------------------------------
