@@ -1,58 +1,42 @@
 """
 Módulo de Provas/Avaliações.
 
-Aplica o questionário de múltipla escolha, calcula a nota automaticamente
-(0 a 10, proporcional aos acertos) e libera a emissão do certificado em
-caso de aprovação.
+Renderiza o questionário de múltipla escolha de UM módulo (não mais do
+curso inteiro), calcula a nota automaticamente (0 a 10, proporcional aos
+acertos) e — se aprovado — desbloqueia o próximo módulo do curso.
+
+É chamado de dentro de modules/cursos.py, embutido na própria tela do
+curso, logo abaixo dos vídeos daquele módulo (não é mais uma página à parte).
 """
 import time
 
 import streamlit as st
 
 from database.repositorio import (
-    buscar_curso,
-    buscar_prova_do_curso,
     listar_perguntas,
     salvar_resultado_prova,
     ultimo_resultado,
-    calcular_progresso_curso,
-    finalizar_progresso_curso,
 )
 
 
-def tela_prova():
-    curso_id = st.session_state.get("curso_atual_id")
-    curso = buscar_curso(curso_id)
-    aluno_id = st.session_state["aluno_id"]
-
-    if st.button("← Voltar para o curso"):
-        st.session_state["pagina_atual"] = "detalhe_curso"
-        st.rerun()
-
-    st.title(f"📝 Avaliação: {curso['titulo']}")
-
-    progresso = calcular_progresso_curso(aluno_id, curso_id)
-    if progresso < 1.0:
-        st.warning("Você precisa concluir todas as aulas do curso antes de fazer a avaliação.")
-        return
-
-    prova = buscar_prova_do_curso(curso_id)
-    if prova is None:
-        st.info("Este curso ainda não possui uma avaliação cadastrada.")
-        return
-
+def renderizar_prova_modulo(aluno_id: str, prova: dict):
+    """
+    Desenha o formulário da avaliação de um módulo. Cuida sozinho de:
+    - Perguntas ainda não cadastradas
+    - Trava de tentativa única (só refaz se o admin liberar)
+    - Cronometragem do tempo gasto
+    Retorna True se o aluno acabou de ser aprovado nesta execução (para o
+    chamador saber que precisa recarregar/desbloquear o próximo módulo).
+    """
     perguntas = listar_perguntas(prova["id"])
     if not perguntas:
         st.info("Esta avaliação ainda não possui perguntas cadastradas.")
-        return
+        return False
 
     resultado_anterior = ultimo_resultado(aluno_id, prova["id"])
     if resultado_anterior and resultado_anterior["aprovado"]:
-        st.success(
-            f"Você já foi aprovado nesta avaliação com nota "
-            f"{resultado_anterior['nota']:.1f}. Vá até 'Meus Certificados' para baixar o seu certificado."
-        )
-        return
+        st.success(f"✅ Aprovado com nota {resultado_anterior['nota']:.1f}.")
+        return False
 
     if resultado_anterior and not resultado_anterior.get("liberado_para_nova_tentativa"):
         st.error(
@@ -64,7 +48,7 @@ def tela_prova():
             "Se quiser uma nova chance, entre em contato com a equipe responsável — "
             "após uma análise, a avaliação pode ser liberada novamente para você."
         )
-        return
+        return False
 
     st.caption(
         f"A avaliação tem {len(perguntas)} pergunta(s). "
@@ -78,7 +62,7 @@ def tela_prova():
         st.session_state[chave_tempo] = time.time()
 
     respostas_aluno = {}
-    with st.form("form_prova"):
+    with st.form(f"form_prova_{prova['id']}"):
         for i, pergunta in enumerate(perguntas, start=1):
             st.markdown(f"**{i}. {pergunta['enunciado']}**")
             opcoes = {
@@ -99,36 +83,37 @@ def tela_prova():
 
         enviar = st.form_submit_button("Enviar Avaliação", type="primary", use_container_width=True)
 
-    if enviar:
-        if any(resposta is None for resposta in respostas_aluno.values()):
-            st.warning("Responda todas as perguntas antes de enviar.")
-            return
+    if not enviar:
+        return False
 
-        acertos = sum(
-            1 for pergunta in perguntas
-            if respostas_aluno[pergunta["id"]] == pergunta["resposta_correta"]
+    if any(resposta is None for resposta in respostas_aluno.values()):
+        st.warning("Responda todas as perguntas antes de enviar.")
+        return False
+
+    acertos = sum(
+        1 for pergunta in perguntas
+        if respostas_aluno[pergunta["id"]] == pergunta["resposta_correta"]
+    )
+    nota = round((acertos / len(perguntas)) * 10, 1)
+    aprovado = nota >= prova["nota_minima"]
+
+    tempo_gasto = int(time.time() - st.session_state.get(chave_tempo, time.time()))
+    st.session_state.pop(chave_tempo, None)  # limpa para a próxima tentativa (se for liberada)
+
+    salvar_resultado_prova(aluno_id, prova["id"], nota, aprovado, tempo_gasto)
+
+    st.divider()
+    minutos, segundos = divmod(tempo_gasto, 60)
+    st.metric("Sua nota", f"{nota:.1f} / 10", f"{acertos}/{len(perguntas)} acertos")
+    st.caption(f"Tempo gasto nesta avaliação: {minutos}min {segundos}s")
+
+    if aprovado:
+        st.success("🎉 Parabéns, você foi APROVADO neste módulo!")
+        st.balloons()
+        return True
+    else:
+        st.error(
+            f"Você não atingiu a nota mínima ({prova['nota_minima']:.1f}). "
+            f"Revise as aulas deste módulo e entre em contato para uma nova tentativa."
         )
-        # Cálculo automático da nota, numa escala de 0 a 10
-        nota = round((acertos / len(perguntas)) * 10, 1)
-        aprovado = nota >= prova["nota_minima"]
-
-        tempo_gasto = int(time.time() - st.session_state.get(chave_tempo, time.time()))
-        st.session_state.pop(chave_tempo, None)  # limpa para a próxima tentativa (se for liberada)
-
-        salvar_resultado_prova(aluno_id, prova["id"], nota, aprovado, tempo_gasto)
-
-        st.divider()
-        minutos, segundos = divmod(tempo_gasto, 60)
-        st.metric("Sua nota", f"{nota:.1f} / 10", f"{acertos}/{len(perguntas)} acertos")
-        st.caption(f"Tempo gasto nesta avaliação: {minutos}min {segundos}s")
-
-        if aprovado:
-            finalizar_progresso_curso(aluno_id, curso_id)
-            st.success("🎉 Parabéns, você foi APROVADO! Seu certificado já está disponível para download.")
-            st.session_state["pagina_atual"] = "certificados"
-            st.balloons()
-        else:
-            st.error(
-                f"Você não atingiu a nota mínima ({prova['nota_minima']:.1f}). "
-                f"Revise as aulas e tente novamente."
-            )
+        return False
