@@ -2,8 +2,8 @@
 Módulo da página Início.
 
 É a primeira tela que o aluno vê ao entrar na plataforma: uma saudação de
-acordo com o horário do dia (bom dia / boa tarde / boa noite) e uma frase
-motivacional sorteada, em um cartão visual.
+acordo com o horário do dia (bom dia / boa tarde / boa noite), um resumo do
+progresso, avisos gerais, atalhos rápidos e um canal para dúvidas do dia a dia.
 """
 import random
 from datetime import datetime
@@ -82,6 +82,7 @@ def _data_por_extenso() -> str:
     agora = datetime.now(_FUSO_HORARIO)
     return f"{_DIAS_SEMANA[agora.weekday()]}, {agora.day} de {_MESES[agora.month]} de {agora.year}"
 
+
 def _resumo_do_aluno(aluno_id: str) -> dict:
     """Calcula um resumo rápido do progresso do aluno em todos os cursos."""
     cursos = listar_cursos()
@@ -104,79 +105,176 @@ def _resumo_do_aluno(aluno_id: str) -> dict:
 
     return {"concluidos": concluidos, "em_andamento": em_andamento, "certificados": certificados}
 
+
+def _estilos_inicio():
+    st.markdown(
+        """
+        <style>
+            @keyframes apareceSuaveInicio {
+                from { opacity: 0; transform: translateY(14px); }
+                to   { opacity: 1; transform: translateY(0); }
+            }
+
+            /* ---------- Cabeçalho / boas-vindas ---------- */
+            .inicio-hero {
+                background: linear-gradient(150deg, #0F2E56 0%, #143C6E 55%, #1F5AA8 100%);
+                border-radius: 18px;
+                padding: 1.9rem 2.2rem;
+                color: #FFFFFF;
+                animation: apareceSuaveInicio 0.5s ease-out;
+                box-shadow: 0 12px 30px rgba(20, 60, 110, 0.22);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 1.5rem;
+                flex-wrap: wrap;
+            }
+            .inicio-hero .saudacao {
+                font-size: clamp(1.3rem, 3.2vw, 1.7rem);
+                font-weight: 700;
+                margin-bottom: 0.15rem;
+            }
+            .inicio-hero .data-hoje {
+                font-size: 0.85rem;
+                opacity: 0.75;
+                text-transform: capitalize;
+            }
+            .inicio-hero .frase-bloco {
+                border-left: 3px solid rgba(255,255,255,0.35);
+                padding-left: 1.1rem;
+                max-width: 420px;
+                font-size: 0.95rem;
+                font-style: italic;
+                line-height: 1.5;
+                opacity: 0.95;
+            }
+
+            /* ---------- Cartões de estatística ---------- */
+            .stat-card {
+                background: #FFFFFF;
+                border: 1px solid #E6ECF3;
+                border-radius: 14px;
+                padding: 1.1rem 1.3rem;
+                display: flex;
+                align-items: center;
+                gap: 0.9rem;
+                box-shadow: 0 2px 10px rgba(20, 60, 110, 0.06);
+                transition: box-shadow 0.25s ease, transform 0.25s ease;
+                height: 100%;
+            }
+            .stat-card:hover {
+                box-shadow: 0 8px 22px rgba(20, 60, 110, 0.14);
+                transform: translateY(-2px);
+            }
+            .stat-card .icone {
+                width: 46px;
+                height: 46px;
+                min-width: 46px;
+                border-radius: 12px;
+                background: #EAF1FB;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.3rem;
+            }
+            .stat-card .numero {
+                font-size: 1.6rem;
+                font-weight: 700;
+                color: #143C6E;
+                line-height: 1.1;
+            }
+            .stat-card .rotulo {
+                font-size: 0.82rem;
+                color: #6B7A8F;
+            }
+
+            /* ---------- Avisos ---------- */
+            .aviso-card {
+                background: #FFF8E8;
+                border-left: 4px solid #E3A11C;
+                border-radius: 10px;
+                padding: 0.9rem 1.1rem;
+                margin-bottom: 0.7rem;
+            }
+            .aviso-card .aviso-titulo {
+                font-weight: 700;
+                color: #7A5B0A;
+                margin-bottom: 0.15rem;
+                font-size: 0.95rem;
+            }
+            .aviso-card .aviso-texto {
+                color: #5C4A1F;
+                font-size: 0.9rem;
+                line-height: 1.45;
+            }
+
+            /* ---------- Cabeçalhos de seção ---------- */
+            .secao-titulo {
+                font-size: 1.05rem;
+                font-weight: 700;
+                color: #143C6E;
+                margin: 0.3rem 0 0.1rem 0;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+            .secao-sub {
+                color: #6B7A8F;
+                font-size: 0.88rem;
+                margin-bottom: 0.9rem;
+            }
+
+            /* ---------- Cartões de ação rápida ---------- */
+            .acao-icone {
+                font-size: 1.6rem;
+                margin-bottom: 0.3rem;
+            }
+            .acao-titulo {
+                font-weight: 700;
+                color: #1A1A1A;
+                font-size: 0.98rem;
+                margin-bottom: 0.15rem;
+            }
+            .acao-desc {
+                color: #6B7A8F;
+                font-size: 0.82rem;
+                margin-bottom: 0.7rem;
+                min-height: 2.2em;
+            }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def tela_inicio():
     # Sorteia uma frase só na primeira vez (fica guardada na sessão), para não
     # trocar sozinha a cada clique — só quando o aluno pedir outra.
     if "frase_motivacional" not in st.session_state:
         st.session_state["frase_motivacional"] = random.choice(_FRASES)
 
+    _estilos_inicio()
+
     saudacao, icone = _saudacao_e_icone()
     primeiro_nome = st.session_state["aluno_nome"].split(" ")[0]
 
+    # ---------------- CABEÇALHO ----------------
     st.markdown(
         f"""
-        <style>
-            @keyframes apareceSuaveInicio {{
-                from {{ opacity: 0; transform: translateY(14px); }}
-                to   {{ opacity: 1; transform: translateY(0); }}
-            }}
-            .cartao-boas-vindas {{
-                background: linear-gradient(135deg, #143C6E 0%, #28316E 55%, #3B4A9E 100%);
-                border-radius: 18px;
-                padding: clamp(1.8rem, 5vw, 2.8rem) clamp(1.2rem, 4vw, 2.2rem);
-                margin-top: 1.5rem;
-                color: #FFFFFF;
-                text-align: center;
-                animation: apareceSuaveInicio 0.6s ease-out;
-                box-shadow: 0 12px 30px rgba(20, 60, 110, 0.28);
-            }}
-            .cartao-boas-vindas .saudacao {{
-                font-size: clamp(1.5rem, 4vw, 2.1rem);
-                font-weight: 700;
-                margin-bottom: 0.3rem;
-            }}
-            .cartao-boas-vindas .data-hoje {{
-                font-size: 0.9rem;
-                opacity: 0.85;
-                margin-bottom: 1.4rem;
-                text-transform: capitalize;
-            }}
-            .cartao-boas-vindas .frase {{
-                font-size: clamp(1rem, 2.3vw, 1.25rem);
-                font-style: italic;
-                line-height: 1.55;
-                max-width: 560px;
-                margin: 0 auto;
-            }}
-        </style>
-        <div class="cartao-boas-vindas">
-            <div class="saudacao">{icone} {saudacao}, {primeiro_nome}!</div>
-            <div class="data-hoje">{_data_por_extenso()}</div>
-            <div class="frase">“{st.session_state['frase_motivacional']}”</div>
+        <div class="inicio-hero">
+            <div>
+                <div class="saudacao">{icone} {saudacao}, {primeiro_nome}!</div>
+                <div class="data-hoje">{_data_por_extenso()}</div>
+            </div>
+            <div class="frase-bloco">“{st.session_state['frase_motivacional']}”</div>
         </div>
         """,
         unsafe_allow_html=True,
-          )
-    
-    st.write("")
-    avisos = listar_avisos_ativos()
-    if avisos:
-        for aviso in avisos:
-            st.info(f"📢 **{aviso['titulo']}**\n\n{aviso['mensagem']}")
-
-    st.write("")
-    resumo = _resumo_do_aluno(st.session_state["aluno_id"])
-    col_a, col_b, col_c = st.columns(3)
-    col_a.metric("📚 Em andamento", resumo["em_andamento"])
-    col_b.metric("✅ Concluídos", resumo["concluidos"])
-    col_c.metric("🏆 Certificados", resumo["certificados"])
-      
-    st.write("")
-    _esq, col_botao, _dir = st.columns([2, 1, 2])
+    )
+    _esq, col_botao, _dir = st.columns([3, 1.1, 3])
     with col_botao:
         if st.button("🔄 Nova frase", use_container_width=True):
             nova = random.choice(_FRASES)
-            # Evita sortear a mesma frase duas vezes seguidas.
             tentativas = 0
             while nova == st.session_state["frase_motivacional"] and tentativas < 10:
                 nova = random.choice(_FRASES)
@@ -184,42 +282,90 @@ def tela_inicio():
             st.session_state["frase_motivacional"] = nova
             st.rerun()
 
+    # ---------------- AVISOS ----------------
+    avisos = listar_avisos_ativos()
+    if avisos:
+        st.write("")
+        for aviso in avisos:
+            st.markdown(
+                f"""
+                <div class="aviso-card">
+                    <div class="aviso-titulo">📢 {aviso['titulo']}</div>
+                    <div class="aviso-texto">{aviso['mensagem']}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+    # ---------------- RESUMO (estatísticas) ----------------
     st.write("")
-    st.subheader("O que você quer fazer agora?")
+    resumo = _resumo_do_aluno(st.session_state["aluno_id"])
+    estatisticas = [
+        ("📚", str(resumo["em_andamento"]), "Cursos em andamento"),
+        ("✅", str(resumo["concluidos"]), "Cursos concluídos"),
+        ("🏆", str(resumo["certificados"]), "Certificados emitidos"),
+    ]
+    col_a, col_b, col_c = st.columns(3)
+    for coluna, (ic, numero, rotulo) in zip((col_a, col_b, col_c), estatisticas):
+        with coluna:
+            st.markdown(
+                f"""
+                <div class="stat-card">
+                    <div class="icone">{ic}</div>
+                    <div>
+                        <div class="numero">{numero}</div>
+                        <div class="rotulo">{rotulo}</div>
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+    # ---------------- ACESSO RÁPIDO ----------------
+    st.write("")
+    st.markdown('<div class="secao-titulo">🧭 Acesso rápido</div>', unsafe_allow_html=True)
+    st.markdown('<div class="secao-sub">Vá direto para onde você precisa.</div>', unsafe_allow_html=True)
+
     col1, col2, col3 = st.columns(3)
-    with col1:
-        if st.button("📚 Ver meus cursos", use_container_width=True):
-            st.session_state["pagina_atual"] = "lista_cursos"
-            st.rerun()
-    with col2:
-        if st.button("🏆 Meus certificados", use_container_width=True):
-            st.session_state["pagina_atual"] = "certificados"
-            st.rerun()
-    with col3:
-        if st.button("🗂️ Materiais", use_container_width=True):
-            st.session_state["pagina_atual"] = "materiais"
-            st.rerun()
+    acoes = [
+        (col1, "📚", "Meus Cursos", "Continue de onde parou ou comece um novo curso.", "lista_cursos"),
+        (col2, "🏆", "Meus Certificados", "Baixe os certificados dos cursos concluídos.", "certificados"),
+        (col3, "🗂️", "Materiais", "Fotos, documentos e arquivos para consulta.", "materiais"),
+    ]
+    for coluna, ic, titulo, desc, destino in acoes:
+        with coluna:
+            with st.container(border=True):
+                st.markdown(f'<div class="acao-icone">{ic}</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="acao-titulo">{titulo}</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="acao-desc">{desc}</div>', unsafe_allow_html=True)
+                if st.button("Acessar", key=f"acesso_rapido_{destino}", use_container_width=True):
+                    st.session_state["pagina_atual"] = destino
+                    st.rerun()
 
     # ---------------- DÚVIDAS DO DIA A DIA ----------------
     st.write("")
-    st.divider()
-    st.subheader("💬 Tire sua dúvida")
-    st.caption("Escreva sua pergunta e ela chega direto para o time responsável.")
+    st.write("")
+    st.markdown('<div class="secao-titulo">💬 Tire sua dúvida</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="secao-sub">Escreva sua pergunta e ela chega direto para o time responsável.</div>',
+        unsafe_allow_html=True,
+    )
 
-    with st.form("form_duvida", clear_on_submit=True):
-        mensagem_duvida = st.text_area(
-            "Sua dúvida",
-            placeholder="Digite aqui sua dúvida do dia a dia...",
-            label_visibility="collapsed",
-            height=100,
-        )
-        enviar_duvida_btn = st.form_submit_button("Enviar dúvida", type="primary")
+    with st.container(border=True):
+        with st.form("form_duvida", clear_on_submit=True):
+            mensagem_duvida = st.text_area(
+                "Sua dúvida",
+                placeholder="Digite aqui sua dúvida do dia a dia...",
+                label_visibility="collapsed",
+                height=100,
+            )
+            enviar_duvida_btn = st.form_submit_button("Enviar dúvida", type="primary")
 
-    if enviar_duvida_btn:
-        if not mensagem_duvida or not mensagem_duvida.strip():
-            st.warning("Escreva sua dúvida antes de enviar.")
-        else:
-            nome_completo = st.session_state["aluno_nome"]
-            enviar_duvida(st.session_state["aluno_id"], nome_completo, mensagem_duvida)
-            notificar_nova_duvida(nome_completo, mensagem_duvida)
-            st.success("Dúvida enviada com sucesso! Em breve alguém vai te responder. 🙌")
+        if enviar_duvida_btn:
+            if not mensagem_duvida or not mensagem_duvida.strip():
+                st.warning("Escreva sua dúvida antes de enviar.")
+            else:
+                nome_completo = st.session_state["aluno_nome"]
+                enviar_duvida(st.session_state["aluno_id"], nome_completo, mensagem_duvida)
+                notificar_nova_duvida(nome_completo, mensagem_duvida)
+                st.success("Dúvida enviada com sucesso! Em breve alguém vai te responder. 🙌")
