@@ -142,11 +142,11 @@ def _estilos_inicio():
             .inicio-hero .frase-bloco {
                 border-left: 3px solid rgba(255,255,255,0.35);
                 padding-left: 1.1rem;
-                max-width: 420px;
-                font-size: 0.95rem;
+                max-width: 480px;
+                font-size: clamp(1.05rem, 2vw, 1.25rem);
                 font-style: italic;
                 line-height: 1.5;
-                opacity: 0.95;
+                opacity: 0.97;
             }
 
             /* ---------- Cartões de estatística ---------- */
@@ -248,10 +248,8 @@ def _estilos_inicio():
 
 
 def tela_inicio():
-    # Sorteia uma frase só na primeira vez (fica guardada na sessão), para não
-    # trocar sozinha a cada clique — só quando o aluno pedir outra.
-    if "frase_motivacional" not in st.session_state:
-        st.session_state["frase_motivacional"] = random.choice(_FRASES)
+    # Sorteia uma frase nova toda vez que a página é aberta (sem precisar de botão).
+    st.session_state["frase_motivacional"] = random.choice(_FRASES)
 
     _estilos_inicio()
 
@@ -271,16 +269,6 @@ def tela_inicio():
         """,
         unsafe_allow_html=True,
     )
-    _esq, col_botao, _dir = st.columns([3, 1.1, 3])
-    with col_botao:
-        if st.button("🔄 Nova frase", use_container_width=True):
-            nova = random.choice(_FRASES)
-            tentativas = 0
-            while nova == st.session_state["frase_motivacional"] and tentativas < 10:
-                nova = random.choice(_FRASES)
-                tentativas += 1
-            st.session_state["frase_motivacional"] = nova
-            st.rerun()
 
     # ---------------- AVISOS ----------------
     avisos = listar_avisos_ativos()
