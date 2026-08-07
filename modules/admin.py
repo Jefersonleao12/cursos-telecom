@@ -14,11 +14,16 @@ from database.repositorio import (
     criar_curso,
     editar_curso,
     excluir_curso,
-    listar_aulas_do_curso,
+    listar_modulos_do_curso,
+    buscar_modulo,
+    criar_modulo,
+    editar_modulo,
+    excluir_modulo,
+    listar_aulas_do_modulo,
     criar_aula,
     editar_aula,
     excluir_aula,
-    buscar_prova_do_curso,
+    buscar_prova_do_modulo,
     criar_prova,
     editar_prova,
     excluir_prova,
@@ -43,6 +48,7 @@ from database.repositorio import (
     definir_admin_aluno,
     gerar_senha_temporaria,
     listar_todos_certificados,
+    listar_provas_do_curso,
     listar_todos_resultados_provas,
     criar_aviso,
     listar_todos_avisos,
@@ -97,7 +103,11 @@ def _painel_visao_geral():
     alunos = listar_todos_alunos()
     duvidas_pendentes = listar_duvidas(apenas_nao_respondidas=True)
 
-    total_perguntas = sum(len(listar_perguntas(p["id"])) for p in [buscar_prova_do_curso(c["id"]) for c in cursos] if p)
+    total_perguntas = sum(
+        len(listar_perguntas(p["id"]))
+        for c in cursos
+        for p in listar_provas_do_curso(c["id"])
+    )
 
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("📚 Cursos", len(cursos))
@@ -121,8 +131,8 @@ def tela_admin():
     _painel_visao_geral()
     st.write("")
 
-    aba_dashboard, aba_cursos, aba_aulas, aba_provas, aba_alunos, aba_filiais, aba_materiais, aba_duvidas, aba_avisos = st.tabs(
-        ["📊 Dashboard", "📚 Cursos", "🎬 Aulas", "📝 Provas e Perguntas", "🧑‍🎓 Alunos", "📍 Filiais", "🗂️ Materiais", "❓ Dúvidas", "📢 Avisos"]
+    aba_dashboard, aba_cursos, aba_modulos, aba_aulas, aba_provas, aba_alunos, aba_filiais, aba_materiais, aba_duvidas, aba_avisos = st.tabs(
+        ["📊 Dashboard", "📚 Cursos", "🧩 Módulos", "🎬 Aulas", "📝 Provas e Perguntas", "🧑‍🎓 Alunos", "📍 Filiais", "🗂️ Materiais", "❓ Dúvidas", "📢 Avisos"]
     )
 
     # ---------------- DASHBOARD ----------------
@@ -266,6 +276,91 @@ def tela_admin():
                 st.rerun()
 
     # ---------------- AULAS ----------------
+    # ---------------- MÓDULOS ----------------
+    with aba_modulos:
+        st.caption("Cada curso é dividido em módulos (assuntos). O aluno assiste os vídeos de um módulo, faz a prova dele (se houver) e só então o próximo módulo é liberado.")
+        cursos = listar_cursos()
+        if not cursos:
+            st.info("Cadastre um curso primeiro, na aba 'Cursos'.")
+        else:
+            opcoes_curso_mod = {c["titulo"]: c["id"] for c in cursos}
+            titulo_escolhido_mod = st.selectbox("Selecione o curso", list(opcoes_curso_mod.keys()), key="sel_curso_modulo")
+            curso_id_mod = opcoes_curso_mod[titulo_escolhido_mod]
+
+            st.subheader("Módulos deste curso")
+            modulos = listar_modulos_do_curso(curso_id_mod)
+            if modulos:
+                for modulo in modulos:
+                    with st.container(border=True):
+                        col_info, col_editar, col_excluir = st.columns([3, 1, 1])
+                        with col_info:
+                            st.write(f"**{modulo['ordem']}. {modulo['titulo']}**")
+                        with col_editar:
+                            if st.button("✏️ Editar", key=f"editar_modulo_btn_{modulo['id']}", use_container_width=True):
+                                st.session_state["modulo_em_edicao"] = modulo["id"]
+                                st.rerun()
+                        with col_excluir:
+                            if st.button("🗑️ Excluir", key=f"excluir_modulo_btn_{modulo['id']}", use_container_width=True):
+                                st.session_state["modulo_para_excluir"] = modulo["id"]
+                                st.rerun()
+
+                        if st.session_state.get("modulo_para_excluir") == modulo["id"]:
+                            st.warning(
+                                f"Tem certeza que quer excluir **{modulo['titulo']}**? "
+                                f"Isso apaga também as aulas, a prova e os resultados desse módulo."
+                            )
+                            col_sim, col_nao = st.columns(2)
+                            with col_sim:
+                                if st.button("Sim, excluir", key=f"confirma_excluir_modulo_{modulo['id']}", type="primary", use_container_width=True):
+                                    excluir_modulo(modulo["id"])
+                                    st.session_state.pop("modulo_para_excluir", None)
+                                    st.success("Módulo excluído.")
+                                    st.rerun()
+                            with col_nao:
+                                if st.button("Cancelar", key=f"cancela_excluir_modulo_{modulo['id']}", use_container_width=True):
+                                    st.session_state.pop("modulo_para_excluir", None)
+                                    st.rerun()
+
+                        if st.session_state.get("modulo_em_edicao") == modulo["id"]:
+                            with st.form(f"form_editar_modulo_{modulo['id']}"):
+                                novo_titulo_modulo = st.text_input("Título do módulo *", value=modulo["titulo"])
+                                nova_ordem_modulo = st.number_input("Ordem", min_value=1, value=modulo["ordem"])
+                                col_salvar, col_cancelar = st.columns(2)
+                                with col_salvar:
+                                    salvar_edicao_modulo = st.form_submit_button("Salvar alterações", type="primary", use_container_width=True)
+                                with col_cancelar:
+                                    cancelar_edicao_modulo = st.form_submit_button("Cancelar", use_container_width=True)
+
+                            if salvar_edicao_modulo:
+                                if not novo_titulo_modulo:
+                                    st.warning("Informe o título do módulo.")
+                                else:
+                                    editar_modulo(modulo["id"], novo_titulo_modulo, int(nova_ordem_modulo))
+                                    st.session_state.pop("modulo_em_edicao", None)
+                                    st.success("Módulo atualizado.")
+                                    st.rerun()
+                            if cancelar_edicao_modulo:
+                                st.session_state.pop("modulo_em_edicao", None)
+                                st.rerun()
+            else:
+                st.caption("Nenhum módulo cadastrado ainda neste curso.")
+
+            st.divider()
+            st.subheader("Adicionar módulo")
+            with st.form("form_novo_modulo", clear_on_submit=True):
+                titulo_modulo = st.text_input("Título do módulo *", placeholder="Ex: Módulo 1 - Fundamentos de Fibra Óptica")
+                ordem_modulo = st.number_input("Ordem de exibição", min_value=1, value=len(modulos) + 1)
+                salvar_modulo = st.form_submit_button("Salvar módulo", type="primary")
+
+            if salvar_modulo:
+                if not titulo_modulo:
+                    st.warning("Informe o título do módulo.")
+                else:
+                    criar_modulo(curso_id_mod, titulo_modulo, int(ordem_modulo))
+                    st.success(f"Módulo '{titulo_modulo}' cadastrado com sucesso!")
+                    st.rerun()
+
+    # ---------------- AULAS ----------------
     with aba_aulas:
         cursos = listar_cursos()
         if not cursos:
@@ -275,72 +370,80 @@ def tela_admin():
             titulo_escolhido = st.selectbox("Selecione o curso", list(opcoes_curso.keys()), key="sel_curso_aula")
             curso_id = opcoes_curso[titulo_escolhido]
 
-            st.subheader("Aulas deste curso")
-            aulas = listar_aulas_do_curso(curso_id)
-            if aulas:
-                for aula in aulas:
-                    with st.container(border=True):
-                        col_info, col_editar, col_excluir = st.columns([3, 1, 1])
-                        with col_info:
-                            st.write(f"**{aula['ordem']}. {aula['titulo']}**")
-                            st.caption(aula["url_video"])
-                        with col_editar:
-                            if st.button("✏️ Editar", key=f"editar_aula_btn_{aula['id']}", use_container_width=True):
-                                st.session_state["aula_em_edicao"] = aula["id"]
-                                st.rerun()
-                        with col_excluir:
-                            if st.button("🗑️ Excluir", key=f"excluir_aula_btn_{aula['id']}", use_container_width=True):
-                                excluir_aula(aula["id"])
-                                st.success("Aula excluída.")
-                                st.rerun()
-
-                        if st.session_state.get("aula_em_edicao") == aula["id"]:
-                            with st.form(f"form_editar_aula_{aula['id']}"):
-                                novo_titulo_aula = st.text_input("Título da aula *", value=aula["titulo"])
-                                novo_url = st.text_input("Link do vídeo *", value=aula["url_video"])
-                                nova_ordem = st.number_input("Ordem de exibição", min_value=1, value=aula["ordem"])
-                                nova_duracao = st.number_input(
-                                    "Duração (minutos)", min_value=0, value=aula.get("duracao_minutos") or 0
-                                )
-                                col_salvar, col_cancelar = st.columns(2)
-                                with col_salvar:
-                                    salvar_edicao_aula = st.form_submit_button("Salvar alterações", type="primary", use_container_width=True)
-                                with col_cancelar:
-                                    cancelar_edicao_aula = st.form_submit_button("Cancelar", use_container_width=True)
-
-                            if salvar_edicao_aula:
-                                if not novo_titulo_aula or not novo_url:
-                                    st.warning("Preencha os campos obrigatórios (*).")
-                                else:
-                                    editar_aula(aula["id"], novo_titulo_aula, novo_url, int(nova_ordem), int(nova_duracao))
-                                    st.session_state.pop("aula_em_edicao", None)
-                                    st.success("Aula atualizada.")
-                                    st.rerun()
-                            if cancelar_edicao_aula:
-                                st.session_state.pop("aula_em_edicao", None)
-                                st.rerun()
+            modulos_do_curso = listar_modulos_do_curso(curso_id)
+            if not modulos_do_curso:
+                st.warning("Este curso ainda não tem nenhum módulo. Cadastre um na aba '🧩 Módulos' primeiro.")
             else:
-                st.caption("Nenhuma aula cadastrada ainda.")
+                opcoes_modulo = {f"{m['ordem']}. {m['titulo']}": m["id"] for m in modulos_do_curso}
+                modulo_escolhido_label = st.selectbox("Selecione o módulo", list(opcoes_modulo.keys()), key="sel_modulo_aula")
+                modulo_id = opcoes_modulo[modulo_escolhido_label]
 
-            st.divider()
-            st.subheader("Cadastrar nova aula")
-            with st.form("form_nova_aula", clear_on_submit=True):
-                titulo_aula = st.text_input("Título da aula *")
-                url_video = st.text_input(
-                    "Link do vídeo (YouTube não listado) *",
-                    placeholder="https://www.youtube.com/watch?v=XXXXXXXXXXX",
-                )
-                ordem = st.number_input("Ordem de exibição", min_value=1, value=len(aulas) + 1)
-                duracao = st.number_input("Duração (minutos)", min_value=0, value=10)
-                salvar_aula = st.form_submit_button("Salvar aula", type="primary")
+                st.subheader("Aulas deste módulo")
+                aulas = listar_aulas_do_modulo(modulo_id)
+                if aulas:
+                    for aula in aulas:
+                        with st.container(border=True):
+                            col_info, col_editar, col_excluir = st.columns([3, 1, 1])
+                            with col_info:
+                                st.write(f"**{aula['ordem']}. {aula['titulo']}**")
+                                st.caption(aula["url_video"])
+                            with col_editar:
+                                if st.button("✏️ Editar", key=f"editar_aula_btn_{aula['id']}", use_container_width=True):
+                                    st.session_state["aula_em_edicao"] = aula["id"]
+                                    st.rerun()
+                            with col_excluir:
+                                if st.button("🗑️ Excluir", key=f"excluir_aula_btn_{aula['id']}", use_container_width=True):
+                                    excluir_aula(aula["id"])
+                                    st.success("Aula excluída.")
+                                    st.rerun()
 
-            if salvar_aula:
-                if not titulo_aula or not url_video:
-                    st.warning("Preencha os campos obrigatórios (*).")
+                            if st.session_state.get("aula_em_edicao") == aula["id"]:
+                                with st.form(f"form_editar_aula_{aula['id']}"):
+                                    novo_titulo_aula = st.text_input("Título da aula *", value=aula["titulo"])
+                                    novo_url = st.text_input("Link do vídeo *", value=aula["url_video"])
+                                    nova_ordem = st.number_input("Ordem de exibição", min_value=1, value=aula["ordem"])
+                                    nova_duracao = st.number_input(
+                                        "Duração (minutos)", min_value=0, value=aula.get("duracao_minutos") or 0
+                                    )
+                                    col_salvar, col_cancelar = st.columns(2)
+                                    with col_salvar:
+                                        salvar_edicao_aula = st.form_submit_button("Salvar alterações", type="primary", use_container_width=True)
+                                    with col_cancelar:
+                                        cancelar_edicao_aula = st.form_submit_button("Cancelar", use_container_width=True)
+
+                                if salvar_edicao_aula:
+                                    if not novo_titulo_aula or not novo_url:
+                                        st.warning("Preencha os campos obrigatórios (*).")
+                                    else:
+                                        editar_aula(aula["id"], novo_titulo_aula, novo_url, int(nova_ordem), int(nova_duracao))
+                                        st.session_state.pop("aula_em_edicao", None)
+                                        st.success("Aula atualizada.")
+                                        st.rerun()
+                                if cancelar_edicao_aula:
+                                    st.session_state.pop("aula_em_edicao", None)
+                                    st.rerun()
                 else:
-                    criar_aula(curso_id, titulo_aula, url_video, int(ordem), int(duracao))
-                    st.success(f"Aula '{titulo_aula}' cadastrada com sucesso!")
-                    st.rerun()
+                    st.caption("Nenhuma aula cadastrada ainda neste módulo.")
+
+                st.divider()
+                st.subheader("Cadastrar nova aula")
+                with st.form("form_nova_aula", clear_on_submit=True):
+                    titulo_aula = st.text_input("Título da aula *")
+                    url_video = st.text_input(
+                        "Link do vídeo (YouTube não listado) *",
+                        placeholder="https://www.youtube.com/watch?v=XXXXXXXXXXX",
+                    )
+                    ordem = st.number_input("Ordem de exibição", min_value=1, value=len(aulas) + 1)
+                    duracao = st.number_input("Duração (minutos)", min_value=0, value=10)
+                    salvar_aula = st.form_submit_button("Salvar aula", type="primary")
+
+                if salvar_aula:
+                    if not titulo_aula or not url_video:
+                        st.warning("Preencha os campos obrigatórios (*).")
+                    else:
+                        criar_aula(modulo_id, curso_id, titulo_aula, url_video, int(ordem), int(duracao))
+                        st.success(f"Aula '{titulo_aula}' cadastrada com sucesso!")
+                        st.rerun()
 
     # ---------------- PROVAS E PERGUNTAS ----------------
     with aba_provas:
@@ -348,198 +451,206 @@ def tela_admin():
         if not cursos:
             st.info("Cadastre um curso primeiro, na aba 'Cursos'.")
         else:
-            opcoes_curso = {c["titulo"]: c["id"] for c in cursos}
-            titulo_escolhido = st.selectbox(
-                "Selecione o curso", list(opcoes_curso.keys()), key="sel_curso_prova"
+            opcoes_curso_prova = {c["titulo"]: c["id"] for c in cursos}
+            titulo_escolhido_prova = st.selectbox(
+                "Selecione o curso", list(opcoes_curso_prova.keys()), key="sel_curso_prova"
             )
-            curso_id = opcoes_curso[titulo_escolhido]
+            curso_id_prova = opcoes_curso_prova[titulo_escolhido_prova]
 
-            prova = buscar_prova_do_curso(curso_id)
-
-            if prova is None:
-                st.info("Este curso ainda não tem avaliação. Cadastre uma abaixo.")
-                with st.form("form_nova_prova", clear_on_submit=True):
-                    titulo_prova = st.text_input("Título da avaliação *", value="Avaliação Final")
-                    nota_minima = st.number_input(
-                        "Nota mínima para aprovação (0 a 10)",
-                        min_value=0.0, max_value=10.0, value=7.0, step=0.5,
-                    )
-                    criar_prova_btn = st.form_submit_button("Criar avaliação", type="primary")
-                if criar_prova_btn:
-                    if not titulo_prova:
-                        st.warning("Informe o título da avaliação.")
-                    else:
-                        criar_prova(curso_id, titulo_prova, nota_minima)
-                        st.success("Avaliação criada! Agora adicione as perguntas abaixo.")
-                        st.rerun()
+            modulos_do_curso_prova = listar_modulos_do_curso(curso_id_prova)
+            if not modulos_do_curso_prova:
+                st.warning("Este curso ainda não tem nenhum módulo. Cadastre um na aba '🧩 Módulos' primeiro.")
             else:
-                col_prova_info, col_prova_editar, col_prova_excluir = st.columns([3, 1, 1])
-                with col_prova_info:
-                    st.success(f"Avaliação atual: **{prova['titulo']}** (nota mínima {prova['nota_minima']:.1f})")
-                with col_prova_editar:
-                    if st.button("✏️ Editar prova", key=f"editar_prova_btn_{prova['id']}", use_container_width=True):
-                        st.session_state["prova_em_edicao"] = prova["id"]
-                        st.rerun()
-                with col_prova_excluir:
-                    if st.button("🗑️ Excluir prova", key=f"excluir_prova_btn_{prova['id']}", use_container_width=True):
-                        st.session_state["prova_para_excluir"] = prova["id"]
-                        st.rerun()
+                opcoes_modulo_prova = {f"{m['ordem']}. {m['titulo']}": m["id"] for m in modulos_do_curso_prova}
+                modulo_escolhido_prova_label = st.selectbox(
+                    "Selecione o módulo", list(opcoes_modulo_prova.keys()), key="sel_modulo_prova"
+                )
+                modulo_id_prova = opcoes_modulo_prova[modulo_escolhido_prova_label]
 
-                if st.session_state.get("prova_para_excluir") == prova["id"]:
-                    st.warning("Tem certeza? Isso apaga todas as perguntas e resultados desta avaliação.")
-                    col_sim, col_nao = st.columns(2)
-                    with col_sim:
-                        if st.button("Sim, excluir prova", key=f"confirma_excluir_prova_{prova['id']}", type="primary", use_container_width=True):
-                            excluir_prova(prova["id"])
-                            st.session_state.pop("prova_para_excluir", None)
-                            st.success("Avaliação excluída.")
-                            st.rerun()
-                    with col_nao:
-                        if st.button("Cancelar", key=f"cancela_excluir_prova_{prova['id']}", use_container_width=True):
-                            st.session_state.pop("prova_para_excluir", None)
-                            st.rerun()
+                prova = buscar_prova_do_modulo(modulo_id_prova)
 
-                if st.session_state.get("prova_em_edicao") == prova["id"]:
-                    with st.form(f"form_editar_prova_{prova['id']}"):
-                        novo_titulo_prova = st.text_input("Título da avaliação *", value=prova["titulo"])
-                        nova_nota_minima = st.number_input(
+                if prova is None:
+                    st.info("Este módulo ainda não tem avaliação. Cadastre uma abaixo (opcional — um módulo também pode ter só vídeos, sem prova).")
+                    with st.form("form_nova_prova", clear_on_submit=True):
+                        titulo_prova = st.text_input("Título da avaliação *", value="Avaliação do módulo")
+                        nota_minima = st.number_input(
                             "Nota mínima para aprovação (0 a 10)",
-                            min_value=0.0, max_value=10.0, value=float(prova["nota_minima"]), step=0.5,
+                            min_value=0.0, max_value=10.0, value=7.0, step=0.5,
                         )
-                        col_salvar, col_cancelar = st.columns(2)
-                        with col_salvar:
-                            salvar_edicao_prova = st.form_submit_button("Salvar alterações", type="primary", use_container_width=True)
-                        with col_cancelar:
-                            cancelar_edicao_prova = st.form_submit_button("Cancelar", use_container_width=True)
-
-                    if salvar_edicao_prova:
-                        if not novo_titulo_prova:
+                        criar_prova_btn = st.form_submit_button("Criar avaliação", type="primary")
+                    if criar_prova_btn:
+                        if not titulo_prova:
                             st.warning("Informe o título da avaliação.")
                         else:
-                            editar_prova(prova["id"], novo_titulo_prova, nova_nota_minima)
-                            st.session_state.pop("prova_em_edicao", None)
-                            st.success("Avaliação atualizada.")
+                            criar_prova(modulo_id_prova, curso_id_prova, titulo_prova, nota_minima)
+                            st.success("Avaliação criada! Agora adicione as perguntas abaixo.")
                             st.rerun()
-                    if cancelar_edicao_prova:
-                        st.session_state.pop("prova_em_edicao", None)
-                        st.rerun()
-
-                perguntas = listar_perguntas(prova["id"])
-                st.write(f"**{len(perguntas)} pergunta(s) cadastrada(s)**")
-                for i, p in enumerate(perguntas, start=1):
-                    with st.container(border=True):
-                        col_pergunta, col_editar_p, col_excluir_p = st.columns([3, 1, 1])
-                        with col_pergunta:
-                            st.caption(f"{i}. {p['enunciado']} (resposta correta: {p['resposta_correta']})")
-                        with col_editar_p:
-                            if st.button("✏️", key=f"editar_pergunta_btn_{p['id']}", use_container_width=True, help="Editar pergunta"):
-                                st.session_state["pergunta_em_edicao"] = p["id"]
-                                st.rerun()
-                        with col_excluir_p:
-                            if st.button("🗑️", key=f"excluir_pergunta_btn_{p['id']}", use_container_width=True, help="Excluir pergunta"):
-                                excluir_pergunta(p["id"])
-                                st.success("Pergunta excluída.")
-                                st.rerun()
-
-                        if st.session_state.get("pergunta_em_edicao") == p["id"]:
-                            with st.form(f"form_editar_pergunta_{p['id']}"):
-                                novo_enunciado = st.text_area("Enunciado da pergunta *", value=p["enunciado"])
-                                nova_opcao_a = st.text_input("Alternativa A *", value=p["opcao_a"])
-                                nova_opcao_b = st.text_input("Alternativa B *", value=p["opcao_b"])
-                                nova_opcao_c = st.text_input("Alternativa C *", value=p["opcao_c"])
-                                nova_opcao_d = st.text_input("Alternativa D *", value=p["opcao_d"])
-                                nova_correta = st.selectbox(
-                                    "Alternativa correta *", ["A", "B", "C", "D"],
-                                    index=["A", "B", "C", "D"].index(p["resposta_correta"]),
-                                )
-                                nova_ordem_pergunta = st.number_input("Ordem", min_value=1, value=p["ordem"])
-                                col_salvar_p, col_cancelar_p = st.columns(2)
-                                with col_salvar_p:
-                                    salvar_edicao_pergunta = st.form_submit_button("Salvar alterações", type="primary", use_container_width=True)
-                                with col_cancelar_p:
-                                    cancelar_edicao_pergunta = st.form_submit_button("Cancelar", use_container_width=True)
-
-                            if salvar_edicao_pergunta:
-                                campos_edicao = [novo_enunciado, nova_opcao_a, nova_opcao_b, nova_opcao_c, nova_opcao_d]
-                                if not all(campos_edicao):
-                                    st.warning("Preencha todos os campos obrigatórios (*).")
-                                else:
-                                    editar_pergunta(
-                                        p["id"], novo_enunciado, nova_opcao_a, nova_opcao_b, nova_opcao_c, nova_opcao_d,
-                                        nova_correta, int(nova_ordem_pergunta),
-                                    )
-                                    st.session_state.pop("pergunta_em_edicao", None)
-                                    st.success("Pergunta atualizada.")
-                                    st.rerun()
-                            if cancelar_edicao_pergunta:
-                                st.session_state.pop("pergunta_em_edicao", None)
-                                st.rerun()
-
-                st.divider()
-                st.subheader("Adicionar pergunta")
-                with st.form("form_nova_pergunta", clear_on_submit=True):
-                    enunciado = st.text_area("Enunciado da pergunta *")
-                    opcao_a = st.text_input("Alternativa A *")
-                    opcao_b = st.text_input("Alternativa B *")
-                    opcao_c = st.text_input("Alternativa C *")
-                    opcao_d = st.text_input("Alternativa D *")
-                    correta = st.selectbox("Alternativa correta *", ["A", "B", "C", "D"])
-                    ordem_pergunta = st.number_input("Ordem", min_value=1, value=len(perguntas) + 1)
-                    salvar_pergunta = st.form_submit_button("Salvar pergunta", type="primary")
-
-                if salvar_pergunta:
-                    campos = [enunciado, opcao_a, opcao_b, opcao_c, opcao_d]
-                    if not all(campos):
-                        st.warning("Preencha todos os campos obrigatórios (*).")
-                    else:
-                        criar_pergunta(
-                            prova["id"], enunciado, opcao_a, opcao_b, opcao_c, opcao_d,
-                            correta, int(ordem_pergunta),
-                        )
-                        st.success("Pergunta adicionada com sucesso!")
-                        st.rerun()
-
-                st.divider()
-                st.subheader("Tentativas dos alunos")
-                st.caption(
-                    "Depois de UMA tentativa, o aluno não pode refazer a avaliação sozinho. "
-                    "Se ele reprovou e pedir uma nova chance, libere aqui — vale só para a próxima tentativa dele."
-                )
-
-                todos_resultados = listar_resultados_da_prova(prova["id"])
-                if not todos_resultados:
-                    st.caption("Nenhum aluno fez esta avaliação ainda.")
                 else:
-                    # Mantém só a tentativa mais recente de cada aluno (a lista já
-                    # vem ordenada da mais nova para a mais antiga).
-                    mais_recente_por_aluno = {}
-                    for r in todos_resultados:
-                        mais_recente_por_aluno.setdefault(r["aluno_id"], r)
+                    col_prova_info, col_prova_editar, col_prova_excluir = st.columns([3, 1, 1])
+                    with col_prova_info:
+                        st.success(f"Avaliação atual: **{prova['titulo']}** (nota mínima {prova['nota_minima']:.1f})")
+                    with col_prova_editar:
+                        if st.button("✏️ Editar prova", key=f"editar_prova_btn_{prova['id']}", use_container_width=True):
+                            st.session_state["prova_em_edicao"] = prova["id"]
+                            st.rerun()
+                    with col_prova_excluir:
+                        if st.button("🗑️ Excluir prova", key=f"excluir_prova_btn_{prova['id']}", use_container_width=True):
+                            st.session_state["prova_para_excluir"] = prova["id"]
+                            st.rerun()
 
-                    nomes_alunos = {a["id"]: a["nome_completo"] for a in listar_todos_alunos()}
+                    if st.session_state.get("prova_para_excluir") == prova["id"]:
+                        st.warning("Tem certeza? Isso apaga todas as perguntas e resultados desta avaliação.")
+                        col_sim, col_nao = st.columns(2)
+                        with col_sim:
+                            if st.button("Sim, excluir prova", key=f"confirma_excluir_prova_{prova['id']}", type="primary", use_container_width=True):
+                                excluir_prova(prova["id"])
+                                st.session_state.pop("prova_para_excluir", None)
+                                st.success("Avaliação excluída.")
+                                st.rerun()
+                        with col_nao:
+                            if st.button("Cancelar", key=f"cancela_excluir_prova_{prova['id']}", use_container_width=True):
+                                st.session_state.pop("prova_para_excluir", None)
+                                st.rerun()
 
-                    for aluno_id, r in mais_recente_por_aluno.items():
-                        nome = nomes_alunos.get(aluno_id, "Aluno removido")
+                    if st.session_state.get("prova_em_edicao") == prova["id"]:
+                        with st.form(f"form_editar_prova_{prova['id']}"):
+                            novo_titulo_prova = st.text_input("Título da avaliação *", value=prova["titulo"])
+                            nova_nota_minima = st.number_input(
+                                "Nota mínima para aprovação (0 a 10)",
+                                min_value=0.0, max_value=10.0, value=float(prova["nota_minima"]), step=0.5,
+                            )
+                            col_salvar, col_cancelar = st.columns(2)
+                            with col_salvar:
+                                salvar_edicao_prova = st.form_submit_button("Salvar alterações", type="primary", use_container_width=True)
+                            with col_cancelar:
+                                cancelar_edicao_prova = st.form_submit_button("Cancelar", use_container_width=True)
+
+                        if salvar_edicao_prova:
+                            if not novo_titulo_prova:
+                                st.warning("Informe o título da avaliação.")
+                            else:
+                                editar_prova(prova["id"], novo_titulo_prova, nova_nota_minima)
+                                st.session_state.pop("prova_em_edicao", None)
+                                st.success("Avaliação atualizada.")
+                                st.rerun()
+                        if cancelar_edicao_prova:
+                            st.session_state.pop("prova_em_edicao", None)
+                            st.rerun()
+
+                    perguntas = listar_perguntas(prova["id"])
+                    st.write(f"**{len(perguntas)} pergunta(s) cadastrada(s)**")
+                    for i, p in enumerate(perguntas, start=1):
                         with st.container(border=True):
-                            col_info, col_acao = st.columns([3, 1])
-                            with col_info:
-                                status = "✅ Aprovado" if r["aprovado"] else "❌ Reprovado"
-                                st.write(f"**{nome}** — {status} (nota {r['nota']:.1f})")
-                                if r.get("tempo_gasto_segundos"):
-                                    st.caption(f"Tempo gasto na prova: {_formatar_duracao(r['tempo_gasto_segundos'])}")
-                            with col_acao:
-                                if not r["aprovado"]:
-                                    if r.get("liberado_para_nova_tentativa"):
-                                        st.caption("🔓 Liberado — aguardando nova tentativa")
+                            col_pergunta, col_editar_p, col_excluir_p = st.columns([3, 1, 1])
+                            with col_pergunta:
+                                st.caption(f"{i}. {p['enunciado']} (resposta correta: {p['resposta_correta']})")
+                            with col_editar_p:
+                                if st.button("✏️", key=f"editar_pergunta_btn_{p['id']}", use_container_width=True, help="Editar pergunta"):
+                                    st.session_state["pergunta_em_edicao"] = p["id"]
+                                    st.rerun()
+                            with col_excluir_p:
+                                if st.button("🗑️", key=f"excluir_pergunta_btn_{p['id']}", use_container_width=True, help="Excluir pergunta"):
+                                    excluir_pergunta(p["id"])
+                                    st.success("Pergunta excluída.")
+                                    st.rerun()
+
+                            if st.session_state.get("pergunta_em_edicao") == p["id"]:
+                                with st.form(f"form_editar_pergunta_{p['id']}"):
+                                    novo_enunciado = st.text_area("Enunciado da pergunta *", value=p["enunciado"])
+                                    nova_opcao_a = st.text_input("Alternativa A *", value=p["opcao_a"])
+                                    nova_opcao_b = st.text_input("Alternativa B *", value=p["opcao_b"])
+                                    nova_opcao_c = st.text_input("Alternativa C *", value=p["opcao_c"])
+                                    nova_opcao_d = st.text_input("Alternativa D *", value=p["opcao_d"])
+                                    nova_correta = st.selectbox(
+                                        "Alternativa correta *", ["A", "B", "C", "D"],
+                                        index=["A", "B", "C", "D"].index(p["resposta_correta"]),
+                                    )
+                                    nova_ordem_pergunta = st.number_input("Ordem", min_value=1, value=p["ordem"])
+                                    col_salvar_p, col_cancelar_p = st.columns(2)
+                                    with col_salvar_p:
+                                        salvar_edicao_pergunta = st.form_submit_button("Salvar alterações", type="primary", use_container_width=True)
+                                    with col_cancelar_p:
+                                        cancelar_edicao_pergunta = st.form_submit_button("Cancelar", use_container_width=True)
+
+                                if salvar_edicao_pergunta:
+                                    campos_edicao = [novo_enunciado, nova_opcao_a, nova_opcao_b, nova_opcao_c, nova_opcao_d]
+                                    if not all(campos_edicao):
+                                        st.warning("Preencha todos os campos obrigatórios (*).")
                                     else:
-                                        if st.button(
-                                            "🔓 Liberar nova tentativa",
-                                            key=f"liberar_tentativa_{r['id']}",
-                                            use_container_width=True,
-                                        ):
-                                            liberar_nova_tentativa(r["id"])
-                                            st.success(f"Nova tentativa liberada para {nome}.")
-                                            st.rerun()
+                                        editar_pergunta(
+                                            p["id"], novo_enunciado, nova_opcao_a, nova_opcao_b, nova_opcao_c, nova_opcao_d,
+                                            nova_correta, int(nova_ordem_pergunta),
+                                        )
+                                        st.session_state.pop("pergunta_em_edicao", None)
+                                        st.success("Pergunta atualizada.")
+                                        st.rerun()
+                                if cancelar_edicao_pergunta:
+                                    st.session_state.pop("pergunta_em_edicao", None)
+                                    st.rerun()
+
+                    st.divider()
+                    st.subheader("Adicionar pergunta")
+                    with st.form("form_nova_pergunta", clear_on_submit=True):
+                        enunciado = st.text_area("Enunciado da pergunta *")
+                        opcao_a = st.text_input("Alternativa A *")
+                        opcao_b = st.text_input("Alternativa B *")
+                        opcao_c = st.text_input("Alternativa C *")
+                        opcao_d = st.text_input("Alternativa D *")
+                        correta = st.selectbox("Alternativa correta *", ["A", "B", "C", "D"])
+                        ordem_pergunta = st.number_input("Ordem", min_value=1, value=len(perguntas) + 1)
+                        salvar_pergunta = st.form_submit_button("Salvar pergunta", type="primary")
+
+                    if salvar_pergunta:
+                        campos = [enunciado, opcao_a, opcao_b, opcao_c, opcao_d]
+                        if not all(campos):
+                            st.warning("Preencha todos os campos obrigatórios (*).")
+                        else:
+                            criar_pergunta(
+                                prova["id"], enunciado, opcao_a, opcao_b, opcao_c, opcao_d,
+                                correta, int(ordem_pergunta),
+                            )
+                            st.success("Pergunta adicionada com sucesso!")
+                            st.rerun()
+
+                    st.divider()
+                    st.subheader("Tentativas dos alunos")
+                    st.caption(
+                        "Depois de UMA tentativa, o aluno não pode refazer a avaliação sozinho. "
+                        "Se ele reprovou e pedir uma nova chance, libere aqui — vale só para a próxima tentativa dele."
+                    )
+
+                    todos_resultados = listar_resultados_da_prova(prova["id"])
+                    if not todos_resultados:
+                        st.caption("Nenhum aluno fez esta avaliação ainda.")
+                    else:
+                        mais_recente_por_aluno = {}
+                        for r in todos_resultados:
+                            mais_recente_por_aluno.setdefault(r["aluno_id"], r)
+
+                        nomes_alunos = {a["id"]: a["nome_completo"] for a in listar_todos_alunos()}
+
+                        for aluno_id, r in mais_recente_por_aluno.items():
+                            nome = nomes_alunos.get(aluno_id, "Aluno removido")
+                            with st.container(border=True):
+                                col_info, col_acao = st.columns([3, 1])
+                                with col_info:
+                                    status = "✅ Aprovado" if r["aprovado"] else "❌ Reprovado"
+                                    st.write(f"**{nome}** — {status} (nota {r['nota']:.1f})")
+                                    if r.get("tempo_gasto_segundos"):
+                                        st.caption(f"Tempo gasto na prova: {_formatar_duracao(r['tempo_gasto_segundos'])}")
+                                with col_acao:
+                                    if not r["aprovado"]:
+                                        if r.get("liberado_para_nova_tentativa"):
+                                            st.caption("🔓 Liberado — aguardando nova tentativa")
+                                        else:
+                                            if st.button(
+                                                "🔓 Liberar nova tentativa",
+                                                key=f"liberar_tentativa_{r['id']}",
+                                                use_container_width=True,
+                                            ):
+                                                liberar_nova_tentativa(r["id"])
+                                                st.success(f"Nova tentativa liberada para {nome}.")
+                                                st.rerun()
 
     # ---------------- ALUNOS ----------------
     with aba_alunos:
