@@ -9,6 +9,8 @@ import io
 import uuid
 from datetime import datetime, timezone
 
+import streamlit as st
+
 from database.supabase_client import get_supabase_client
 
 
@@ -217,12 +219,14 @@ def contar_alunos_por_filial():
 # CURSOS
 # ---------------------------------------------------------------------------
 
+@st.cache_data(ttl=20, show_spinner=False)
 def listar_cursos():
     sb = get_supabase_client()
     resposta = sb.table("cursos").select("*").order("criado_em", desc=True).execute()
     return resposta.data
 
 
+@st.cache_data(ttl=20, show_spinner=False)
 def buscar_curso(curso_id: int):
     sb = get_supabase_client()
     resposta = sb.table("cursos").select("*").eq("id", curso_id).execute()
@@ -239,6 +243,7 @@ def criar_curso(titulo: str, descricao: str, instrutor: str, carga_horaria: int)
         "carga_horaria": carga_horaria,
     }
     resposta = sb.table("cursos").insert(novo).execute()
+    listar_cursos.clear()
     return resposta.data[0]
 
 
@@ -251,24 +256,30 @@ def editar_curso(curso_id: int, titulo: str, descricao: str, instrutor: str, car
         "carga_horaria": carga_horaria,
     }
     sb.table("cursos").update(dados).eq("id", curso_id).execute()
+    listar_cursos.clear()
+    buscar_curso.clear()
 
 
 def excluir_curso(curso_id: int):
     """Exclui o curso e, em cascata, suas aulas, provas, resultados e certificados."""
     sb = get_supabase_client()
     sb.table("cursos").delete().eq("id", curso_id).execute()
+    listar_cursos.clear()
+    buscar_curso.clear()
 
 
 # ---------------------------------------------------------------------------
 # MÓDULOS (assuntos dentro de um curso)
 # ---------------------------------------------------------------------------
 
+@st.cache_data(ttl=20, show_spinner=False)
 def listar_modulos_do_curso(curso_id: int):
     sb = get_supabase_client()
     resposta = sb.table("modulos").select("*").eq("curso_id", curso_id).order("ordem").execute()
     return resposta.data
 
 
+@st.cache_data(ttl=20, show_spinner=False)
 def buscar_modulo(modulo_id: int):
     sb = get_supabase_client()
     resposta = sb.table("modulos").select("*").eq("id", modulo_id).execute()
@@ -280,24 +291,30 @@ def criar_modulo(curso_id: int, titulo: str, ordem: int):
     sb = get_supabase_client()
     novo = {"curso_id": curso_id, "titulo": titulo.strip(), "ordem": ordem}
     resposta = sb.table("modulos").insert(novo).execute()
+    listar_modulos_do_curso.clear()
     return resposta.data[0]
 
 
 def editar_modulo(modulo_id: int, titulo: str, ordem: int):
     sb = get_supabase_client()
     sb.table("modulos").update({"titulo": titulo.strip(), "ordem": ordem}).eq("id", modulo_id).execute()
+    listar_modulos_do_curso.clear()
+    buscar_modulo.clear()
 
 
 def excluir_modulo(modulo_id: int):
     """Exclui o módulo e, em cascata, suas aulas, prova e resultados."""
     sb = get_supabase_client()
     sb.table("modulos").delete().eq("id", modulo_id).execute()
+    listar_modulos_do_curso.clear()
+    buscar_modulo.clear()
 
 
 # ---------------------------------------------------------------------------
 # AULAS (agora pertencem a um módulo)
 # ---------------------------------------------------------------------------
 
+@st.cache_data(ttl=20, show_spinner=False)
 def listar_aulas_do_modulo(modulo_id: int):
     sb = get_supabase_client()
     resposta = (
@@ -310,6 +327,7 @@ def listar_aulas_do_modulo(modulo_id: int):
     return resposta.data
 
 
+@st.cache_data(ttl=20, show_spinner=False)
 def listar_aulas_do_curso(curso_id: int):
     """Todas as aulas do curso, de TODOS os módulos juntos — usado para
     calcular o progresso geral do curso (barra de progresso no topo)."""
@@ -329,6 +347,8 @@ def criar_aula(modulo_id: int, curso_id: int, titulo: str, url_video: str, ordem
         "duracao_minutos": duracao_minutos,
     }
     resposta = sb.table("aulas").insert(nova).execute()
+    listar_aulas_do_modulo.clear()
+    listar_aulas_do_curso.clear()
     return resposta.data[0]
 
 
@@ -341,11 +361,15 @@ def editar_aula(aula_id: int, titulo: str, url_video: str, ordem: int, duracao_m
         "duracao_minutos": duracao_minutos,
     }
     sb.table("aulas").update(dados).eq("id", aula_id).execute()
+    listar_aulas_do_modulo.clear()
+    listar_aulas_do_curso.clear()
 
 
 def excluir_aula(aula_id: int):
     sb = get_supabase_client()
     sb.table("aulas").delete().eq("id", aula_id).execute()
+    listar_aulas_do_modulo.clear()
+    listar_aulas_do_curso.clear()
 
 
 # ---------------------------------------------------------------------------
@@ -501,6 +525,7 @@ def obter_tempos_curso(aluno_id: str, curso_id: int):
 # PROVAS E PERGUNTAS
 # ---------------------------------------------------------------------------
 
+@st.cache_data(ttl=20, show_spinner=False)
 def buscar_prova_do_modulo(modulo_id: int):
     sb = get_supabase_client()
     resposta = sb.table("provas").select("*").eq("modulo_id", modulo_id).execute()
@@ -508,6 +533,7 @@ def buscar_prova_do_modulo(modulo_id: int):
     return dados[0] if dados else None
 
 
+@st.cache_data(ttl=20, show_spinner=False)
 def buscar_prova_do_curso(curso_id: int):
     """Compatibilidade: retorna a primeira prova encontrada entre os módulos do curso."""
     sb = get_supabase_client()
@@ -516,6 +542,7 @@ def buscar_prova_do_curso(curso_id: int):
     return dados[0] if dados else None
 
 
+@st.cache_data(ttl=20, show_spinner=False)
 def listar_provas_do_curso(curso_id: int):
     """Todas as provas do curso, uma por módulo (útil para o dashboard/admin)."""
     sb = get_supabase_client()
@@ -532,6 +559,9 @@ def criar_prova(modulo_id: int, curso_id: int, titulo: str, nota_minima: float):
         "nota_minima": nota_minima,
     }
     resposta = sb.table("provas").insert(nova).execute()
+    buscar_prova_do_modulo.clear()
+    buscar_prova_do_curso.clear()
+    listar_provas_do_curso.clear()
     return resposta.data[0]
 
 
@@ -540,14 +570,21 @@ def editar_prova(prova_id: int, titulo: str, nota_minima: float):
     sb.table("provas").update(
         {"titulo": titulo.strip(), "nota_minima": nota_minima}
     ).eq("id", prova_id).execute()
+    buscar_prova_do_modulo.clear()
+    buscar_prova_do_curso.clear()
+    listar_provas_do_curso.clear()
 
 
 def excluir_prova(prova_id: int):
     """Exclui a prova e, em cascata, suas perguntas e resultados."""
     sb = get_supabase_client()
     sb.table("provas").delete().eq("id", prova_id).execute()
+    buscar_prova_do_modulo.clear()
+    buscar_prova_do_curso.clear()
+    listar_provas_do_curso.clear()
 
 
+@st.cache_data(ttl=20, show_spinner=False)
 def listar_perguntas(prova_id: int):
     sb = get_supabase_client()
     resposta = (
@@ -573,6 +610,7 @@ def criar_pergunta(prova_id, enunciado, opcao_a, opcao_b, opcao_c, opcao_d, resp
         "ordem": ordem,
     }
     resposta = sb.table("perguntas").insert(nova).execute()
+    listar_perguntas.clear()
     return resposta.data[0]
 
 
@@ -588,11 +626,13 @@ def editar_pergunta(pergunta_id, enunciado, opcao_a, opcao_b, opcao_c, opcao_d, 
         "ordem": ordem,
     }
     sb.table("perguntas").update(dados).eq("id", pergunta_id).execute()
+    listar_perguntas.clear()
 
 
 def excluir_pergunta(pergunta_id):
     sb = get_supabase_client()
     sb.table("perguntas").delete().eq("id", pergunta_id).execute()
+    listar_perguntas.clear()
 
 
 # ---------------------------------------------------------------------------
@@ -753,9 +793,12 @@ def enviar_material(titulo: str, descricao: str, categoria: str, arquivo_bytes: 
         "tamanho_bytes": len(arquivo_bytes),
     }
     resposta = sb.table("materiais").insert(novo).execute()
+    listar_materiais.clear()
+    listar_categorias_materiais.clear()
     return resposta.data[0]
 
 
+@st.cache_data(ttl=20, show_spinner=False)
 def listar_materiais():
     """Lista todos os materiais, do mais recente para o mais antigo."""
     sb = get_supabase_client()
@@ -763,6 +806,7 @@ def listar_materiais():
     return resposta.data
 
 
+@st.cache_data(ttl=20, show_spinner=False)
 def listar_categorias_materiais():
     """Lista as categorias já usadas (sem repetir), em ordem alfabética."""
     materiais = listar_materiais()
@@ -781,6 +825,8 @@ def excluir_material(material_id, caminho_storage: str):
     sb = get_supabase_client()
     sb.storage.from_(_BUCKET_MATERIAIS).remove([caminho_storage])
     sb.table("materiais").delete().eq("id", material_id).execute()
+    listar_materiais.clear()
+    listar_categorias_materiais.clear()
 
 
 def editar_material(material_id, titulo: str, descricao: str, categoria: str):
@@ -792,6 +838,8 @@ def editar_material(material_id, titulo: str, descricao: str, categoria: str):
         "categoria": categoria.strip(),
     }
     sb.table("materiais").update(dados).eq("id", material_id).execute()
+    listar_materiais.clear()
+    listar_categorias_materiais.clear()
 
 
 # ---------------------------------------------------------------------------
@@ -833,9 +881,11 @@ def criar_aviso(titulo: str, mensagem: str):
     sb = get_supabase_client()
     novo = {"titulo": titulo.strip(), "mensagem": mensagem.strip()}
     resposta = sb.table("avisos").insert(novo).execute()
+    listar_avisos_ativos.clear()
     return resposta.data[0]
 
 
+@st.cache_data(ttl=20, show_spinner=False)
 def listar_avisos_ativos():
     """Usado na tela de Início — mostra só os avisos que o admin não desativou."""
     sb = get_supabase_client()
@@ -859,3 +909,4 @@ def listar_todos_avisos():
 def desativar_aviso(aviso_id):
     sb = get_supabase_client()
     sb.table("avisos").update({"ativo": False}).eq("id", aviso_id).execute()
+    listar_avisos_ativos.clear()
