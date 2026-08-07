@@ -14,3 +14,6 @@ toolbarMode = "minimal"
 
 [server]
 maxUploadSize = 5
+# Necessário para servir os arquivos da PWA (manifest.json, ícones, service worker)
+# que ficam na pasta static/. Sem isso, o app não pode ser "instalado" no celular.
+enableStaticServing = true
