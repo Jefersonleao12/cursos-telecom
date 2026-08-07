@@ -23,6 +23,9 @@ create table if not exists public.alunos (
     cargo          text,
     filial         text,                -- cidade/filial escolhida pelo aluno no cadastro
     is_admin       boolean not null default false,
+    ativo          boolean not null default true,   -- acesso pode ser bloqueado pelo admin sem excluir a conta
+    deve_trocar_senha            boolean not null default false, -- true após o admin gerar uma senha temporária
+    solicitou_redefinicao_senha  boolean not null default false, -- "esqueci minha senha", aguardando o admin
     criado_em      timestamptz not null default now()
 );
 
@@ -130,6 +133,41 @@ create table if not exists public.materiais (
     tipo_arquivo      text,
     tamanho_bytes     bigint,
     criado_em         timestamptz not null default now()
+);
+
+-- ----------------------------------------------------------------------------
+-- DÚVIDAS (perguntas do dia a dia enviadas pelos alunos na página inicial)
+-- ----------------------------------------------------------------------------
+create table if not exists public.duvidas (
+    id            bigint generated always as identity primary key,
+    aluno_id      uuid not null references public.alunos(id) on delete cascade,
+    aluno_nome    text not null,
+    mensagem      text not null,
+    respondida    boolean not null default false,
+    criado_em     timestamptz not null default now()
+);
+
+-- ----------------------------------------------------------------------------
+-- PROGRESSO DO CURSO (quando o aluno começou e quando terminou/foi aprovado)
+-- ----------------------------------------------------------------------------
+create table if not exists public.progresso_cursos (
+    id            bigint generated always as identity primary key,
+    aluno_id      uuid not null references public.alunos(id) on delete cascade,
+    curso_id      bigint not null references public.cursos(id) on delete cascade,
+    iniciado_em   timestamptz not null default now(),
+    finalizado_em timestamptz,
+    unique (aluno_id, curso_id)
+);
+
+-- ----------------------------------------------------------------------------
+-- AVISOS (comunicados gerais do admin para todos os alunos, na tela de Início)
+-- ----------------------------------------------------------------------------
+create table if not exists public.avisos (
+    id          bigint generated always as identity primary key,
+    titulo      text not null,
+    mensagem    text not null,
+    ativo       boolean not null default true,
+    criado_em   timestamptz not null default now()
 );
 
 -- ============================================================================
