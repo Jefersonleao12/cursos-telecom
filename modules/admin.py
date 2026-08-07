@@ -20,8 +20,12 @@ from database.repositorio import (
     excluir_aula,
     buscar_prova_do_curso,
     criar_prova,
+    editar_prova,
+    excluir_prova,
     listar_perguntas,
     criar_pergunta,
+    editar_pergunta,
+    excluir_pergunta,
     listar_resultados_da_prova,
     liberar_nova_tentativa,
     listar_todos_alunos,
@@ -35,6 +39,14 @@ from database.repositorio import (
     editar_material,
     listar_duvidas,
     marcar_duvida_respondida,
+    definir_acesso_aluno,
+    definir_admin_aluno,
+    gerar_senha_temporaria,
+    listar_todos_certificados,
+    listar_todos_resultados_provas,
+    criar_aviso,
+    listar_todos_avisos,
+    desativar_aviso,
 )
 
 
@@ -109,9 +121,65 @@ def tela_admin():
     _painel_visao_geral()
     st.write("")
 
-    aba_cursos, aba_aulas, aba_provas, aba_alunos, aba_filiais, aba_materiais, aba_duvidas = st.tabs(
-        ["📚 Cursos", "🎬 Aulas", "📝 Provas e Perguntas", "🧑‍🎓 Alunos", "📍 Filiais", "🗂️ Materiais", "❓ Dúvidas"]
+    aba_dashboard, aba_cursos, aba_aulas, aba_provas, aba_alunos, aba_filiais, aba_materiais, aba_duvidas, aba_avisos = st.tabs(
+        ["📊 Dashboard", "📚 Cursos", "🎬 Aulas", "📝 Provas e Perguntas", "🧑‍🎓 Alunos", "📍 Filiais", "🗂️ Materiais", "❓ Dúvidas", "📢 Avisos"]
     )
+
+    # ---------------- DASHBOARD ----------------
+    with aba_dashboard:
+        cursos_todos = listar_cursos()
+        alunos_todos = listar_todos_alunos()
+        certificados_todos = listar_todos_certificados()
+        resultados_todos = listar_todos_resultados_provas()
+
+        alunos_ativos = [a for a in alunos_todos if a.get("ativo", True)]
+
+        col1, col2, col3, col4 = st.columns(4)
+        col1.metric("🧑‍🎓 Alunos ativos", len(alunos_ativos))
+        col2.metric("📚 Cursos", len(cursos_todos))
+        col3.metric("🏆 Certificados emitidos", len(certificados_todos))
+
+        if resultados_todos:
+            taxa_aprovacao = sum(1 for r in resultados_todos if r["aprovado"]) / len(resultados_todos) * 100
+        else:
+            taxa_aprovacao = 0
+        col4.metric("✅ Taxa média de aprovação", f"{taxa_aprovacao:.0f}%")
+
+        st.write("")
+        col_grafico1, col_grafico2 = st.columns(2)
+
+        with col_grafico1:
+            st.subheader("Alunos por filial")
+            grupos_filial = contar_alunos_por_filial()
+            if grupos_filial:
+                dados_grafico = {nome: len(lista) for nome, lista in grupos_filial.items()}
+                st.bar_chart(dados_grafico)
+            else:
+                st.caption("Nenhum aluno cadastrado ainda.")
+
+        with col_grafico2:
+            st.subheader("Certificados por curso")
+            if certificados_todos and cursos_todos:
+                nomes_curso = {c["id"]: c["titulo"] for c in cursos_todos}
+                contagem_por_curso = {}
+                for cert in certificados_todos:
+                    nome = nomes_curso.get(cert["curso_id"], "Curso removido")
+                    contagem_por_curso[nome] = contagem_por_curso.get(nome, 0) + 1
+                st.bar_chart(contagem_por_curso)
+            else:
+                st.caption("Nenhum certificado emitido ainda.")
+
+        st.write("")
+        st.subheader("Progresso médio por curso")
+        if cursos_todos and alunos_todos:
+            for curso in cursos_todos:
+                progressos = [calcular_progresso_curso(a["id"], curso["id"]) for a in alunos_todos]
+                progressos_iniciados = [p for p in progressos if p > 0]
+                if progressos_iniciados:
+                    media = sum(progressos_iniciados) / len(progressos_iniciados)
+                    st.progress(media, text=f"{curso['titulo']}: {int(media * 100)}% em média ({len(progressos_iniciados)} aluno(s) iniciaram)")
+        else:
+            st.caption("Ainda não há dados suficientes.")
 
     # ---------------- CURSOS ----------------
     with aba_cursos:
@@ -305,12 +373,107 @@ def tela_admin():
                         st.success("Avaliação criada! Agora adicione as perguntas abaixo.")
                         st.rerun()
             else:
-                st.success(f"Avaliação atual: **{prova['titulo']}** (nota mínima {prova['nota_minima']:.1f})")
+                col_prova_info, col_prova_editar, col_prova_excluir = st.columns([3, 1, 1])
+                with col_prova_info:
+                    st.success(f"Avaliação atual: **{prova['titulo']}** (nota mínima {prova['nota_minima']:.1f})")
+                with col_prova_editar:
+                    if st.button("✏️ Editar prova", key=f"editar_prova_btn_{prova['id']}", use_container_width=True):
+                        st.session_state["prova_em_edicao"] = prova["id"]
+                        st.rerun()
+                with col_prova_excluir:
+                    if st.button("🗑️ Excluir prova", key=f"excluir_prova_btn_{prova['id']}", use_container_width=True):
+                        st.session_state["prova_para_excluir"] = prova["id"]
+                        st.rerun()
+
+                if st.session_state.get("prova_para_excluir") == prova["id"]:
+                    st.warning("Tem certeza? Isso apaga todas as perguntas e resultados desta avaliação.")
+                    col_sim, col_nao = st.columns(2)
+                    with col_sim:
+                        if st.button("Sim, excluir prova", key=f"confirma_excluir_prova_{prova['id']}", type="primary", use_container_width=True):
+                            excluir_prova(prova["id"])
+                            st.session_state.pop("prova_para_excluir", None)
+                            st.success("Avaliação excluída.")
+                            st.rerun()
+                    with col_nao:
+                        if st.button("Cancelar", key=f"cancela_excluir_prova_{prova['id']}", use_container_width=True):
+                            st.session_state.pop("prova_para_excluir", None)
+                            st.rerun()
+
+                if st.session_state.get("prova_em_edicao") == prova["id"]:
+                    with st.form(f"form_editar_prova_{prova['id']}"):
+                        novo_titulo_prova = st.text_input("Título da avaliação *", value=prova["titulo"])
+                        nova_nota_minima = st.number_input(
+                            "Nota mínima para aprovação (0 a 10)",
+                            min_value=0.0, max_value=10.0, value=float(prova["nota_minima"]), step=0.5,
+                        )
+                        col_salvar, col_cancelar = st.columns(2)
+                        with col_salvar:
+                            salvar_edicao_prova = st.form_submit_button("Salvar alterações", type="primary", use_container_width=True)
+                        with col_cancelar:
+                            cancelar_edicao_prova = st.form_submit_button("Cancelar", use_container_width=True)
+
+                    if salvar_edicao_prova:
+                        if not novo_titulo_prova:
+                            st.warning("Informe o título da avaliação.")
+                        else:
+                            editar_prova(prova["id"], novo_titulo_prova, nova_nota_minima)
+                            st.session_state.pop("prova_em_edicao", None)
+                            st.success("Avaliação atualizada.")
+                            st.rerun()
+                    if cancelar_edicao_prova:
+                        st.session_state.pop("prova_em_edicao", None)
+                        st.rerun()
 
                 perguntas = listar_perguntas(prova["id"])
                 st.write(f"**{len(perguntas)} pergunta(s) cadastrada(s)**")
                 for i, p in enumerate(perguntas, start=1):
-                    st.caption(f"{i}. {p['enunciado']} (resposta correta: {p['resposta_correta']})")
+                    with st.container(border=True):
+                        col_pergunta, col_editar_p, col_excluir_p = st.columns([3, 1, 1])
+                        with col_pergunta:
+                            st.caption(f"{i}. {p['enunciado']} (resposta correta: {p['resposta_correta']})")
+                        with col_editar_p:
+                            if st.button("✏️", key=f"editar_pergunta_btn_{p['id']}", use_container_width=True, help="Editar pergunta"):
+                                st.session_state["pergunta_em_edicao"] = p["id"]
+                                st.rerun()
+                        with col_excluir_p:
+                            if st.button("🗑️", key=f"excluir_pergunta_btn_{p['id']}", use_container_width=True, help="Excluir pergunta"):
+                                excluir_pergunta(p["id"])
+                                st.success("Pergunta excluída.")
+                                st.rerun()
+
+                        if st.session_state.get("pergunta_em_edicao") == p["id"]:
+                            with st.form(f"form_editar_pergunta_{p['id']}"):
+                                novo_enunciado = st.text_area("Enunciado da pergunta *", value=p["enunciado"])
+                                nova_opcao_a = st.text_input("Alternativa A *", value=p["opcao_a"])
+                                nova_opcao_b = st.text_input("Alternativa B *", value=p["opcao_b"])
+                                nova_opcao_c = st.text_input("Alternativa C *", value=p["opcao_c"])
+                                nova_opcao_d = st.text_input("Alternativa D *", value=p["opcao_d"])
+                                nova_correta = st.selectbox(
+                                    "Alternativa correta *", ["A", "B", "C", "D"],
+                                    index=["A", "B", "C", "D"].index(p["resposta_correta"]),
+                                )
+                                nova_ordem_pergunta = st.number_input("Ordem", min_value=1, value=p["ordem"])
+                                col_salvar_p, col_cancelar_p = st.columns(2)
+                                with col_salvar_p:
+                                    salvar_edicao_pergunta = st.form_submit_button("Salvar alterações", type="primary", use_container_width=True)
+                                with col_cancelar_p:
+                                    cancelar_edicao_pergunta = st.form_submit_button("Cancelar", use_container_width=True)
+
+                            if salvar_edicao_pergunta:
+                                campos_edicao = [novo_enunciado, nova_opcao_a, nova_opcao_b, nova_opcao_c, nova_opcao_d]
+                                if not all(campos_edicao):
+                                    st.warning("Preencha todos os campos obrigatórios (*).")
+                                else:
+                                    editar_pergunta(
+                                        p["id"], novo_enunciado, nova_opcao_a, nova_opcao_b, nova_opcao_c, nova_opcao_d,
+                                        nova_correta, int(nova_ordem_pergunta),
+                                    )
+                                    st.session_state.pop("pergunta_em_edicao", None)
+                                    st.success("Pergunta atualizada.")
+                                    st.rerun()
+                            if cancelar_edicao_pergunta:
+                                st.session_state.pop("pergunta_em_edicao", None)
+                                st.rerun()
 
                 st.divider()
                 st.subheader("Adicionar pergunta")
@@ -400,10 +563,24 @@ def tela_admin():
                 st.caption(f"{len(alunos)} aluno(s) encontrado(s).")
 
             cursos = listar_cursos()
+
+            # Destaque no topo: pedidos de "esqueci minha senha" pendentes
+            pedidos_senha = [a for a in alunos if a.get("solicitou_redefinicao_senha")]
+            if pedidos_senha:
+                st.warning(f"🔑 {len(pedidos_senha)} aluno(s) pediram redefinição de senha — veja abaixo.")
+
             for aluno in alunos:
+                destaque = " 🔑" if aluno.get("solicitou_redefinicao_senha") else ""
+                inativo_label = " · 🚫 acesso desativado" if not aluno.get("ativo", True) else ""
                 with st.container(border=True):
-                    st.write(f"**{aluno['nome_completo']}** — {aluno['email']}")
-                    st.caption(f"Empresa: {aluno.get('empresa') or '-'} · Cargo: {aluno.get('cargo') or '-'}")
+                    st.write(f"**{aluno['nome_completo']}**{destaque} — {aluno['email']}{inativo_label}")
+                    st.caption(
+                        f"Empresa: {aluno.get('empresa') or '-'} · Cargo: {aluno.get('cargo') or '-'} · "
+                        f"Filial: {aluno.get('filial') or '-'}"
+                    )
+                    if aluno.get("is_admin"):
+                        st.caption("⭐ Administrador")
+
                     if cursos:
                         for curso in cursos:
                             p = calcular_progresso_curso(aluno["id"], curso["id"])
@@ -418,6 +595,42 @@ def tela_admin():
                             elif tempos:
                                 linha += " · em andamento"
                             st.caption(linha)
+
+                    st.write("")
+                    col_admin, col_acesso, col_senha = st.columns(3)
+                    with col_admin:
+                        if aluno.get("is_admin"):
+                            if st.button("⭐ Remover admin", key=f"remover_admin_{aluno['id']}", use_container_width=True):
+                                definir_admin_aluno(aluno["id"], False)
+                                st.rerun()
+                        else:
+                            if st.button("⭐ Tornar admin", key=f"tornar_admin_{aluno['id']}", use_container_width=True):
+                                definir_admin_aluno(aluno["id"], True)
+                                st.rerun()
+                    with col_acesso:
+                        if aluno.get("ativo", True):
+                            if st.button("🚫 Desativar acesso", key=f"desativar_{aluno['id']}", use_container_width=True):
+                                definir_acesso_aluno(aluno["id"], False)
+                                st.rerun()
+                        else:
+                            if st.button("✅ Reativar acesso", key=f"reativar_{aluno['id']}", use_container_width=True):
+                                definir_acesso_aluno(aluno["id"], True)
+                                st.rerun()
+                    with col_senha:
+                        rotulo_senha = "🔑 Gerar nova senha" if not aluno.get("solicitou_redefinicao_senha") else "🔑 Atender pedido"
+                        if st.button(rotulo_senha, key=f"gerar_senha_{aluno['id']}", type="primary" if aluno.get("solicitou_redefinicao_senha") else "secondary", use_container_width=True):
+                            st.session_state[f"nova_senha_gerada_{aluno['id']}"] = gerar_senha_temporaria(aluno["id"])
+                            st.rerun()
+
+                    senha_gerada = st.session_state.get(f"nova_senha_gerada_{aluno['id']}")
+                    if senha_gerada:
+                        st.success(
+                            f"Senha temporária para **{aluno['nome_completo']}**: `{senha_gerada}` "
+                            f"— repasse por telefone/WhatsApp. Ele será obrigado a trocar no próximo login."
+                        )
+                        if st.button("Ok, já anotei", key=f"limpar_senha_{aluno['id']}"):
+                            st.session_state.pop(f"nova_senha_gerada_{aluno['id']}", None)
+                            st.rerun()
 
     # ---------------- FILIAIS ----------------
     with aba_filiais:
@@ -549,3 +762,40 @@ def tela_admin():
                                 st.rerun()
                         else:
                             st.caption("✅ Respondida")
+
+    # ---------------- AVISOS ----------------
+    with aba_avisos:
+        st.subheader("Avisos gerais")
+        st.caption("Aparecem para todos os alunos na tela de Início, em destaque.")
+
+        avisos = listar_todos_avisos()
+        if avisos:
+            for aviso in avisos:
+                with st.container(border=True):
+                    col_texto, col_acao = st.columns([4, 1])
+                    with col_texto:
+                        status_aviso = "" if aviso["ativo"] else " (desativado)"
+                        st.write(f"**{aviso['titulo']}**{status_aviso}")
+                        st.caption(aviso["mensagem"])
+                    with col_acao:
+                        if aviso["ativo"]:
+                            if st.button("Desativar", key=f"desativar_aviso_{aviso['id']}", use_container_width=True):
+                                desativar_aviso(aviso["id"])
+                                st.rerun()
+        else:
+            st.caption("Nenhum aviso cadastrado ainda.")
+
+        st.divider()
+        st.subheader("Criar novo aviso")
+        with st.form("form_novo_aviso", clear_on_submit=True):
+            titulo_aviso = st.text_input("Título *", placeholder="Ex: Novo curso disponível!")
+            mensagem_aviso = st.text_area("Mensagem *", placeholder="Escreva o comunicado para os alunos...")
+            publicar_aviso = st.form_submit_button("Publicar aviso", type="primary")
+
+        if publicar_aviso:
+            if not titulo_aviso or not mensagem_aviso:
+                st.warning("Preencha o título e a mensagem.")
+            else:
+                criar_aviso(titulo_aviso, mensagem_aviso)
+                st.success("Aviso publicado! Já aparece na tela de Início dos alunos.")
+                st.rerun()
