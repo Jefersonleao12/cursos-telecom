@@ -11,8 +11,8 @@ import streamlit as st
 from database.repositorio import (
     buscar_certificado,
     emitir_certificado,
-    melhor_resultado,
-    buscar_prova_do_curso,
+    curso_totalmente_concluido,
+    nota_final_curso,
     listar_cursos,
 )
 from utils.helpers import gerar_codigo_verificacao, formatar_data_br
@@ -57,7 +57,7 @@ def gerar_pdf_certificado(
     curso_titulo: str,
     instrutor: str,
     carga_horaria,
-    nota: float,
+    nota,
     data_emissao: str,
     codigo_verificacao: str,
 ) -> bytes:
@@ -76,8 +76,12 @@ def gerar_pdf_certificado(
     _linha_centralizada(pdf, f"{texto_empresa}concluiu com aproveitamento o curso", 13, espaco=8)
     _linha_centralizada(pdf, f'"{curso_titulo}"', 17, negrito=True, espaco=8)
 
-    carga_texto = f"com carga horária de {carga_horaria} horas, " if carga_horaria else ""
-    _linha_centralizada(pdf, f"{carga_texto}obtendo nota final {nota:.1f} de 10,0.", 13, espaco=16)
+    carga_texto = f"com carga horária de {carga_horaria} horas" if carga_horaria else ""
+    if nota is not None:
+        texto_conclusao = f"{carga_texto}, obtendo nota final {nota:.1f} de 10,0." if carga_texto else f"obtendo nota final {nota:.1f} de 10,0."
+    else:
+        texto_conclusao = f"{carga_texto}." if carga_texto else "com aproveitamento em todos os módulos."
+    _linha_centralizada(pdf, texto_conclusao, 13, espaco=16)
 
     _linha_centralizada(pdf, f"Emitido em {data_emissao}", 12, espaco=6)
 
@@ -100,7 +104,7 @@ def gerar_pdf_certificado(
     return bytes(saida)
 
 
-def _preparar_e_baixar_certificado(aluno_id, curso, resultado):
+def _preparar_e_baixar_certificado(aluno_id, curso, nota):
     """Garante que exista um registro de certificado (cria se necessário) e devolve o PDF em bytes."""
     certificado = buscar_certificado(aluno_id, curso["id"])
     if certificado is None:
@@ -115,7 +119,7 @@ def _preparar_e_baixar_certificado(aluno_id, curso, resultado):
         curso_titulo=curso["titulo"],
         instrutor=curso["instrutor"],
         carga_horaria=curso.get("carga_horaria"),
-        nota=resultado["nota"],
+        nota=nota,
         data_emissao=data_formatada,
         codigo_verificacao=certificado["codigo_verificacao"],
     )
@@ -131,22 +135,20 @@ def tela_certificados():
     algum_certificado = False
 
     for curso in cursos:
-        prova = buscar_prova_do_curso(curso["id"])
-        if prova is None:
+        if not curso_totalmente_concluido(aluno_id, curso["id"]):
             continue
 
-        resultado = melhor_resultado(aluno_id, prova["id"])
-        if resultado is None or not resultado["aprovado"]:
-            continue
+        nota = nota_final_curso(aluno_id, curso["id"])
 
         algum_certificado = True
         with st.container(border=True):
             col_info, col_botao = st.columns([3, 1])
             with col_info:
                 st.markdown(f"### {curso['titulo']}")
-                st.caption(f"Aprovado com nota {resultado['nota']:.1f} · Instrutor: {curso['instrutor']}")
+                texto_nota = f"Nota final {nota:.1f}" if nota is not None else "Concluído"
+                st.caption(f"{texto_nota} · Instrutor: {curso['instrutor']}")
             with col_botao:
-                pdf_bytes = _preparar_e_baixar_certificado(aluno_id, curso, resultado)
+                pdf_bytes = _preparar_e_baixar_certificado(aluno_id, curso, nota)
                 st.download_button(
                     label="⬇️ Baixar PDF",
                     data=pdf_bytes,
@@ -158,6 +160,6 @@ def tela_certificados():
 
     if not algum_certificado:
         st.info(
-            "Você ainda não possui certificados. Conclua um curso e seja "
-            "aprovado na avaliação para gerar o seu."
+            "Você ainda não possui certificados. Conclua todos os módulos de "
+            "um curso (vídeos e avaliações) para gerar o seu."
         )
