@@ -58,6 +58,100 @@ def listar_todos_alunos():
     return resposta.data
 
 
+# ---------------------------------------------------------------------------
+# PERFIL DO ALUNO (o próprio aluno atualizando seus dados/senha)
+# ---------------------------------------------------------------------------
+
+def atualizar_perfil_aluno(aluno_id: str, empresa: str, cargo: str, filial: str):
+    sb = get_supabase_client()
+    dados = {
+        "empresa": empresa.strip() if empresa else None,
+        "cargo": cargo.strip() if cargo else None,
+        "filial": filial.strip() if filial else None,
+    }
+    sb.table("alunos").update(dados).eq("id", aluno_id).execute()
+
+
+def trocar_senha_aluno(aluno_id: str, novo_hash_senha: str):
+    """Usado quando o próprio aluno troca a senha (Meu Perfil, ou após receber uma senha temporária)."""
+    sb = get_supabase_client()
+    sb.table("alunos").update(
+        {"senha_hash": novo_hash_senha, "deve_trocar_senha": False}
+    ).eq("id", aluno_id).execute()
+
+
+# ---------------------------------------------------------------------------
+# GESTÃO DE CONTA (ações do admin sobre a conta de um aluno)
+# ---------------------------------------------------------------------------
+
+def definir_acesso_aluno(aluno_id: str, ativo: bool):
+    """Ativa ou desativa o acesso de um aluno (login passa a ser bloqueado se ativo=False)."""
+    sb = get_supabase_client()
+    sb.table("alunos").update({"ativo": ativo}).eq("id", aluno_id).execute()
+
+
+def definir_admin_aluno(aluno_id: str, is_admin: bool):
+    sb = get_supabase_client()
+    sb.table("alunos").update({"is_admin": is_admin}).eq("id", aluno_id).execute()
+
+
+def solicitar_redefinicao_senha(email: str):
+    """
+    Usado na tela de login ('Esqueci minha senha'). Marca a conta para que o
+    admin veja o pedido no painel e gere uma senha temporária. Retorna o
+    aluno encontrado, ou None se o e-mail não existir (a tela sempre mostra
+    a mesma mensagem de sucesso nos dois casos, para não revelar quais
+    e-mails têm cadastro).
+    """
+    sb = get_supabase_client()
+    aluno = buscar_aluno_por_email(email)
+    if aluno is None:
+        return None
+    sb.table("alunos").update({"solicitou_redefinicao_senha": True}).eq("id", aluno["id"]).execute()
+    return aluno
+
+
+def listar_solicitacoes_redefinicao_senha():
+    sb = get_supabase_client()
+    resposta = (
+        sb.table("alunos")
+        .select("*")
+        .eq("solicitou_redefinicao_senha", True)
+        .order("nome_completo")
+        .execute()
+    )
+    return resposta.data
+
+
+def gerar_senha_temporaria(aluno_id: str) -> str:
+    """
+    Usado pelo admin (painel) para resetar a senha de um aluno — seja porque
+    ele pediu 'esqueci minha senha', seja por iniciativa do próprio admin.
+    Gera uma senha temporária aleatória, já salva o hash dela no banco, marca
+    que o aluno precisa trocá-la no próximo login, e devolve a senha em texto
+    puro (só para o admin ver na hora e repassar ao aluno — não fica salva
+    em lugar nenhum em texto puro).
+    """
+    import secrets as _secrets
+    import string as _string
+    import bcrypt as _bcrypt
+
+    alfabeto = _string.ascii_uppercase + _string.ascii_lowercase + _string.digits
+    senha_temporaria = "".join(_secrets.choice(alfabeto) for _ in range(8))
+    hash_senha = _bcrypt.hashpw(senha_temporaria.encode("utf-8"), _bcrypt.gensalt()).decode("utf-8")
+
+    sb = get_supabase_client()
+    sb.table("alunos").update(
+        {
+            "senha_hash": hash_senha,
+            "deve_trocar_senha": True,
+            "solicitou_redefinicao_senha": False,
+        }
+    ).eq("id", aluno_id).execute()
+
+    return senha_temporaria
+
+
 def contar_alunos_por_filial():
     """
     Usado no painel administrativo: retorna um dicionário
@@ -272,6 +366,19 @@ def criar_prova(curso_id: int, titulo: str, nota_minima: float):
     return resposta.data[0]
 
 
+def editar_prova(prova_id: int, titulo: str, nota_minima: float):
+    sb = get_supabase_client()
+    sb.table("provas").update(
+        {"titulo": titulo.strip(), "nota_minima": nota_minima}
+    ).eq("id", prova_id).execute()
+
+
+def excluir_prova(prova_id: int):
+    """Exclui a prova e, em cascata, suas perguntas e resultados."""
+    sb = get_supabase_client()
+    sb.table("provas").delete().eq("id", prova_id).execute()
+
+
 def listar_perguntas(prova_id: int):
     sb = get_supabase_client()
     resposta = (
@@ -298,6 +405,25 @@ def criar_pergunta(prova_id, enunciado, opcao_a, opcao_b, opcao_c, opcao_d, resp
     }
     resposta = sb.table("perguntas").insert(nova).execute()
     return resposta.data[0]
+
+
+def editar_pergunta(pergunta_id, enunciado, opcao_a, opcao_b, opcao_c, opcao_d, resposta_correta, ordem):
+    sb = get_supabase_client()
+    dados = {
+        "enunciado": enunciado.strip(),
+        "opcao_a": opcao_a.strip(),
+        "opcao_b": opcao_b.strip(),
+        "opcao_c": opcao_c.strip(),
+        "opcao_d": opcao_d.strip(),
+        "resposta_correta": resposta_correta.upper().strip(),
+        "ordem": ordem,
+    }
+    sb.table("perguntas").update(dados).eq("id", pergunta_id).execute()
+
+
+def excluir_pergunta(pergunta_id):
+    sb = get_supabase_client()
+    sb.table("perguntas").delete().eq("id", pergunta_id).execute()
 
 
 # ---------------------------------------------------------------------------
@@ -404,6 +530,20 @@ def emitir_certificado(aluno_id: str, curso_id: int, codigo_verificacao: str):
     }
     resposta = sb.table("certificados").insert(registro).execute()
     return resposta.data[0]
+
+
+def listar_todos_certificados():
+    """Usado no dashboard do admin, para contar total emitido e ranking por curso."""
+    sb = get_supabase_client()
+    resposta = sb.table("certificados").select("*").execute()
+    return resposta.data
+
+
+def listar_todos_resultados_provas():
+    """Usado no dashboard do admin, para calcular a taxa média de aprovação."""
+    sb = get_supabase_client()
+    resposta = sb.table("resultados_provas").select("*").execute()
+    return resposta.data
 
 
 # ---------------------------------------------------------------------------
@@ -514,3 +654,39 @@ def listar_duvidas(apenas_nao_respondidas: bool = False):
 def marcar_duvida_respondida(duvida_id):
     sb = get_supabase_client()
     sb.table("duvidas").update({"respondida": True}).eq("id", duvida_id).execute()
+
+
+# ---------------------------------------------------------------------------
+# AVISOS (comunicados gerais do admin para todos os alunos)
+# ---------------------------------------------------------------------------
+
+def criar_aviso(titulo: str, mensagem: str):
+    sb = get_supabase_client()
+    novo = {"titulo": titulo.strip(), "mensagem": mensagem.strip()}
+    resposta = sb.table("avisos").insert(novo).execute()
+    return resposta.data[0]
+
+
+def listar_avisos_ativos():
+    """Usado na tela de Início — mostra só os avisos que o admin não desativou."""
+    sb = get_supabase_client()
+    resposta = (
+        sb.table("avisos")
+        .select("*")
+        .eq("ativo", True)
+        .order("criado_em", desc=True)
+        .execute()
+    )
+    return resposta.data
+
+
+def listar_todos_avisos():
+    """Usado no painel admin — mostra ativos e inativos, para gerenciar."""
+    sb = get_supabase_client()
+    resposta = sb.table("avisos").select("*").order("criado_em", desc=True).execute()
+    return resposta.data
+
+
+def desativar_aviso(aviso_id):
+    sb = get_supabase_client()
+    sb.table("avisos").update({"ativo": False}).eq("id", aviso_id).execute()
