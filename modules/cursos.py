@@ -23,7 +23,6 @@ from database.repositorio import (
     finalizar_progresso_curso,
     buscar_prova_do_modulo,
     modulo_esta_completo,
-    curso_totalmente_concluido,
 )
 from modules.provas import renderizar_prova_modulo
 
@@ -164,10 +163,14 @@ def tela_detalhe_curso():
     # anterior estiver 100% completo (aulas + prova, se houver).
     modulo_anterior_completo = True
     curso_recem_concluido = False
+    status_dos_modulos = []  # guarda o "completo" de cada módulo já calculado,
+                              # para não recalcular tudo de novo no final (evita
+                              # dobrar as consultas ao banco a cada clique).
 
     for indice, modulo in enumerate(modulos, start=1):
         desbloqueado = modulo_anterior_completo
         completo = modulo_esta_completo(aluno_id, modulo["id"]) if desbloqueado else False
+        status_dos_modulos.append(completo)
 
         if not desbloqueado:
             st.markdown(f"##### 🔒 Módulo {indice}: {modulo['titulo']}")
@@ -199,7 +202,8 @@ def tela_detalhe_curso():
                         st.markdown(f"#### 📝 Avaliação — {prova['titulo']}")
                         aprovado_agora = renderizar_prova_modulo(aluno_id, prova)
                         if aprovado_agora:
-                            if curso_totalmente_concluido(aluno_id, curso_id):
+                            status_dos_modulos[-1] = True  # este módulo acabou de ficar completo
+                            if all(status_dos_modulos) and len(status_dos_modulos) == len(modulos):
                                 finalizar_progresso_curso(aluno_id, curso_id)
                                 curso_recem_concluido = True
                             st.rerun()
@@ -210,7 +214,9 @@ def tela_detalhe_curso():
 
     st.divider()
 
-    if curso_totalmente_concluido(aluno_id, curso_id):
+    curso_completo_agora = len(status_dos_modulos) == len(modulos) and all(status_dos_modulos)
+
+    if curso_completo_agora:
         st.success("🎉 Parabéns! Você concluiu TODOS os módulos deste curso.")
         if st.button("Ver meu certificado", type="primary"):
             st.session_state["pagina_atual"] = "certificados"
