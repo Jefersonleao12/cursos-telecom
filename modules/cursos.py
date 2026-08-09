@@ -218,8 +218,8 @@ def tela_detalhe_curso():
 
     if curso_completo_agora:
         st.success("🎉 Parabéns! Você concluiu TODOS os módulos deste curso.")
-        if st.button("Ver meu certificado", type="primary"):
+        if st.button("Ver meu certificado de capacitação", type="primary"):
             st.session_state["pagina_atual"] = "certificados"
             st.rerun()
     else:
-        st.info("Conclua os vídeos e as avaliações de cada módulo, em ordem, para liberar o certificado.")
+        st.info("Conclua os vídeos e as avaliações de cada módulo, em ordem, para liberar o certificado de capacitação.")

@@ -260,11 +260,11 @@ def _painel_hero():
         <div class="auth-hero">
             <div class="auth-hero-title" lang="pt-BR">Bem-vindo à Plataforma de Treinamentos em Telecomunicações</div>
             <p class="auth-sub">
-                Cursos, avaliações e certificados da equipe, tudo em um só lugar —
+                Cursos, avaliações e certificados de capacitação da equipe, tudo em um só lugar —
                 de qualquer filial, no computador ou no celular.
             </p>
             <div class="auth-feature"><span class="ico">📚</span> Cursos e aulas em vídeo</div>
-            <div class="auth-feature"><span class="ico">📝</span> Avaliações com certificado</div>
+            <div class="auth-feature"><span class="ico">📝</span> Avaliações com certificado de capacitação</div>
             <div class="auth-feature"><span class="ico">🗂️</span> Materiais para consulta</div>
             <div class="auth-feature"><span class="ico">🏆</span> Acompanhamento do seu progresso</div>
         </div>

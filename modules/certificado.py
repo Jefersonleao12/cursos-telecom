@@ -66,14 +66,14 @@ def gerar_pdf_certificado(
     pdf.add_page()
     pdf.moldura()
 
-    _linha_centralizada(pdf, "CERTIFICADO DE CONCLUSÃO", 26, negrito=True, cor=AZUL, espaco=12, y=30)
+    _linha_centralizada(pdf, "CERTIFICADO DE CAPACITAÇÃO", 26, negrito=True, cor=AZUL, espaco=12, y=30)
     _linha_centralizada(pdf, "Plataforma de Treinamentos em Telecomunicações", 13, cor=CINZA, espaco=16)
 
     _linha_centralizada(pdf, "Certificamos que", 14, espaco=10)
     _linha_centralizada(pdf, nome_aluno.upper(), 22, negrito=True, cor=AZUL, espaco=10)
 
     texto_empresa = f"da empresa {empresa}, " if empresa else ""
-    _linha_centralizada(pdf, f"{texto_empresa}concluiu com aproveitamento o curso", 13, espaco=8)
+    _linha_centralizada(pdf, f"{texto_empresa}concluiu com aproveitamento o curso livre", 13, espaco=8)
     _linha_centralizada(pdf, f'"{curso_titulo}"', 17, negrito=True, espaco=8)
 
     carga_texto = f"com carga horária de {carga_horaria} horas" if carga_horaria else ""
@@ -97,7 +97,24 @@ def gerar_pdf_certificado(
 
     # Código de verificação (rodapé)
     _linha_centralizada(
-        pdf, f"Código de verificação: {codigo_verificacao}", 9, cor=CINZA, espaco=5, y=pdf.h - 16
+        pdf, f"Código de verificação: {codigo_verificacao}", 9, cor=CINZA, espaco=4, y=pdf.h - 28
+    )
+
+    # Aviso legal (rodapé, letra bem pequena): deixa claro que é curso livre,
+    # não um diploma nem certificação técnica regulamentada. Posicionado com
+    # folga da moldura decorativa (que fica a 11mm da borda da página).
+    pdf.set_font("Helvetica", "", 7)
+    pdf.set_text_color(*CINZA)
+    pdf.set_y(pdf.h - 21)
+    pdf.set_x(pdf.l_margin)
+    largura_util = pdf.w - pdf.l_margin - pdf.r_margin
+    pdf.multi_cell(
+        largura_util,
+        3.0,
+        "Curso livre (capacitação/extensão) — não é diploma, título acadêmico ou certificação técnica "
+        "regulamentada. Independe de credenciamento junto ao Ministério da Educação (MEC), nos termos da "
+        "legislação educacional brasileira.",
+        align="C",
     )
 
     saida = pdf.output()
@@ -127,7 +144,13 @@ def _preparar_e_baixar_certificado(aluno_id, curso, nota):
 
 
 def tela_certificados():
-    st.title("🏆 Meus Certificados")
+    st.title("🏆 Meus Certificados de Capacitação")
+    st.warning(
+        "⚠️ Este é um **Certificado de Capacitação**, referente a um curso livre (de capacitação/extensão). "
+        "Não se trata de diploma, título acadêmico ou certificação técnica regulamentada. Cursos livres "
+        "independem de credenciamento junto ao Ministério da Educação (MEC), nos termos da legislação "
+        "educacional brasileira."
+    )
 
     aluno_id = st.session_state["aluno_id"]
     cursos = listar_cursos()
@@ -152,7 +175,7 @@ def tela_certificados():
                 st.download_button(
                     label="⬇️ Baixar PDF",
                     data=pdf_bytes,
-                    file_name=f"certificado_{curso['titulo'].replace(' ', '_')}.pdf",
+                    file_name=f"certificado_capacitacao_{curso['titulo'].replace(' ', '_')}.pdf",
                     mime="application/pdf",
                     use_container_width=True,
                     key=f"download_{curso['id']}",
@@ -160,6 +183,6 @@ def tela_certificados():
 
     if not algum_certificado:
         st.info(
-            "Você ainda não possui certificados. Conclua todos os módulos de "
+            "Você ainda não possui certificados de capacitação. Conclua todos os módulos de "
             "um curso (vídeos e avaliações) para gerar o seu."
         )

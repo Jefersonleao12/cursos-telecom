@@ -147,7 +147,7 @@ def tela_admin():
         col1, col2, col3, col4 = st.columns(4)
         col1.metric("🧑‍🎓 Alunos ativos", len(alunos_ativos))
         col2.metric("📚 Cursos", len(cursos_todos))
-        col3.metric("🏆 Certificados emitidos", len(certificados_todos))
+        col3.metric("🏆 Certificados de capacitação emitidos", len(certificados_todos))
 
         if resultados_todos:
             taxa_aprovacao = sum(1 for r in resultados_todos if r["aprovado"]) / len(resultados_todos) * 100
@@ -168,7 +168,7 @@ def tela_admin():
                 st.caption("Nenhum aluno cadastrado ainda.")
 
         with col_grafico2:
-            st.subheader("Certificados por curso")
+            st.subheader("Certificados de capacitação por curso")
             if certificados_todos and cursos_todos:
                 nomes_curso = {c["id"]: c["titulo"] for c in cursos_todos}
                 contagem_por_curso = {}
@@ -177,7 +177,7 @@ def tela_admin():
                     contagem_por_curso[nome] = contagem_por_curso.get(nome, 0) + 1
                 st.bar_chart(contagem_por_curso)
             else:
-                st.caption("Nenhum certificado emitido ainda.")
+                st.caption("Nenhum certificado de capacitação emitido ainda.")
 
         st.write("")
         st.subheader("Progresso médio por curso")

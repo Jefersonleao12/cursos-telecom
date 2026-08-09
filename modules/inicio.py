@@ -287,7 +287,7 @@ def tela_inicio():
     estatisticas = [
         ("📚", str(resumo["em_andamento"]), "Cursos em andamento"),
         ("✅", str(resumo["concluidos"]), "Cursos concluídos"),
-        ("🏆", str(resumo["certificados"]), "Certificados emitidos"),
+        ("🏆", str(resumo["certificados"]), "Certificados de capacitação"),
     ]
     col_a, col_b, col_c = st.columns(3)
     for coluna, (ic, numero, rotulo) in zip((col_a, col_b, col_c), estatisticas):
@@ -313,7 +313,7 @@ def tela_inicio():
     col1, col2, col3 = st.columns(3)
     acoes = [
         (col1, "📚", "Meus Cursos", "Continue de onde parou ou comece um novo curso.", "lista_cursos"),
-        (col2, "🏆", "Meus Certificados", "Baixe os certificados dos cursos concluídos.", "certificados"),
+        (col2, "🏆", "Certificados de Capacitação", "Baixe seus certificados de capacitação dos cursos concluídos.", "certificados"),
         (col3, "🗂️", "Materiais", "Fotos, documentos e arquivos para consulta.", "materiais"),
     ]
     for coluna, ic, titulo, desc, destino in acoes:

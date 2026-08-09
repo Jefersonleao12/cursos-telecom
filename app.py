@@ -198,7 +198,7 @@ def main():
 
         _botao_menu("🏠 Início", "inicio")
         _botao_menu("📚 Meus Cursos", "lista_cursos", grupo={"lista_cursos", "detalhe_curso"})
-        _botao_menu("🏆 Meus Certificados", "certificados")
+        _botao_menu("🏆 Certificados de Capacitação", "certificados")
         _botao_menu("🗂️ Materiais", "materiais")
         _botao_menu("👤 Meu Perfil", "perfil")
 
