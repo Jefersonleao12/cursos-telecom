@@ -36,4 +36,19 @@ modules/certificado.py    → geração do PDF do certificado
 modules/admin.py          → painel para cadastrar cursos/aulas/provas
 ```
 
-Veja o guia completo de publicação na conversa com o Claude que gerou este projeto.
+## App para Android (APK) e Windows (EXE)
+
+Além do site, o projeto tem duas "cascas" nativas que abrem
+`https://cursos-telecom.streamlit.app/` como se fosse um app instalado —
+mantendo o aluno logado entre uma abertura e outra e permitindo baixar o
+certificado de capacitação em PDF direto pelo app:
+
+```
+mobile-app/    → projeto Android (Kotlin + WebView)
+desktop-app/   → projeto Electron (Windows/.exe)
+```
+
+Os dois são compilados automaticamente pelo GitHub Actions
+(`.github/workflows/build-apps.yml`) a cada mudança nessas pastas, ou
+manualmente pela aba **Actions → Build APK e EXE → Run workflow**. Depois de
+rodar, baixe o `.apk` ou o `.exe` na seção **Artifacts** daquela execução.

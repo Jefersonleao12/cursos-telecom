@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Treinamentos Telecom</string>
+    <string name="app_url">https://cursos-telecom.streamlit.app/</string>
+    <string name="sem_internet">Sem conexão com a internet. Verifique sua rede e tente novamente.</string>
+</resources>
