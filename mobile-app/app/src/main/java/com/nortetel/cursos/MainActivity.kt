@@ -40,18 +40,17 @@ class MainActivity : AppCompatActivity() {
     private lateinit var webView: WebView
     private var filePathCallback: ValueCallback<Array<Uri>>? = null
 
-    private val dominoPermitido = "cursos-telecom.streamlit.app"
-
     /**
-     * Considera "de dentro do app" tanto o domínio do app quanto qualquer
-     * outro endereço do próprio Streamlit (ex: telas intermediárias de
-     * "acordando o app" que ficam em outro subdomínio do streamlit.app
-     * antes de redirecionar de volta) — só o que for de fato externo
-     * (WhatsApp, redes sociais etc.) deve sair do WebView.
+     * O app existe só pra mostrar esse site — então qualquer navegação
+     * http/https (o domínio principal, telas de "acordando o app" depois
+     * de inatividade, redirecionamentos de login, o que for) fica dentro
+     * do próprio WebView, nunca abre em outro app. Só faz sentido sair do
+     * WebView pra esquemas que um navegador não sabe abrir de verdade,
+     * tipo "whatsapp:", "mailto:" ou "tel:".
      */
-    private fun ehDominioInterno(uri: Uri): Boolean {
-        val host = uri.host ?: return true // about:blank, about:srcdoc etc: deixa o WebView tratar
-        return host == dominoPermitido || host.endsWith(".streamlit.app") || host == "streamlit.app"
+    private fun ficaDentroDoWebView(uri: Uri): Boolean {
+        val esquema = uri.scheme?.lowercase()
+        return esquema == "http" || esquema == "https" || esquema == null
     }
 
     // Script injetado em toda página: intercepta cliques em links "blob:"
@@ -113,7 +112,7 @@ class MainActivity : AppCompatActivity() {
         binding.swipeRefresh.setOnRefreshListener { webView.reload() }
 
         val urlSalva = prefs.getString("ultima_url", null)
-        val urlInicial = if (!urlSalva.isNullOrBlank() && ehDominioInterno(Uri.parse(urlSalva))) {
+        val urlInicial = if (!urlSalva.isNullOrBlank() && ficaDentroDoWebView(Uri.parse(urlSalva))) {
             urlSalva
         } else {
             getString(R.string.app_url)
@@ -184,16 +183,16 @@ class MainActivity : AppCompatActivity() {
 
         webView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
-                // Só decide sair do app pra navegação de página inteira (não pra
-                // recursos/iframes internos, como o componente injetado do PWA).
-                if (!request.isForMainFrame) return false
-
                 val uri = request.url
-                if (ehDominioInterno(uri)) {
-                    return false // deixa o próprio WebView navegar
+                if (ficaDentroDoWebView(uri)) {
+                    return false // http/https: sempre fica dentro do app, seja qual for o domínio
+                }
+                if (!request.isForMainFrame) {
+                    return true // recurso/iframe interno com esquema estranho: ignora, não abre nada
                 }
 
-                // Link de fato externo (ex: WhatsApp, redes sociais): abre no app/navegador padrão.
+                // Esquema que não é página web (whatsapp:, mailto:, tel:, intent:, market: etc.),
+                // numa navegação de página inteira: aí sim faz sentido abrir no app certo do celular.
                 try {
                     startActivity(Intent(Intent.ACTION_VIEW, uri))
                 } catch (_: Exception) {
@@ -222,7 +221,7 @@ class MainActivity : AppCompatActivity() {
                 binding.swipeRefresh.isRefreshing = false
                 view.evaluateJavascript(scriptInterceptaDownload, null)
 
-                if (url != null && ehDominioInterno(Uri.parse(url))) {
+                if (url != null && ficaDentroDoWebView(Uri.parse(url))) {
                     prefs.edit().putString("ultima_url", url).apply()
                 }
             }
