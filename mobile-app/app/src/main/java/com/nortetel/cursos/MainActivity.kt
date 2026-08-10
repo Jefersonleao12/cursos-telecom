@@ -109,7 +109,11 @@ class MainActivity : AppCompatActivity() {
         webView = binding.webView
         configurarWebView(webView)
 
-        binding.swipeRefresh.setOnRefreshListener { webView.reload() }
+        // O "puxar pra atualizar" (SwipeRefreshLayout) confunde com áreas da
+        // página que rolam por conta própria dentro do Streamlit: o Android
+        // acha que chegou no topo e recarrega a página sem o usuário querer.
+        // Mais seguro simplesmente não ter esse gesto do que ter ele errando.
+        binding.swipeRefresh.isEnabled = false
 
         val urlSalva = prefs.getString("ultima_url", null)
         val urlInicial = if (!urlSalva.isNullOrBlank() && ficaDentroDoWebView(Uri.parse(urlSalva))) {
