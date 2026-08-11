@@ -5,6 +5,7 @@ Módulo da página Início.
 acordo com o horário do dia (bom dia / boa tarde / boa noite), um resumo do
 progresso, avisos gerais, atalhos rápidos e um canal para dúvidas do dia a dia.
 """
+import html
 import random
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -301,18 +302,25 @@ def _carrossel_destaques():
         unsafe_allow_html=True,
     )
 
-    cartoes_html = "".join(
-        f"""
+    cartoes_html = ""
+    for destaque in destaques:
+        # Escapa o texto vindo do painel admin (título/descrição são texto
+        # livre) antes de colocar dentro do HTML: sem isso, uma aspa (")
+        # ou um sinal de "menor que" (<) digitado pelo admin quebra a
+        # montagem da página e o card seguinte aparece como código cru.
+        titulo_seguro = html.escape(destaque["titulo"])
+        foto_url_segura = html.escape(destaque["foto_url"], quote=True)
+        descricao_segura = html.escape(destaque["descricao"]) if destaque.get("descricao") else ""
+
+        cartoes_html += f"""
         <div class="destaque-card">
-            <img src="{destaque['foto_url']}" alt="{destaque['titulo']}" />
+            <img src="{foto_url_segura}" alt="{titulo_seguro}" />
             <div class="destaque-texto">
-                <div class="destaque-titulo">{destaque['titulo']}</div>
-                {f'<div class="destaque-desc">{destaque["descricao"]}</div>' if destaque.get('descricao') else ''}
+                <div class="destaque-titulo">{titulo_seguro}</div>
+                {f'<div class="destaque-desc">{descricao_segura}</div>' if descricao_segura else ''}
             </div>
         </div>
         """
-        for destaque in destaques
-    )
     st.markdown(f'<div class="destaques-scroll">{cartoes_html}</div>', unsafe_allow_html=True)
 
 
@@ -344,11 +352,15 @@ def tela_inicio():
     if avisos:
         st.write("")
         for aviso in avisos:
+            # Escapa título/mensagem (texto livre digitado pelo admin) antes de
+            # colocar no HTML — uma aspa (") ou um "<" quebraria a montagem da página.
+            titulo_seguro = html.escape(aviso["titulo"])
+            mensagem_segura = html.escape(aviso["mensagem"])
             st.markdown(
                 f"""
                 <div class="aviso-card">
-                    <div class="aviso-titulo">📢 {aviso['titulo']}</div>
-                    <div class="aviso-texto">{aviso['mensagem']}</div>
+                    <div class="aviso-titulo">📢 {titulo_seguro}</div>
+                    <div class="aviso-texto">{mensagem_segura}</div>
                 </div>
                 """,
                 unsafe_allow_html=True,
