@@ -67,8 +67,27 @@ def _dialog_foto_perfil(aluno_id: str):
             st.rerun()
 
 
+def _estilos_perfil():
+    st.markdown(
+        """
+        <style>
+        /* Deixa o botão de editar a foto do mesmo tamanho da foto (120px),
+           em vez de esticar pra largura toda da coluna. */
+        .botao-foto-perfil + div[data-testid="stButton"] {
+            width: 120px;
+        }
+        .botao-foto-perfil + div[data-testid="stButton"] button {
+            width: 100%;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def tela_perfil():
     st.title("👤 Meu Perfil")
+    _estilos_perfil()
 
     aluno_id = st.session_state["aluno_id"]
 
@@ -90,9 +109,13 @@ def tela_perfil():
                 )
             # Clicar aqui abre a foto grande e a opção de trocar (ver
             # _dialog_foto_perfil) — em vez de deixar a caixa de upload
-            # sempre visível na tela, como era antes.
-            if st.button("🖼️ Ver / trocar foto", key="abrir_dialog_foto", use_container_width=True):
+            # sempre visível na tela, como era antes. Sem
+            # use_container_width: do jeito que a coluna é bem mais larga
+            # que a foto (120px), o botão esticado ficava desproporcional.
+            st.markdown('<div class="botao-foto-perfil">', unsafe_allow_html=True)
+            if st.button("✏️ Editar", key="abrir_dialog_foto"):
                 _dialog_foto_perfil(aluno_id)
+            st.markdown("</div>", unsafe_allow_html=True)
         with col_dados:
             st.caption(f"Nome: **{st.session_state['aluno_nome']}**")
             st.caption(f"E-mail: **{st.session_state['aluno_email']}**")
