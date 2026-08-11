@@ -468,6 +468,52 @@ def curso_totalmente_concluido(aluno_id: str, curso_id: int) -> bool:
     return all(modulo_esta_completo(aluno_id, m["id"]) for m in modulos)
 
 
+def calcular_ranking_alunos():
+    """
+    Ranking dos alunos por progresso nos cursos, usado na tela "Top Alunos"
+    (visível pra todo mundo, não só o admin, como incentivo). Reaproveita
+    calcular_progresso_curso/curso_totalmente_concluido — os mesmos usados
+    no resto do app — pra não ter dois jeitos diferentes de calcular
+    progresso que podem ficar dessincronizados.
+
+    Ordena por: 1) mais cursos concluídos, 2) maior progresso médio nos
+    cursos disponíveis, 3) nome (desempate estável). Só entram alunos ativos
+    que já começaram pelo menos um curso — quem nunca abriu nada não aparece
+    no ranking (não tem "0º lugar" pra ninguém).
+
+    Retorna a lista ORDENADA COMPLETA (não só os primeiros) — quem chama
+    decide quantos exibir e também consegue achar a posição de um aluno
+    específico dentro dela.
+    """
+    alunos = [a for a in listar_todos_alunos() if a.get("ativo", True)]
+    cursos = listar_cursos()
+    if not alunos or not cursos:
+        return []
+
+    ranking = []
+    for aluno in alunos:
+        progressos = [calcular_progresso_curso(aluno["id"], c["id"]) for c in cursos]
+        progresso_medio = sum(progressos) / len(progressos) if progressos else 0.0
+        if progresso_medio <= 0:
+            continue  # não começou nenhum curso ainda: fica fora do ranking
+
+        cursos_concluidos = sum(
+            1 for c in cursos if curso_totalmente_concluido(aluno["id"], c["id"])
+        )
+        ranking.append({
+            "aluno_id": aluno["id"],
+            "nome_completo": aluno["nome_completo"],
+            "empresa": aluno.get("empresa"),
+            "filial": aluno.get("filial"),
+            "foto_url": aluno.get("foto_url"),
+            "cursos_concluidos": cursos_concluidos,
+            "progresso_medio": progresso_medio,
+        })
+
+    ranking.sort(key=lambda r: (-r["cursos_concluidos"], -r["progresso_medio"], r["nome_completo"]))
+    return ranking
+
+
 def nota_final_curso(aluno_id: str, curso_id: int):
     """
     Nota final do curso para o certificado: a média das notas obtidas nas

@@ -17,6 +17,7 @@ from modules.auth import exigir_login, fazer_logout
 from modules.inicio import tela_inicio
 from modules.cursos import tela_lista_cursos, tela_detalhe_curso
 from modules.certificado import tela_certificados
+from modules.ranking import tela_ranking
 from modules.materiais import tela_materiais
 from modules.perfil import tela_perfil
 from modules.admin import tela_admin
@@ -199,6 +200,7 @@ def main():
         _botao_menu("🏠 Início", "inicio")
         _botao_menu("📚 Meus Cursos", "lista_cursos", grupo={"lista_cursos", "detalhe_curso"})
         _botao_menu("🏆 Certificados de Capacitação", "certificados")
+        _botao_menu("🏅 Top Alunos", "ranking")
         _botao_menu("🗂️ Materiais", "materiais")
         _botao_menu("👤 Meu Perfil", "perfil")
 
@@ -221,6 +223,8 @@ def main():
         tela_detalhe_curso()
     elif pagina == "certificados":
         tela_certificados()
+    elif pagina == "ranking":
+        tela_ranking()
     elif pagina == "materiais":
         tela_materiais()
     elif pagina == "perfil":

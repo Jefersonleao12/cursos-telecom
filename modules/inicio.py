@@ -469,11 +469,12 @@ def tela_inicio():
     st.markdown('<div class="secao-titulo">🧭 Acesso rápido</div>', unsafe_allow_html=True)
     st.markdown('<div class="secao-sub">Vá direto para onde você precisa.</div>', unsafe_allow_html=True)
 
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
     acoes = [
         (col1, "📚", "Meus Cursos", "Continue de onde parou ou comece um novo curso.", "lista_cursos"),
         (col2, "🏆", "Certificados de Capacitação", "Baixe seus certificados de capacitação dos cursos concluídos.", "certificados"),
-        (col3, "🗂️", "Materiais", "Fotos, documentos e arquivos para consulta.", "materiais"),
+        (col3, "🏅", "Top Alunos", "Veja quem está mais adiantado nos cursos.", "ranking"),
+        (col4, "🗂️", "Materiais", "Fotos, documentos e arquivos para consulta.", "materiais"),
     ]
     for coluna, ic, titulo, desc, destino in acoes:
         with coluna:
