@@ -22,6 +22,7 @@ create table if not exists public.alunos (
     empresa        text,
     cargo          text,
     filial         text,                -- cidade/filial escolhida pelo aluno no cadastro
+    telefone       text,                -- telefone de contato (opcional, o aluno preenche em "Meu Perfil")
     is_admin       boolean not null default false,
     ativo          boolean not null default true,   -- acesso pode ser bloqueado pelo admin sem excluir a conta
     deve_trocar_senha            boolean not null default false, -- true após o admin gerar uma senha temporária
@@ -29,6 +30,9 @@ create table if not exists public.alunos (
     foto_url       text,                -- link público da foto de perfil (Supabase Storage)
     criado_em      timestamptz not null default now()
 );
+-- Garante a coluna também em bancos que já tinham a tabela "alunos" criada
+-- antes desta versão (rodar este script de novo é seguro/idempotente).
+alter table public.alunos add column if not exists telefone text;
 
 -- ----------------------------------------------------------------------------
 -- CURSOS
@@ -162,10 +166,12 @@ create table if not exists public.duvidas (
     id            bigint generated always as identity primary key,
     aluno_id      uuid not null references public.alunos(id) on delete cascade,
     aluno_nome    text not null,
+    telefone      text,                -- telefone de contato do aluno no momento do envio (facilita o retorno)
     mensagem      text not null,
     respondida    boolean not null default false,
     criado_em     timestamptz not null default now()
 );
+alter table public.duvidas add column if not exists telefone text;
 
 -- ----------------------------------------------------------------------------
 -- PROGRESSO DO CURSO (quando o aluno começou e quando terminou/foi aprovado)

@@ -65,12 +65,13 @@ def listar_todos_alunos():
 # PERFIL DO ALUNO (o próprio aluno atualizando seus dados/senha)
 # ---------------------------------------------------------------------------
 
-def atualizar_perfil_aluno(aluno_id: str, empresa: str, cargo: str, filial: str):
+def atualizar_perfil_aluno(aluno_id: str, empresa: str, cargo: str, filial: str, telefone: str = None):
     sb = get_supabase_client()
     dados = {
         "empresa": empresa.strip() if empresa else None,
         "cargo": cargo.strip() if cargo else None,
         "filial": filial.strip() if filial else None,
+        "telefone": telefone.strip() if telefone else None,
     }
     sb.table("alunos").update(dados).eq("id", aluno_id).execute()
 
@@ -911,12 +912,15 @@ def editar_material(material_id, titulo: str, descricao: str, categoria: str):
 # DÚVIDAS (perguntas do dia a dia enviadas pelos alunos na página inicial)
 # ---------------------------------------------------------------------------
 
-def enviar_duvida(aluno_id: str, aluno_nome: str, mensagem: str):
-    """Salva a dúvida no banco (funciona como registro/backup)."""
+def enviar_duvida(aluno_id: str, aluno_nome: str, mensagem: str, telefone: str = None):
+    """Salva a dúvida no banco (funciona como registro/backup). O telefone é
+    o que estiver salvo no perfil do aluno no momento do envio — facilita o
+    admin entrar em contato sem precisar procurar o cadastro dele."""
     sb = get_supabase_client()
     registro = {
         "aluno_id": aluno_id,
         "aluno_nome": aluno_nome,
+        "telefone": telefone.strip() if telefone else None,
         "mensagem": mensagem.strip(),
     }
     resposta = sb.table("duvidas").insert(registro).execute()

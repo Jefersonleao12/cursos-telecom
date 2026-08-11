@@ -513,6 +513,7 @@ def tela_inicio():
                 st.warning("Escreva sua dúvida antes de enviar.")
             else:
                 nome_completo = st.session_state["aluno_nome"]
-                enviar_duvida(st.session_state["aluno_id"], nome_completo, mensagem_duvida)
-                notificar_nova_duvida(nome_completo, mensagem_duvida)
+                telefone = st.session_state.get("aluno_telefone")
+                enviar_duvida(st.session_state["aluno_id"], nome_completo, mensagem_duvida, telefone)
+                notificar_nova_duvida(nome_completo, mensagem_duvida, telefone)
                 st.success("Dúvida enviada com sucesso! Em breve alguém vai te responder. 🙌")

@@ -105,6 +105,7 @@ def _login_efetuado(aluno: dict, lembrar: bool = True):
     st.session_state["aluno_empresa"] = aluno.get("empresa") or ""
     st.session_state["aluno_cargo"] = aluno.get("cargo") or ""
     st.session_state["aluno_filial"] = aluno.get("filial") or ""
+    st.session_state["aluno_telefone"] = aluno.get("telefone") or ""
     st.session_state["aluno_foto_url"] = aluno.get("foto_url") or ""
     st.session_state["aluno_is_admin"] = aluno.get("is_admin", False)
     st.session_state["aluno_deve_trocar_senha"] = aluno.get("deve_trocar_senha", False)

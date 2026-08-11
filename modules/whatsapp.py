@@ -39,12 +39,13 @@ def _enviar_mensagem(texto: str) -> bool:
         return False
 
 
-def notificar_nova_duvida(aluno_nome: str, mensagem: str) -> bool:
+def notificar_nova_duvida(aluno_nome: str, mensagem: str, telefone: str = None) -> bool:
     """Tenta enviar uma notificação no WhatsApp sobre uma nova dúvida."""
     texto = (
         f"📡 Nova dúvida na Plataforma Norte Tel\n\n"
         f"Aluno: {aluno_nome}\n"
-        f"Mensagem: {mensagem}"
+        + (f"Telefone: {telefone}\n" if telefone else "")
+        + f"Mensagem: {mensagem}"
     )
     return _enviar_mensagem(texto)
 

@@ -6,6 +6,7 @@ perguntas sem precisar mexer diretamente no banco de dados, além de
 acompanhar o progresso dos alunos. Só é exibido para contas com
 is_admin = True (ver instruções no arquivo database/schema.sql).
 """
+import re
 import streamlit as st
 from datetime import datetime
 
@@ -880,9 +881,18 @@ def tela_admin():
                     col_texto, col_acao = st.columns([4, 1])
                     with col_texto:
                         st.write(f"**{d['aluno_nome']}**")
+                        if d.get("telefone"):
+                            st.caption(f"📱 {d['telefone']}")
                         st.caption(d["mensagem"])
                         st.caption(f"Enviada em: {d['criado_em'][:16].replace('T', ' ')}")
                     with col_acao:
+                        numero_whatsapp = re.sub(r"\D", "", d.get("telefone") or "")
+                        if numero_whatsapp and not numero_whatsapp.startswith("55"):
+                            numero_whatsapp = f"55{numero_whatsapp}"  # DDI Brasil, exigido pelo link do WhatsApp
+                        if numero_whatsapp:
+                            st.link_button(
+                                "💬 WhatsApp", f"https://wa.me/{numero_whatsapp}", use_container_width=True
+                            )
                         if not d["respondida"]:
                             if st.button("✅ Marcar respondida", key=f"resp_duvida_{d['id']}", use_container_width=True):
                                 marcar_duvida_respondida(d["id"])

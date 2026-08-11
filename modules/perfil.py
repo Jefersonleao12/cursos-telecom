@@ -2,8 +2,9 @@
 Módulo 'Meu Perfil'.
 
 Permite que o próprio aluno:
+- Veja e troque sua foto de perfil (clicando nela)
 - Troque sua senha
-- Atualize empresa / cargo / filial
+- Atualize empresa / cargo / filial / telefone de contato
 - Veja seu próprio histórico (cursos, notas nas provas, tempo gasto)
 """
 import streamlit as st
@@ -39,6 +40,33 @@ def _formatar_duracao(segundos) -> str:
     return f"{minutos}min"
 
 
+@st.dialog("Foto de perfil")
+def _dialog_foto_perfil(aluno_id: str):
+    """Janela que abre ao clicar na foto: mostra a foto atual em tamanho
+    maior e permite enviar uma nova pra substituí-la."""
+    foto_atual = st.session_state.get("aluno_foto_url")
+    if foto_atual:
+        st.image(foto_atual, width="stretch")
+    else:
+        st.info("Você ainda não tem uma foto de perfil.")
+
+    st.divider()
+    st.markdown("**Trocar foto**")
+    nova_foto = st.file_uploader(
+        "Enviar nova foto", type=["jpg", "jpeg", "png"],
+        key="upload_foto_perfil_dialog", label_visibility="collapsed",
+    )
+    if nova_foto is not None:
+        col_previa, _ = st.columns([1, 2])
+        with col_previa:
+            st.image(nova_foto, caption="Pré-visualização")
+        if st.button("📷 Salvar nova foto", type="primary", use_container_width=True):
+            nova_url = atualizar_foto_perfil(aluno_id, nova_foto.getvalue())
+            st.session_state["aluno_foto_url"] = nova_url
+            st.success("Foto atualizada com sucesso!")
+            st.rerun()
+
+
 def tela_perfil():
     st.title("👤 Meu Perfil")
 
@@ -60,26 +88,27 @@ def tela_perfil():
                     "font-size:2.5rem;'>👤</div>",
                     unsafe_allow_html=True,
                 )
+            # Clicar aqui abre a foto grande e a opção de trocar (ver
+            # _dialog_foto_perfil) — em vez de deixar a caixa de upload
+            # sempre visível na tela, como era antes.
+            if st.button("🖼️ Ver / trocar foto", key="abrir_dialog_foto", use_container_width=True):
+                _dialog_foto_perfil(aluno_id)
         with col_dados:
             st.caption(f"Nome: **{st.session_state['aluno_nome']}**")
             st.caption(f"E-mail: **{st.session_state['aluno_email']}**")
             st.caption("Para trocar nome ou e-mail, entre em contato com o administrador.")
-
-        nova_foto = st.file_uploader(
-            "Trocar foto de perfil", type=["jpg", "jpeg", "png"], key="upload_foto_perfil"
-        )
-        if nova_foto is not None:
-            if st.button("📷 Salvar foto de perfil"):
-                nova_url = atualizar_foto_perfil(aluno_id, nova_foto.getvalue())
-                st.session_state["aluno_foto_url"] = nova_url
-                st.success("Foto atualizada com sucesso!")
-                st.rerun()
 
         st.divider()
 
         with st.form("form_editar_perfil"):
             empresa = st.text_input("Empresa", value=st.session_state.get("aluno_empresa", ""))
             cargo = st.text_input("Cargo / Função", value=st.session_state.get("aluno_cargo", ""))
+            telefone = st.text_input(
+                "Telefone de contato",
+                value=st.session_state.get("aluno_telefone", ""),
+                placeholder="(69) 9xxxx-xxxx",
+                help="Usado só para o administrador te retornar mais fácil quando você envia uma dúvida.",
+            )
             filial_atual = st.session_state.get("aluno_filial", "")
             indice_filial = FILIAIS.index(filial_atual) + 1 if filial_atual in FILIAIS else 0
             filial = st.selectbox(
@@ -91,10 +120,11 @@ def tela_perfil():
             salvar = st.form_submit_button("Salvar alterações", type="primary")
 
         if salvar:
-            atualizar_perfil_aluno(aluno_id, empresa, cargo, filial)
+            atualizar_perfil_aluno(aluno_id, empresa, cargo, filial, telefone)
             st.session_state["aluno_empresa"] = empresa
             st.session_state["aluno_cargo"] = cargo
             st.session_state["aluno_filial"] = filial
+            st.session_state["aluno_telefone"] = telefone
             st.success("Dados atualizados com sucesso!")
             st.rerun()
 
