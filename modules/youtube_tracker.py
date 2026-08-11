@@ -21,19 +21,44 @@ _DIR_COMPONENTE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "comp
 _youtube_tracker = components.declare_component("youtube_tracker", path=_DIR_COMPONENTE)
 
 
+_REGEX_ID_VIDEO = re.compile(r"[A-Za-z0-9_-]{11}")
+
+
 def extrair_video_id_youtube(url: str):
     """
     Extrai o ID do vídeo de uma URL do YouTube, aceitando os formatos mais
-    comuns (watch?v=, youtu.be/, embed/, shorts/). Retorna None se a URL
-    não for reconhecida como um link do YouTube (nesse caso o chamador deve
-    usar st.video() normalmente, sem a verificação real de tempo assistido).
+    comuns (watch?v=, youtu.be/, embed/, shorts/, live/) e tolerando
+    parâmetros extras colados no final (ex: ?si=..., &t=30s, /embed/ID?rel=0)
+    — o ID de vídeo do YouTube tem sempre 11 caracteres, então procuramos só
+    esse prefixo em vez de exigir que o resto da URL bata exatamente.
+    Retorna None se a URL não for reconhecida como um link do YouTube (nesse
+    caso o chamador deve usar st.video() normalmente, sem a verificação real
+    de tempo assistido).
     """
     if not url:
         return None
     try:
-        partes = urlparse(url.strip())
+        return _extrair_video_id_youtube_interno(url.strip())
+    except Exception:
+        # Qualquer coisa inesperada na hora de interpretar a URL não pode
+        # derrubar a página do aluno — nesse caso só caímos de volta pro
+        # cronômetro simples (ver progresso_assistido_youtube).
+        return None
+
+
+def _extrair_video_id_youtube_interno(url: str):
+    try:
+        partes = urlparse(url)
     except ValueError:
         return None
+    # Link colado sem "http(s)://" na frente (comum ao copiar da barra de
+    # endereço): sem esquema, o urlparse trata tudo como "caminho" e não
+    # reconhece o domínio — tenta de novo assumindo https.
+    if not partes.hostname and not url.lower().startswith(("http://", "https://")):
+        try:
+            partes = urlparse(f"https://{url}")
+        except ValueError:
+            return None
 
     host = (partes.hostname or "").lower().removeprefix("www.").removeprefix("m.")
     candidato = None
@@ -44,15 +69,19 @@ def extrair_video_id_youtube(url: str):
         if partes.path == "/watch":
             valores = parse_qs(partes.query).get("v")
             candidato = valores[0] if valores else None
-        elif partes.path.startswith("/embed/"):
-            candidato = partes.path.split("/embed/", 1)[1].split("/")[0]
-        elif partes.path.startswith("/shorts/"):
-            candidato = partes.path.split("/shorts/", 1)[1].split("/")[0]
+        else:
+            for prefixo in ("/embed/", "/shorts/", "/live/"):
+                if partes.path.startswith(prefixo):
+                    candidato = partes.path[len(prefixo):].split("/")[0]
+                    break
 
-    # IDs de vídeo do YouTube são sempre 11 caracteres (letras, números, - e _).
-    if candidato and re.fullmatch(r"[A-Za-z0-9_-]{11}", candidato):
-        return candidato
-    return None
+    if not candidato:
+        return None
+
+    # Pega só o prefixo de 11 caracteres válidos, ignorando qualquer coisa
+    # colada depois (query string sem "?", barra extra etc.).
+    correspondencia = _REGEX_ID_VIDEO.match(candidato)
+    return correspondencia.group(0) if correspondencia else None
 
 
 def progresso_assistido_youtube(url_video: str, chave: str):
