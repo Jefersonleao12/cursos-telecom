@@ -6,6 +6,7 @@ manutenção: se um dia você quiser trocar de banco de dados ou entender como
 alguma tela busca suas informações, é só olhar aqui.
 """
 import io
+import time
 import uuid
 from datetime import datetime, timezone
 
@@ -123,7 +124,13 @@ def atualizar_foto_perfil(aluno_id: str, arquivo_bytes: bytes) -> str:
     sb.storage.from_(_BUCKET_FOTOS_PERFIL).upload(
         caminho, foto_processada, file_options={"content-type": "image/jpeg"}
     )
-    url = sb.storage.from_(_BUCKET_FOTOS_PERFIL).get_public_url(caminho)
+    url_base = sb.storage.from_(_BUCKET_FOTOS_PERFIL).get_public_url(caminho)
+    # Como o caminho do arquivo é sempre o mesmo (pra sempre substituir a
+    # foto antiga), a URL "pura" também seria sempre idêntica — e o
+    # navegador, achando que já conhece essa URL, mostra a versão antiga
+    # que tinha em cache em vez de buscar a nova. Colar um "carimbo" de
+    # tempo na URL força o navegador a tratá-la como um arquivo novo.
+    url = f"{url_base}?v={int(time.time())}"
     sb.table("alunos").update({"foto_url": url}).eq("id", aluno_id).execute()
     return url
 
@@ -469,6 +476,7 @@ def curso_totalmente_concluido(aluno_id: str, curso_id: int) -> bool:
     return all(modulo_esta_completo(aluno_id, m["id"]) for m in modulos)
 
 
+@st.cache_data(ttl=60, show_spinner=False)
 def calcular_ranking_alunos():
     """
     Ranking dos alunos por progresso nos cursos, usado na tela "Top Alunos"
@@ -476,6 +484,14 @@ def calcular_ranking_alunos():
     calcular_progresso_curso/curso_totalmente_concluido — os mesmos usados
     no resto do app — pra não ter dois jeitos diferentes de calcular
     progresso que podem ficar dessincronizados.
+
+    Isso significa uma consulta ao banco pra cada combinação de aluno ×
+    curso (e outra por módulo, pra saber se o curso foi concluído) — com
+    vários alunos e cursos, essa conta pode ficar lenta. Como um ranking
+    não precisa estar atualizado no segundo exato, cacheamos o resultado
+    inteiro por 1 minuto: só quem abrir a tela logo depois de esse cache
+    vencer é que espera o cálculo de verdade: todo mundo depois disso (é
+    a maioria) recebe a resposta na hora.
 
     Ordena por: 1) mais cursos concluídos, 2) maior progresso médio nos
     cursos disponíveis, 3) nome (desempate estável). Só entram alunos ativos
