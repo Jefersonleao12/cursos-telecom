@@ -193,14 +193,6 @@ def _estilos_auth():
                 flex-direction: column;
                 justify-content: center;
             }
-            /* Empurra o card para baixo na mesma proporção que a logo (que
-               fica acima do painel azul) ocupa de altura, usando % da
-               largura da própria coluna — assim acompanha o redimensionar
-               da tela, igual a logo acompanha. */
-            .auth-card-spacer {
-                width: 100%;
-                padding-top: 21.7%;
-            }
         }
         .auth-hero-title {
             font-size: 1.55rem;
@@ -450,17 +442,24 @@ def exigir_login():
 
     _estilos_auth()
 
-    # O formulário vem ANTES do painel azul (logo/boas-vindas) no código de
+    # A logo fica sozinha, pequena, acima de tudo — é a primeira coisa que
+    # aparece na tela, sem competir em altura com o painel azul (que é bem
+    # maior). Assim quem abre pelo celular já vê a marca Norte Tel e, logo
+    # abaixo, o "Entrar"/"Criar cadastro", sem precisar rolar a tela.
+    _esq_logo, _centro_logo, _dir_logo = st.columns([1, 2, 1])
+    with _centro_logo:
+        st.image(str(_CAMINHO_LOGO), width="stretch")
+
+    # O formulário vem ANTES do painel azul (boas-vindas) no código de
     # propósito: no celular, o Streamlit empilha essas duas colunas na
     # mesma ordem em que aparecem aqui — se o painel viesse primeiro, quem
     # abrisse pelo celular precisaria rolar a tela toda pra baixo só pra
     # chegar no "Entrar"/"Criar cadastro". Assim, o formulário já aparece
     # em cima (celular) ou à esquerda (computador), e o painel azul (que
-    # continua com a mesma logo e o mesmo visual de sempre) vem em seguida.
+    # continua com o mesmo visual de sempre) vem em seguida.
     col_form, col_hero = st.columns([6, 5], gap="large")
 
     with col_form:
-        st.markdown('<div class="auth-card-spacer"></div>', unsafe_allow_html=True)
         with st.container(border=True):
             _seletor_login_cadastro()
             if st.session_state.get("pagina_auth") == "cadastro":
@@ -469,9 +468,6 @@ def exigir_login():
                 tela_login()
 
     with col_hero:
-        sub_esq, sub_centro, sub_dir = st.columns([1, 3, 1])
-        with sub_centro:
-            st.image(str(_CAMINHO_LOGO), width="stretch")
         _painel_hero()
 
     st.stop()
