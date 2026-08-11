@@ -275,20 +275,29 @@ _ESTILO_DESTAQUES = """
     .destaque-card {
         flex: 0 0 auto;
         width: 230px;
+        height: 330px;
         scroll-snap-align: start;
         background: #FFFFFF;
         border: 1px solid #E6ECF3;
         border-radius: 14px;
         overflow: hidden;
         box-shadow: 0 2px 10px rgba(20, 60, 110, 0.06);
+        display: flex;
+        flex-direction: column;
     }
     .destaque-card img {
         width: 100%;
+        flex: 0 0 auto;
         aspect-ratio: 4 / 3;
         object-fit: cover;
         display: block;
     }
-    .destaque-card .destaque-texto { padding: 0.7rem 0.85rem 0.9rem; }
+    .destaque-card .destaque-texto {
+        padding: 0.7rem 0.85rem 0.9rem;
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+    }
     .destaque-card .destaque-titulo {
         font-weight: 700;
         color: #143C6E;
@@ -349,7 +358,7 @@ def _carrossel_destaques():
         """
 
     pagina_html = f"<style>{_ESTILO_DESTAQUES}</style><div class=\"destaques-scroll\">{cartoes_html}</div>"
-    components.html(pagina_html, height=310, scrolling=False)
+    components.html(pagina_html, height=350, scrolling=False)
 
 
 def tela_inicio():
