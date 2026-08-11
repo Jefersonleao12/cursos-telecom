@@ -263,6 +263,7 @@ _ESTILO_DESTAQUES = """
     body { font-family: "Source Sans Pro", "Segoe UI", sans-serif; }
     .destaques-scroll {
         display: flex;
+        align-items: stretch;
         gap: 1rem;
         overflow-x: auto;
         scroll-snap-type: x mandatory;
@@ -275,7 +276,6 @@ _ESTILO_DESTAQUES = """
     .destaque-card {
         flex: 0 0 auto;
         width: 230px;
-        height: 330px;
         scroll-snap-align: start;
         background: #FFFFFF;
         border: 1px solid #E6ECF3;
@@ -295,27 +295,17 @@ _ESTILO_DESTAQUES = """
     .destaque-card .destaque-texto {
         padding: 0.7rem 0.85rem 0.9rem;
         flex: 1 1 auto;
-        min-height: 0;
-        overflow: hidden;
     }
     .destaque-card .destaque-titulo {
         font-weight: 700;
         color: #143C6E;
         font-size: 0.9rem;
         margin-bottom: 0.2rem;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
     }
     .destaque-card .destaque-desc {
         color: #6B7A8F;
         font-size: 0.79rem;
         line-height: 1.4;
-        display: -webkit-box;
-        -webkit-line-clamp: 4;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
     }
 """
 
@@ -350,6 +340,7 @@ def _carrossel_destaques():
     )
 
     cartoes_html = ""
+    altura_maxima = 0
     for destaque in destaques:
         titulo_seguro = html.escape(destaque["titulo"])
         foto_url_segura = html.escape(destaque["foto_url"], quote=True)
@@ -364,9 +355,39 @@ def _carrossel_destaques():
                 </div>
             </div>
         """
+        altura_maxima = max(altura_maxima, _altura_estimada_cartao(destaque))
 
     pagina_html = f"<style>{_ESTILO_DESTAQUES}</style><div class=\"destaques-scroll\">{cartoes_html}</div>"
-    components.html(pagina_html, height=350, scrolling=False)
+    # A altura do quadro acompanha a descrição mais longa entre os destaques
+    # ativos (todos os cartões esticam pra ficar do tamanho do maior, veja
+    # "align-items: stretch" no CSS acima) — assim a descrição inteira
+    # sempre aparece, sem cortar e sem precisar rolar dentro do cartão.
+    # scrolling=True fica só como rede de segurança, caso a estimativa erre
+    # pra menos numa descrição bem fora do comum.
+    components.html(pagina_html, height=min(altura_maxima + 20, 900), scrolling=True)
+
+
+def _altura_estimada_cartao(destaque: dict) -> int:
+    """
+    Estima a altura (em pixels) que um cartão do carrossel vai ocupar, com
+    base no tanto de texto do título e da descrição. É só uma estimativa
+    (não conta quebra de palavra de verdade) — por isso o componente
+    também tem scrolling=True como rede de segurança.
+    """
+    altura_imagem = 172  # cartão de 230px de largura, foto 4:3
+    padding_vertical = 42  # 0.7rem + 0.9rem de padding, arredondado com folga
+
+    caracteres_por_linha_titulo = 24
+    titulo = destaque["titulo"]
+    linhas_titulo = max(1, -(-len(titulo) // caracteres_por_linha_titulo))
+    altura_titulo = linhas_titulo * 21
+
+    descricao = destaque.get("descricao") or ""
+    caracteres_por_linha_desc = 30
+    linhas_desc = -(-len(descricao) // caracteres_por_linha_desc) if descricao else 0
+    altura_desc = linhas_desc * 18
+
+    return altura_imagem + padding_vertical + altura_titulo + altura_desc
 
 
 def tela_inicio():
