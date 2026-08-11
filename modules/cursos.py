@@ -25,6 +25,7 @@ from database.repositorio import (
     modulo_esta_completo,
 )
 from modules.provas import renderizar_prova_modulo
+from modules.youtube_tracker import progresso_assistido_youtube
 
 
 def _selo_status(progresso: float) -> str:
@@ -87,35 +88,38 @@ def tela_lista_cursos():
 
 def _bloco_aula(aluno_id: str, aula: dict, aula_concluida: bool):
     """Desenha o vídeo de uma aula e o botão de concluir (com a trava de tempo mínimo)."""
-    st.video(aula["url_video"])
     if aula_concluida:
+        st.video(aula["url_video"])
         st.success("Você já concluiu esta aula.")
         return
 
-    # Trava simples: exige que um tempo mínimo (baseado na duração cadastrada
-    # da aula) tenha passado desde que o aluno abriu o vídeo, antes de
-    # liberar o botão de concluir. Não é uma prova cabal de que ele assistiu
-    # (não temos esse controle com um link do YouTube), mas evita o "clique
-    # instantâneo" que marcava a aula como concluída sem sequer abrir o vídeo.
-    chave_abertura = f"abertura_aula_{aula['id']}"
-    if chave_abertura not in st.session_state:
-        st.session_state[chave_abertura] = time.time()
-
     duracao_min = aula.get("duracao_minutos") or 0
     segundos_exigidos = int(duracao_min * 60 * 0.9)  # 90% da duração cadastrada
-    segundos_passados = int(time.time() - st.session_state[chave_abertura])
 
-    if segundos_exigidos > 0 and segundos_passados < segundos_exigidos:
-        faltam = segundos_exigidos - segundos_passados
+    # Pra vídeos do YouTube, usamos um player que conta o tempo REALMENTE
+    # assistido (só soma enquanto o vídeo está de fato tocando — pausar ou
+    # só deixar a aba aberta não conta). Pra outros hosts de vídeo (onde
+    # não dá pra saber o estado de reprodução), caímos de volta pro
+    # cronômetro simples de "tempo desde que a página abriu".
+    segundos_assistidos = progresso_assistido_youtube(aula["url_video"], chave=f"yt_{aula['id']}")
+
+    if segundos_assistidos is None:
+        st.video(aula["url_video"])
+        chave_abertura = f"abertura_aula_{aula['id']}"
+        if chave_abertura not in st.session_state:
+            st.session_state[chave_abertura] = time.time()
+        segundos_assistidos = time.time() - st.session_state[chave_abertura]
+
+    if segundos_exigidos > 0 and segundos_assistidos < segundos_exigidos:
+        faltam = segundos_exigidos - int(segundos_assistidos)
         minutos_faltam = faltam // 60 + 1
+        st.caption(f"▶️ Continue assistindo — faltam ~{minutos_faltam} min de reprodução para liberar a conclusão.")
         st.button(
             f"Marcar aula como concluída (assista mais ~{minutos_faltam} min)",
             key=f"concluir_{aula['id']}",
             disabled=True,
             use_container_width=True,
         )
-        if st.button("🔄 Já assisti, verificar novamente", key=f"verificar_{aula['id']}"):
-            st.rerun()
     else:
         if st.button("Marcar aula como concluída", key=f"concluir_{aula['id']}", type="primary"):
             marcar_aula_concluida(aluno_id, aula["id"])

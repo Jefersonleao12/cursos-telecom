@@ -1,0 +1,148 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+    html, body {
+        margin: 0;
+        padding: 0;
+        background: #000;
+        overflow: hidden;
+    }
+    #player-wrap {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 16 / 9;
+    }
+    /* Seletor genérico (não só #player) porque a API do YouTube substitui a
+       div original por um <iframe> e nem sempre mantém o mesmo id nela. */
+    #player-wrap iframe, #player-wrap > div {
+        position: absolute;
+        inset: 0;
+        width: 100% !important;
+        height: 100% !important;
+        border: 0;
+        display: block;
+    }
+</style>
+</head>
+<body>
+<div id="player-wrap"><div id="player"></div></div>
+<script>
+    // ------------------------------------------------------------------
+    // Protocolo mínimo de "componente estático" do Streamlit (sem React,
+    // sem build): só troca mensagens com a janela pai via postMessage.
+    // ------------------------------------------------------------------
+    function enviarParaStreamlit(tipo, dados) {
+        var payload = Object.assign({ isStreamlitMessage: true, type: tipo }, dados);
+        window.parent.postMessage(payload, "*");
+    }
+
+    function definirAltura() {
+        var altura = document.getElementById("player-wrap").offsetHeight;
+        if (altura > 0) {
+            enviarParaStreamlit("streamlit:setFrameHeight", { height: altura });
+        }
+    }
+
+    function enviarValor(valor) {
+        enviarParaStreamlit("streamlit:setComponentValue", { value: valor, dataType: "json" });
+    }
+
+    var argumentosRecebidos = false;
+
+    function aoReceberMensagem(evento) {
+        if (!evento.data || evento.data.type !== "streamlit:render") return;
+        // Só inicializa o player na PRIMEIRA renderização — nas próximas
+        // (o Streamlit manda um evento "render" a cada rerun da página),
+        // ignora, pra não recriar o player e reiniciar o vídeo do zero.
+        if (argumentosRecebidos) return;
+        argumentosRecebidos = true;
+        var videoId = evento.data.args && evento.data.args.videoId;
+        if (videoId) {
+            iniciarPlayer(videoId);
+        }
+    }
+
+    window.addEventListener("message", aoReceberMensagem);
+    document.addEventListener("DOMContentLoaded", function () {
+        enviarParaStreamlit("streamlit:componentReady", { apiVersion: 1 });
+        definirAltura();
+    });
+
+    // ------------------------------------------------------------------
+    // Player do YouTube + contagem do tempo REALMENTE assistido.
+    //
+    // Diferente do cronômetro antigo (que contava o tempo desde que a
+    // tela abria, tocando o vídeo ou não), aqui só soma 1 segundo por vez
+    // em que o player está genuinamente no estado "tocando" — pausar,
+    // deixar parado no início, ou só deixar a aba aberta em segundo
+    // plano não conta mais como "assistido".
+    // ------------------------------------------------------------------
+    var segundosAssistidos = 0;
+    var ultimoValorEnviado = 0;
+    var tocandoAgora = false;
+
+    function talvezEnviar(forcar) {
+        if (forcar || segundosAssistidos - ultimoValorEnviado >= 5) {
+            ultimoValorEnviado = segundosAssistidos;
+            enviarValor(segundosAssistidos);
+        }
+    }
+
+    function carregarApiYoutube(callback) {
+        if (window.YT && window.YT.Player) {
+            callback();
+            return;
+        }
+        var anterior = window.onYouTubeIframeAPIReady;
+        window.onYouTubeIframeAPIReady = function () {
+            if (anterior) anterior();
+            callback();
+        };
+        var tag = document.createElement("script");
+        tag.src = "https://www.youtube.com/iframe_api";
+        document.head.appendChild(tag);
+    }
+
+    function iniciarPlayer(videoId) {
+        carregarApiYoutube(function () {
+            new YT.Player("player", {
+                videoId: videoId,
+                width: "100%",
+                height: "100%",
+                playerVars: { rel: 0, modestbranding: 1 },
+                events: {
+                    onReady: function () {
+                        definirAltura();
+                    },
+                    onStateChange: function (evento) {
+                        var tocandoAntes = tocandoAgora;
+                        tocandoAgora = evento.data === YT.PlayerState.PLAYING;
+                        if (tocandoAntes && !tocandoAgora) {
+                            talvezEnviar(true); // pausou/parou/terminou: manda o valor atualizado na hora
+                        }
+                    },
+                },
+            });
+        });
+
+        setInterval(function () {
+            if (tocandoAgora) {
+                segundosAssistidos += 1;
+                talvezEnviar(false);
+            }
+        }, 1000);
+
+        // ResizeObserver pega qualquer mudança de largura do player (ex: a
+        // coluna ficar mais estreita/larga), não só quando a janela toda
+        // muda de tamanho — o aspect-ratio no CSS cuida do resto.
+        if (window.ResizeObserver) {
+            new ResizeObserver(definirAltura).observe(document.getElementById("player-wrap"));
+        } else {
+            window.addEventListener("resize", definirAltura);
+        }
+    }
+</script>
+</body>
+</html>
