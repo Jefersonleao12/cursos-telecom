@@ -10,6 +10,8 @@ import re
 import streamlit as st
 from datetime import datetime
 
+from modules.whatsapp import diagnosticar_configuracao
+
 from database.repositorio import (
     listar_cursos,
     criar_curso,
@@ -869,6 +871,22 @@ def tela_admin():
     # ---------------- DÚVIDAS ----------------
     with aba_duvidas:
         st.subheader("Dúvidas enviadas pelos alunos")
+
+        with st.expander("🔔 Testar notificação por WhatsApp"):
+            st.caption(
+                "Toda dúvida enviada por um aluno tenta avisar você automaticamente "
+                "no WhatsApp (via CallMeBot). Use o botão abaixo para conferir se "
+                "isso está configurado corretamente — a dúvida em si sempre fica "
+                "salva aqui mesmo se a notificação falhar."
+            )
+            if st.button("Enviar mensagem de teste"):
+                with st.spinner("Enviando..."):
+                    sucesso, detalhe = diagnosticar_configuracao()
+                if sucesso:
+                    st.success(detalhe)
+                else:
+                    st.error(detalhe)
+
         apenas_pendentes = st.toggle("Mostrar só as pendentes", value=True)
 
         duvidas = listar_duvidas(apenas_nao_respondidas=apenas_pendentes)

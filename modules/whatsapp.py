@@ -16,17 +16,24 @@ import streamlit as st
 import requests
 
 
-def _enviar_mensagem(texto: str) -> bool:
+def _chamar_callmebot(texto: str) -> tuple[bool, str]:
     """
-    Função interna que faz a chamada HTTP ao CallMeBot. Retorna True se
-    enviou, False se não foi possível (credenciais ausentes ou erro de rede).
-    Nunca interrompe o fluxo do app: qualquer erro é silenciado aqui.
+    Faz a chamada HTTP ao CallMeBot e devolve (sucesso, detalhe). O
+    CallMeBot às vezes responde HTTP 200 mesmo quando recusa o envio (ex:
+    API Key inválida/expirada) — o motivo real vem no corpo da resposta,
+    por isso não basta olhar o status_code.
     """
     try:
         telefone = st.secrets["WHATSAPP_PHONE"]
         apikey = st.secrets["WHATSAPP_APIKEY"]
     except (KeyError, FileNotFoundError):
-        return False
+        return False, (
+            "WHATSAPP_PHONE e/ou WHATSAPP_APIKEY não estão configurados nos "
+            "Secrets do app."
+        )
+
+    if not telefone or not apikey:
+        return False, "WHATSAPP_PHONE ou WHATSAPP_APIKEY está vazio nos Secrets do app."
 
     try:
         resposta = requests.get(
@@ -34,9 +41,42 @@ def _enviar_mensagem(texto: str) -> bool:
             params={"phone": telefone, "text": texto, "apikey": apikey},
             timeout=10,
         )
-        return resposta.status_code == 200
-    except requests.RequestException:
-        return False
+    except requests.RequestException as erro:
+        return False, f"Falha de conexão com o CallMeBot: {erro}"
+
+    corpo = (resposta.text or "").strip()
+    if resposta.status_code == 200 and "error" not in corpo.lower():
+        return True, corpo[:200]
+    return False, f"CallMeBot recusou o envio (HTTP {resposta.status_code}): {corpo[:300] or '(resposta vazia)'}"
+
+
+def _enviar_mensagem(texto: str) -> bool:
+    """
+    Função interna que faz a chamada HTTP ao CallMeBot. Retorna True se
+    enviou, False se não foi possível (credenciais ausentes, erro de rede
+    ou recusa do CallMeBot). Nunca interrompe o fluxo do app: qualquer
+    problema é apenas logado no console (visível em 'Manage app' -> Logs
+    no Streamlit Cloud) em vez de gerar um erro na tela do aluno — quem
+    precisa investigar uma falha usa o botão "Testar notificação" no
+    painel de administração (aba Dúvidas), que chama diagnosticar_configuracao().
+    """
+    sucesso, detalhe = _chamar_callmebot(texto)
+    if not sucesso:
+        print(f"[whatsapp] notificação não enviada: {detalhe}")
+    return sucesso
+
+
+def diagnosticar_configuracao() -> tuple[bool, str]:
+    """
+    Envia uma mensagem de teste real e devolve (sucesso, mensagem em
+    português explicando o resultado) — usado pelo botão "Testar
+    notificação" no painel de administração, já que _enviar_mensagem
+    engole erros de propósito (ver docstring acima).
+    """
+    sucesso, detalhe = _chamar_callmebot("🔔 Mensagem de teste - Plataforma Norte Tel")
+    if sucesso:
+        return True, "Mensagem de teste enviada! Confira o WhatsApp do número configurado em WHATSAPP_PHONE."
+    return False, detalhe
 
 
 def notificar_nova_duvida(aluno_nome: str, mensagem: str, telefone: str = None) -> bool:
