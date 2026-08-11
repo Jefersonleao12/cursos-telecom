@@ -70,6 +70,59 @@ _MESES = {
 }
 
 
+def _eh_iphone_no_safari() -> bool:
+    """Detecta (pelo cabeçalho User-Agent, no servidor) se quem está
+    acessando é um iPhone/iPad no Safari e ainda NÃO instalou o app na
+    tela de início. Usado para mostrar o aviso "Instale este app" só pra
+    quem realmente precisa ver (a Apple não tem um app nativo aqui — ver
+    docstring de _aviso_instalar_iphone)."""
+    try:
+        ua = (st.context.headers.get("User-Agent") or "").lower()
+    except Exception:
+        return False
+    eh_ios = "iphone" in ua or "ipad" in ua
+    # Chrome/Firefox/Instagram etc no iOS também usam a engine do Safari,
+    # mas só o Safari "de verdade" tem a opção de instalar (Adicionar à
+    # Tela de Início). Se detectarmos outro navegador, não adianta mostrar.
+    eh_outro_navegador = any(x in ua for x in ["crios", "fxios", "edgios", "opios", "instagram", "fban", "fbav"])
+    # Se já está rodando "instalado" (modo standalone), o Safari manda esse
+    # indício no user-agent em alguns casos; mas o jeito mais confiável é
+    # simplesmente confiar no dismiss guardado na sessão (ver session_state).
+    return eh_ios and not eh_outro_navegador
+
+
+def _aviso_instalar_iphone():
+    """
+    Banner discreto (fecha e não volta na mesma sessão) explicando pro
+    aluno que usa iPhone como instalar a plataforma na tela de início.
+
+    Por que isso e não um app nativo de iPhone: a Apple só permite instalar
+    um app compilado em iPhones de verdade através de uma conta paga de
+    desenvolvedor (Apple Developer Program) + assinatura digital — não tem
+    "sideload livre" como no Android. Instalar via Safari (PWA) é gratuito,
+    funciona hoje, dá ícone próprio na tela de início e abre em tela cheia
+    (sem a barra do navegador), cobrindo a mesma necessidade sem esse custo.
+    """
+    if st.session_state.get("_ocultar_aviso_ios"):
+        return
+    if not _eh_iphone_no_safari():
+        return
+
+    with st.container(border=True):
+        col_texto, col_botao = st.columns([5, 1])
+        with col_texto:
+            st.markdown(
+                "📲 **Instale a Norte Tel no seu iPhone:** toque no ícone de "
+                "**Compartilhar** (□ com uma seta ↑) na barra do Safari e depois em "
+                "**\"Adicionar à Tela de Início\"**. Assim você abre a plataforma "
+                "direto do seu iPhone, como um app."
+            )
+        with col_botao:
+            if st.button("✖️ Fechar", key="fechar_aviso_ios", use_container_width=True):
+                st.session_state["_ocultar_aviso_ios"] = True
+                st.rerun()
+
+
 def _saudacao_e_icone() -> tuple[str, str]:
     """Escolhe 'Bom dia' / 'Boa tarde' / 'Boa noite' de acordo com a hora atual."""
     hora = datetime.now(_FUSO_HORARIO).hour
@@ -395,6 +448,7 @@ def tela_inicio():
     st.session_state["frase_motivacional"] = random.choice(_FRASES)
 
     _estilos_inicio()
+    _aviso_instalar_iphone()
 
     saudacao, icone = _saudacao_e_icone()
     primeiro_nome = st.session_state["aluno_nome"].split(" ")[0]
