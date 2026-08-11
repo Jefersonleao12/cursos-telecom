@@ -11,6 +11,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 import streamlit as st
+import streamlit.components.v1 as components
 
 from database.repositorio import (
     enviar_duvida,
@@ -186,25 +187,9 @@ def _estilos_inicio():
                 color: #6B7A8F;
             }
 
-            /* ---------- Avisos ---------- */
-            .aviso-card {
-                background: #FFF8E8;
-                border-left: 4px solid #E3A11C;
-                border-radius: 10px;
-                padding: 0.9rem 1.1rem;
-                margin-bottom: 0.7rem;
-            }
-            .aviso-card .aviso-titulo {
-                font-weight: 700;
-                color: #7A5B0A;
-                margin-bottom: 0.15rem;
-                font-size: 0.95rem;
-            }
-            .aviso-card .aviso-texto {
-                color: #5C4A1F;
-                font-size: 0.9rem;
-                line-height: 1.45;
-            }
+            /* Os estilos do card de aviso e do carrossel de destaques ficam
+               dentro dos próprios componentes HTML deles (ver _carrossel_destaques
+               e o bloco de avisos em tela_inicio) — não aqui. */
 
             /* ---------- Cabeçalhos de seção ---------- */
             .secao-titulo {
@@ -239,58 +224,103 @@ def _estilos_inicio():
                 margin-bottom: 0.7rem;
                 min-height: 2.2em;
             }
-
-            /* ---------- Carrossel de destaques (equipe/carreira) ---------- */
-            .destaques-scroll {
-                display: flex;
-                gap: 1rem;
-                overflow-x: auto;
-                scroll-snap-type: x mandatory;
-                padding: 0.1rem 0.1rem 0.7rem 0.1rem;
-                -webkit-overflow-scrolling: touch;
-            }
-            .destaques-scroll::-webkit-scrollbar { height: 6px; }
-            .destaques-scroll::-webkit-scrollbar-thumb { background: #D7E1EE; border-radius: 999px; }
-            .destaque-card {
-                flex: 0 0 auto;
-                width: 230px;
-                scroll-snap-align: start;
-                background: #FFFFFF;
-                border: 1px solid #E6ECF3;
-                border-radius: 14px;
-                overflow: hidden;
-                box-shadow: 0 2px 10px rgba(20, 60, 110, 0.06);
-            }
-            .destaque-card img {
-                width: 100%;
-                aspect-ratio: 4 / 3;
-                object-fit: cover;
-                display: block;
-            }
-            .destaque-card .destaque-texto {
-                padding: 0.7rem 0.85rem 0.9rem;
-            }
-            .destaque-card .destaque-titulo {
-                font-weight: 700;
-                color: #143C6E;
-                font-size: 0.9rem;
-                margin-bottom: 0.2rem;
-            }
-            .destaque-card .destaque-desc {
-                color: #6B7A8F;
-                font-size: 0.79rem;
-                line-height: 1.4;
-            }
         </style>
         """,
         unsafe_allow_html=True,
     )
 
 
+# CSS reaproveitado pelos dois componentes HTML abaixo (avisos e carrossel
+# de destaques). Fica FORA do <style> principal de propósito — ver o
+# comentário logo acima de _carrossel_destaques.
+_ESTILO_AVISO = """
+    html, body { margin: 0; padding: 0; background: transparent; }
+    body { font-family: "Source Sans Pro", "Segoe UI", sans-serif; }
+    .aviso-card {
+        background: #FFF8E8;
+        border-left: 4px solid #E3A11C;
+        border-radius: 10px;
+        padding: 0.9rem 1.1rem;
+        margin-bottom: 0.7rem;
+        box-sizing: border-box;
+    }
+    .aviso-card .aviso-titulo {
+        font-weight: 700;
+        color: #7A5B0A;
+        margin-bottom: 0.15rem;
+        font-size: 0.95rem;
+    }
+    .aviso-card .aviso-texto {
+        color: #5C4A1F;
+        font-size: 0.9rem;
+        line-height: 1.45;
+        white-space: pre-wrap;
+    }
+"""
+
+_ESTILO_DESTAQUES = """
+    html, body { margin: 0; padding: 0; background: transparent; }
+    body { font-family: "Source Sans Pro", "Segoe UI", sans-serif; }
+    .destaques-scroll {
+        display: flex;
+        gap: 1rem;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        padding: 4px 4px 12px 4px;
+        box-sizing: border-box;
+        -webkit-overflow-scrolling: touch;
+    }
+    .destaques-scroll::-webkit-scrollbar { height: 6px; }
+    .destaques-scroll::-webkit-scrollbar-thumb { background: #D7E1EE; border-radius: 999px; }
+    .destaque-card {
+        flex: 0 0 auto;
+        width: 230px;
+        scroll-snap-align: start;
+        background: #FFFFFF;
+        border: 1px solid #E6ECF3;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(20, 60, 110, 0.06);
+    }
+    .destaque-card img {
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        object-fit: cover;
+        display: block;
+    }
+    .destaque-card .destaque-texto { padding: 0.7rem 0.85rem 0.9rem; }
+    .destaque-card .destaque-titulo {
+        font-weight: 700;
+        color: #143C6E;
+        font-size: 0.9rem;
+        margin-bottom: 0.2rem;
+    }
+    .destaque-card .destaque-desc {
+        color: #6B7A8F;
+        font-size: 0.79rem;
+        line-height: 1.4;
+    }
+"""
+
+
 def _carrossel_destaques():
-    """Carrossel horizontal (arraste para o lado) com fotos de destaque —
-    ex: técnicos da equipe, trajetória de carreira dentro da empresa.
-    Some por completo se o admin não tiver cadastrado nenhum destaque ativo."""
+    """
+    Carrossel horizontal (arraste para o lado) com fotos de destaque — ex:
+    técnicos da equipe, trajetória de carreira dentro da empresa. Some por
+    completo se o admin não tiver cadastrado nenhum destaque ativo.
+
+    Importante: título/descrição são texto livre digitado pelo admin, e
+    isso é renderizado com components.html() (um <iframe> de verdade) em
+    vez de st.markdown(unsafe_allow_html=True). O st.markdown passa o
+    conteúdo por um interpretador de Markdown ANTES de permitir HTML cru —
+    então um simples crase (`), sublinhado (_) ou "#" no início de uma
+    linha, digitado por acaso na descrição, já é suficiente pra quebrar a
+    montagem da página (vira um bloco de código cru, ou pior). Escapar só
+    aspas/`<`/`>` (html.escape) não é suficiente pra evitar isso — só o
+    <iframe> isolado do components.html() garante que o texto do admin
+    nunca seja interpretado como Markdown nem quebre o HTML dos outros
+    cards.
+    """
     destaques = listar_destaques_ativos()
     if not destaques:
         return
@@ -304,24 +334,22 @@ def _carrossel_destaques():
 
     cartoes_html = ""
     for destaque in destaques:
-        # Escapa o texto vindo do painel admin (título/descrição são texto
-        # livre) antes de colocar dentro do HTML: sem isso, uma aspa (")
-        # ou um sinal de "menor que" (<) digitado pelo admin quebra a
-        # montagem da página e o card seguinte aparece como código cru.
         titulo_seguro = html.escape(destaque["titulo"])
         foto_url_segura = html.escape(destaque["foto_url"], quote=True)
         descricao_segura = html.escape(destaque["descricao"]) if destaque.get("descricao") else ""
 
         cartoes_html += f"""
-        <div class="destaque-card">
-            <img src="{foto_url_segura}" alt="{titulo_seguro}" />
-            <div class="destaque-texto">
-                <div class="destaque-titulo">{titulo_seguro}</div>
-                {f'<div class="destaque-desc">{descricao_segura}</div>' if descricao_segura else ''}
+            <div class="destaque-card">
+                <img src="{foto_url_segura}" alt="{titulo_seguro}" />
+                <div class="destaque-texto">
+                    <div class="destaque-titulo">{titulo_seguro}</div>
+                    {f'<div class="destaque-desc">{descricao_segura}</div>' if descricao_segura else ''}
+                </div>
             </div>
-        </div>
         """
-    st.markdown(f'<div class="destaques-scroll">{cartoes_html}</div>', unsafe_allow_html=True)
+
+    pagina_html = f"<style>{_ESTILO_DESTAQUES}</style><div class=\"destaques-scroll\">{cartoes_html}</div>"
+    components.html(pagina_html, height=310, scrolling=False)
 
 
 def tela_inicio():
@@ -348,23 +376,31 @@ def tela_inicio():
     )
 
     # ---------------- AVISOS ----------------
+    # Renderizado com components.html() (não st.markdown) pelo mesmo motivo
+    # explicado no docstring de _carrossel_destaques: título/mensagem são
+    # texto livre do admin, e só um <iframe> isolado evita que Markdown
+    # "acidental" no texto (crase, sublinhado, "#" no início da linha etc.)
+    # quebre a renderização.
     avisos = listar_avisos_ativos()
     if avisos:
         st.write("")
+        cards_html = ""
         for aviso in avisos:
-            # Escapa título/mensagem (texto livre digitado pelo admin) antes de
-            # colocar no HTML — uma aspa (") ou um "<" quebraria a montagem da página.
             titulo_seguro = html.escape(aviso["titulo"])
             mensagem_segura = html.escape(aviso["mensagem"])
-            st.markdown(
-                f"""
+            cards_html += f"""
                 <div class="aviso-card">
                     <div class="aviso-titulo">📢 {titulo_seguro}</div>
                     <div class="aviso-texto">{mensagem_segura}</div>
                 </div>
-                """,
-                unsafe_allow_html=True,
-            )
+            """
+        pagina_html = f"<style>{_ESTILO_AVISO}</style>{cards_html}"
+        # Altura estimada por aviso (título + ~3 linhas de mensagem); o
+        # scrolling=True garante que, mesmo se um aviso for bem mais longo
+        # que o previsto, ele fica com uma barra de rolagem própria em vez
+        # de cortar o conteúdo.
+        altura_estimada = min(120 * len(avisos) + 20, 640)
+        components.html(pagina_html, height=altura_estimada, scrolling=True)
 
     # ---------------- RESUMO (estatísticas) ----------------
     st.write("")
