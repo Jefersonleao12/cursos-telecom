@@ -450,13 +450,14 @@ def exigir_login():
 
     _estilos_auth()
 
-    col_hero, col_form = st.columns([5, 6], gap="large")
-
-    with col_hero:
-        sub_esq, sub_centro, sub_dir = st.columns([1, 3, 1])
-        with sub_centro:
-            st.image(str(_CAMINHO_LOGO), width="stretch")
-        _painel_hero()
+    # O formulário vem ANTES do painel azul (logo/boas-vindas) no código de
+    # propósito: no celular, o Streamlit empilha essas duas colunas na
+    # mesma ordem em que aparecem aqui — se o painel viesse primeiro, quem
+    # abrisse pelo celular precisaria rolar a tela toda pra baixo só pra
+    # chegar no "Entrar"/"Criar cadastro". Assim, o formulário já aparece
+    # em cima (celular) ou à esquerda (computador), e o painel azul (que
+    # continua com a mesma logo e o mesmo visual de sempre) vem em seguida.
+    col_form, col_hero = st.columns([6, 5], gap="large")
 
     with col_form:
         st.markdown('<div class="auth-card-spacer"></div>', unsafe_allow_html=True)
@@ -466,5 +467,11 @@ def exigir_login():
                 tela_cadastro()
             else:
                 tela_login()
+
+    with col_hero:
+        sub_esq, sub_centro, sub_dir = st.columns([1, 3, 1])
+        with sub_centro:
+            st.image(str(_CAMINHO_LOGO), width="stretch")
+        _painel_hero()
 
     st.stop()

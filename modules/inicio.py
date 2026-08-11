@@ -296,18 +296,26 @@ _ESTILO_DESTAQUES = """
         padding: 0.7rem 0.85rem 0.9rem;
         flex: 1 1 auto;
         min-height: 0;
-        overflow-y: auto;
+        overflow: hidden;
     }
     .destaque-card .destaque-titulo {
         font-weight: 700;
         color: #143C6E;
         font-size: 0.9rem;
         margin-bottom: 0.2rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
     .destaque-card .destaque-desc {
         color: #6B7A8F;
         font-size: 0.79rem;
         line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 4;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
 """
 
