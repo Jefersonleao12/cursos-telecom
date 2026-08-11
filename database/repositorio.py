@@ -386,10 +386,18 @@ def marcar_aula_concluida(aluno_id: str, aula_id: int):
         "concluida_em": datetime.now(timezone.utc).isoformat(),
     }
     sb.table("progresso_aulas").upsert(registro, on_conflict="aluno_id,aula_id").execute()
+    _consultar_aulas_concluidas.clear()
 
 
-def _ids_aulas_concluidas(aluno_id: str, ids_aulas: list):
-    """Função interna: dado uma lista de IDs de aula, devolve quais delas o aluno já concluiu."""
+@st.cache_data(ttl=15, show_spinner=False)
+def _consultar_aulas_concluidas(aluno_id: str, ids_aulas: tuple):
+    """
+    Função interna (cacheada): dado um conjunto de IDs de aula, devolve quais
+    delas o aluno já concluiu. É chamada repetidas vezes a cada tela (uma vez
+    por módulo, de cada curso, sempre que a página de Início ou a lista de
+    cursos é desenhada) — cachear evita bater no Supabase várias vezes pela
+    mesma informação em poucos segundos, deixando a navegação bem mais rápida.
+    """
     if not ids_aulas:
         return []
     sb = get_supabase_client()
@@ -398,10 +406,15 @@ def _ids_aulas_concluidas(aluno_id: str, ids_aulas: list):
         .select("aula_id")
         .eq("aluno_id", aluno_id)
         .eq("concluida", True)
-        .in_("aula_id", ids_aulas)
+        .in_("aula_id", list(ids_aulas))
         .execute()
     )
     return [linha["aula_id"] for linha in resposta.data]
+
+
+def _ids_aulas_concluidas(aluno_id: str, ids_aulas: list):
+    """Função interna: dado uma lista de IDs de aula, devolve quais delas o aluno já concluiu."""
+    return _consultar_aulas_concluidas(aluno_id, tuple(sorted(ids_aulas)))
 
 
 def aulas_concluidas_do_aluno(aluno_id: str, curso_id: int):
@@ -649,11 +662,17 @@ def salvar_resultado_prova(aluno_id: str, prova_id: int, nota: float, aprovado: 
         "tempo_gasto_segundos": tempo_gasto_segundos,
     }
     resposta = sb.table("resultados_provas").insert(registro).execute()
+    melhor_resultado.clear()
     return resposta.data[0]
 
 
+@st.cache_data(ttl=15, show_spinner=False)
 def melhor_resultado(aluno_id: str, prova_id: int):
-    """Retorna o melhor resultado (maior nota) que o aluno já obteve nesta prova."""
+    """
+    Retorna o melhor resultado (maior nota) que o aluno já obteve nesta prova.
+    Cacheado porque é consultado uma vez por módulo com prova, de cada curso,
+    toda vez que a Início ou a lista de cursos calcula o progresso do aluno.
+    """
     sb = get_supabase_client()
     resposta = (
         sb.table("resultados_provas")
@@ -910,3 +929,133 @@ def desativar_aviso(aviso_id):
     sb = get_supabase_client()
     sb.table("avisos").update({"ativo": False}).eq("id", aviso_id).execute()
     listar_avisos_ativos.clear()
+
+
+# ---------------------------------------------------------------------------
+# DESTAQUES (carrossel de fotos na tela de Início — técnicos da equipe,
+# trajetória de carreira dentro da empresa etc.)
+# ---------------------------------------------------------------------------
+
+# Nome do "bucket" no Supabase Storage onde as fotos do carrossel ficam
+# guardadas. Precisa ser criado uma vez no painel do Supabase (Storage ->
+# New bucket), marcado como "Public bucket", igual aos outros buckets do projeto.
+_BUCKET_DESTAQUES = "destaques"
+
+
+def _processar_foto_destaque(arquivo_bytes: bytes) -> bytes:
+    """Recorta a imagem num formato widescreen (4:3) e redimensiona, para
+    todas as fotos do carrossel ficarem com a mesma proporção."""
+    from PIL import Image
+
+    imagem = Image.open(io.BytesIO(arquivo_bytes)).convert("RGB")
+    proporcao_alvo = 4 / 3
+    largura, altura = imagem.size
+    proporcao_atual = largura / altura
+
+    if proporcao_atual > proporcao_alvo:
+        # imagem mais larga que o alvo: corta as laterais
+        nova_largura = int(altura * proporcao_alvo)
+        esquerda = (largura - nova_largura) // 2
+        imagem = imagem.crop((esquerda, 0, esquerda + nova_largura, altura))
+    else:
+        # imagem mais alta que o alvo: corta em cima/embaixo
+        nova_altura = int(largura / proporcao_alvo)
+        topo = (altura - nova_altura) // 2
+        imagem = imagem.crop((0, topo, largura, topo + nova_altura))
+
+    imagem = imagem.resize((800, 600))
+    buffer = io.BytesIO()
+    imagem.save(buffer, format="JPEG", quality=85)
+    return buffer.getvalue()
+
+
+def criar_destaque(titulo: str, descricao: str, arquivo_bytes: bytes, ordem: int):
+    """Sobe a foto para o Storage e cria o registro do destaque. Retorna o registro criado."""
+    sb = get_supabase_client()
+    foto_processada = _processar_foto_destaque(arquivo_bytes)
+    caminho_storage = f"{uuid.uuid4().hex}.jpg"
+
+    sb.storage.from_(_BUCKET_DESTAQUES).upload(
+        caminho_storage, foto_processada, file_options={"content-type": "image/jpeg"}
+    )
+    foto_url = sb.storage.from_(_BUCKET_DESTAQUES).get_public_url(caminho_storage)
+
+    novo = {
+        "titulo": titulo.strip(),
+        "descricao": descricao.strip() if descricao else None,
+        "foto_url": foto_url,
+        "caminho_storage": caminho_storage,
+        "ordem": ordem,
+    }
+    resposta = sb.table("destaques").insert(novo).execute()
+    listar_destaques_ativos.clear()
+    listar_todos_destaques.clear()
+    return resposta.data[0]
+
+
+def editar_destaque(
+    destaque_id, titulo: str, descricao: str, ordem: int, ativo: bool,
+    caminho_storage_atual: str, novo_arquivo_bytes: bytes = None,
+):
+    """
+    Atualiza título/descrição/ordem/ativo. Se novo_arquivo_bytes for informado,
+    troca também a foto (removendo a antiga do Storage e subindo a nova).
+    """
+    sb = get_supabase_client()
+    dados = {
+        "titulo": titulo.strip(),
+        "descricao": descricao.strip() if descricao else None,
+        "ordem": ordem,
+        "ativo": ativo,
+    }
+
+    if novo_arquivo_bytes is not None:
+        foto_processada = _processar_foto_destaque(novo_arquivo_bytes)
+        novo_caminho = f"{uuid.uuid4().hex}.jpg"
+        sb.storage.from_(_BUCKET_DESTAQUES).upload(
+            novo_caminho, foto_processada, file_options={"content-type": "image/jpeg"}
+        )
+        try:
+            sb.storage.from_(_BUCKET_DESTAQUES).remove([caminho_storage_atual])
+        except Exception:
+            pass  # segue mesmo se a foto antiga já não existir mais
+        dados["caminho_storage"] = novo_caminho
+        dados["foto_url"] = sb.storage.from_(_BUCKET_DESTAQUES).get_public_url(novo_caminho)
+
+    sb.table("destaques").update(dados).eq("id", destaque_id).execute()
+    listar_destaques_ativos.clear()
+    listar_todos_destaques.clear()
+
+
+def excluir_destaque(destaque_id, caminho_storage: str):
+    """Remove a foto do Storage e o registro correspondente do banco."""
+    sb = get_supabase_client()
+    try:
+        sb.storage.from_(_BUCKET_DESTAQUES).remove([caminho_storage])
+    except Exception:
+        pass
+    sb.table("destaques").delete().eq("id", destaque_id).execute()
+    listar_destaques_ativos.clear()
+    listar_todos_destaques.clear()
+
+
+@st.cache_data(ttl=20, show_spinner=False)
+def listar_destaques_ativos():
+    """Usado na tela de Início — só os destaques que o admin não desativou, em ordem."""
+    sb = get_supabase_client()
+    resposta = (
+        sb.table("destaques")
+        .select("*")
+        .eq("ativo", True)
+        .order("ordem")
+        .execute()
+    )
+    return resposta.data
+
+
+@st.cache_data(ttl=20, show_spinner=False)
+def listar_todos_destaques():
+    """Usado no painel admin — mostra ativos e inativos, para gerenciar."""
+    sb = get_supabase_client()
+    resposta = sb.table("destaques").select("*").order("ordem").execute()
+    return resposta.data

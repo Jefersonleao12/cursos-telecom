@@ -190,6 +190,22 @@ create table if not exists public.avisos (
     criado_em   timestamptz not null default now()
 );
 
+-- ----------------------------------------------------------------------------
+-- DESTAQUES (carrossel de fotos na tela de Início — ex: técnicos da equipe,
+-- trajetória de carreira dentro da empresa). A foto em si fica no Supabase
+-- Storage (bucket "destaques"); aqui só guardamos os metadados.
+-- ----------------------------------------------------------------------------
+create table if not exists public.destaques (
+    id                bigint generated always as identity primary key,
+    titulo            text not null,           -- ex: nome e cargo do técnico
+    descricao         text,                    -- ex: trajetória/tempo de empresa
+    foto_url          text not null,
+    caminho_storage   text not null,           -- caminho do arquivo no bucket "destaques" (para excluir/trocar a foto)
+    ordem             int not null default 1,
+    ativo             boolean not null default true,
+    criado_em         timestamptz not null default now()
+);
+
 -- ============================================================================
 -- IMPORTANTE SOBRE SEGURANÇA (leia antes de ir para produção):
 --

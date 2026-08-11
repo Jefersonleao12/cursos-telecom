@@ -53,6 +53,10 @@ from database.repositorio import (
     criar_aviso,
     listar_todos_avisos,
     desativar_aviso,
+    criar_destaque,
+    editar_destaque,
+    excluir_destaque,
+    listar_todos_destaques,
 )
 
 
@@ -131,8 +135,8 @@ def tela_admin():
     _painel_visao_geral()
     st.write("")
 
-    aba_dashboard, aba_cursos, aba_modulos, aba_aulas, aba_provas, aba_alunos, aba_filiais, aba_materiais, aba_duvidas, aba_avisos = st.tabs(
-        ["📊 Dashboard", "📚 Cursos", "🧩 Módulos", "🎬 Aulas", "📝 Provas e Perguntas", "🧑‍🎓 Alunos", "📍 Filiais", "🗂️ Materiais", "❓ Dúvidas", "📢 Avisos"]
+    aba_dashboard, aba_cursos, aba_modulos, aba_aulas, aba_provas, aba_alunos, aba_filiais, aba_materiais, aba_duvidas, aba_avisos, aba_destaques = st.tabs(
+        ["📊 Dashboard", "📚 Cursos", "🧩 Módulos", "🎬 Aulas", "📝 Provas e Perguntas", "🧑‍🎓 Alunos", "📍 Filiais", "🗂️ Materiais", "❓ Dúvidas", "📢 Avisos", "🌟 Destaques"]
     )
 
     # ---------------- DASHBOARD ----------------
@@ -921,4 +925,104 @@ def tela_admin():
             else:
                 criar_aviso(titulo_aviso, mensagem_aviso)
                 st.success("Aviso publicado! Já aparece na tela de Início dos alunos.")
+                st.rerun()
+
+    # ---------------- DESTAQUES ----------------
+    with aba_destaques:
+        st.subheader("Carrossel de destaques")
+        st.caption(
+            "Fotos que aparecem em carrossel na tela de Início dos alunos — ex: técnicos "
+            "da equipe, trajetória de carreira dentro da empresa. A foto é recortada "
+            "automaticamente no formato do carrossel (4:3)."
+        )
+
+        destaques = listar_todos_destaques()
+        if destaques:
+            for destaque in destaques:
+                with st.container(border=True):
+                    col_foto, col_info, col_editar, col_excluir = st.columns([1, 3, 1, 1])
+                    with col_foto:
+                        st.image(destaque["foto_url"], use_container_width=True)
+                    with col_info:
+                        status_destaque = "" if destaque["ativo"] else " (desativado)"
+                        st.write(f"**{destaque['titulo']}**{status_destaque}")
+                        if destaque.get("descricao"):
+                            st.caption(destaque["descricao"])
+                        st.caption(f"Ordem: {destaque['ordem']}")
+                    with col_editar:
+                        if st.button("✏️ Editar", key=f"editar_destaque_btn_{destaque['id']}", use_container_width=True):
+                            st.session_state["destaque_em_edicao"] = destaque["id"]
+                            st.rerun()
+                    with col_excluir:
+                        if st.button("🗑️ Excluir", key=f"excluir_destaque_btn_{destaque['id']}", use_container_width=True):
+                            st.session_state["destaque_para_excluir"] = destaque["id"]
+                            st.rerun()
+
+                    if st.session_state.get("destaque_para_excluir") == destaque["id"]:
+                        st.warning(f"Tem certeza que quer excluir **{destaque['titulo']}** do carrossel?")
+                        col_sim, col_nao = st.columns(2)
+                        with col_sim:
+                            if st.button("Sim, excluir", key=f"confirma_excluir_destaque_{destaque['id']}", type="primary", use_container_width=True):
+                                excluir_destaque(destaque["id"], destaque["caminho_storage"])
+                                st.session_state.pop("destaque_para_excluir", None)
+                                st.success("Destaque excluído.")
+                                st.rerun()
+                        with col_nao:
+                            if st.button("Cancelar", key=f"cancela_excluir_destaque_{destaque['id']}", use_container_width=True):
+                                st.session_state.pop("destaque_para_excluir", None)
+                                st.rerun()
+
+                    if st.session_state.get("destaque_em_edicao") == destaque["id"]:
+                        with st.form(f"form_editar_destaque_{destaque['id']}"):
+                            novo_titulo_destaque = st.text_input("Título *", value=destaque["titulo"])
+                            nova_descricao_destaque = st.text_area("Descrição", value=destaque.get("descricao") or "")
+                            nova_ordem_destaque = st.number_input("Ordem", min_value=1, value=destaque["ordem"])
+                            novo_ativo_destaque = st.checkbox("Ativo (aparece no carrossel)", value=destaque["ativo"])
+                            nova_foto_destaque = st.file_uploader(
+                                "Trocar foto (opcional)", type=["png", "jpg", "jpeg"],
+                                help="Deixe em branco para manter a foto atual.",
+                            )
+                            col_salvar, col_cancelar = st.columns(2)
+                            with col_salvar:
+                                salvar_edicao_destaque = st.form_submit_button("Salvar alterações", type="primary", use_container_width=True)
+                            with col_cancelar:
+                                cancelar_edicao_destaque = st.form_submit_button("Cancelar", use_container_width=True)
+
+                        if salvar_edicao_destaque:
+                            if not novo_titulo_destaque:
+                                st.warning("Informe o título.")
+                            else:
+                                editar_destaque(
+                                    destaque["id"], novo_titulo_destaque, nova_descricao_destaque,
+                                    int(nova_ordem_destaque), novo_ativo_destaque,
+                                    destaque["caminho_storage"],
+                                    nova_foto_destaque.getvalue() if nova_foto_destaque else None,
+                                )
+                                st.session_state.pop("destaque_em_edicao", None)
+                                st.success("Destaque atualizado.")
+                                st.rerun()
+                        if cancelar_edicao_destaque:
+                            st.session_state.pop("destaque_em_edicao", None)
+                            st.rerun()
+        else:
+            st.caption("Nenhum destaque cadastrado ainda.")
+
+        st.divider()
+        st.subheader("Adicionar destaque")
+        with st.form("form_novo_destaque", clear_on_submit=True):
+            titulo_destaque = st.text_input("Título *", placeholder="Ex: João Silva — Técnico de Fibra Óptica")
+            descricao_destaque = st.text_area(
+                "Descrição (opcional)",
+                placeholder="Ex: Na empresa há 6 anos, começou como auxiliar e hoje é supervisor regional.",
+            )
+            ordem_destaque = st.number_input("Ordem de exibição", min_value=1, value=len(destaques) + 1)
+            foto_destaque = st.file_uploader("Foto *", type=["png", "jpg", "jpeg"])
+            salvar_destaque = st.form_submit_button("Adicionar ao carrossel", type="primary")
+
+        if salvar_destaque:
+            if not titulo_destaque or foto_destaque is None:
+                st.warning("Preencha o título e escolha uma foto.")
+            else:
+                criar_destaque(titulo_destaque, descricao_destaque, foto_destaque.getvalue(), int(ordem_destaque))
+                st.success(f"Destaque '{titulo_destaque}' adicionado ao carrossel!")
                 st.rerun()

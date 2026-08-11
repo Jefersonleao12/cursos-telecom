@@ -17,6 +17,7 @@ from database.repositorio import (
     calcular_progresso_curso,
     curso_totalmente_concluido,
     listar_avisos_ativos,
+    listar_destaques_ativos,
 )
 from modules.whatsapp import notificar_nova_duvida
 
@@ -237,10 +238,82 @@ def _estilos_inicio():
                 margin-bottom: 0.7rem;
                 min-height: 2.2em;
             }
+
+            /* ---------- Carrossel de destaques (equipe/carreira) ---------- */
+            .destaques-scroll {
+                display: flex;
+                gap: 1rem;
+                overflow-x: auto;
+                scroll-snap-type: x mandatory;
+                padding: 0.1rem 0.1rem 0.7rem 0.1rem;
+                -webkit-overflow-scrolling: touch;
+            }
+            .destaques-scroll::-webkit-scrollbar { height: 6px; }
+            .destaques-scroll::-webkit-scrollbar-thumb { background: #D7E1EE; border-radius: 999px; }
+            .destaque-card {
+                flex: 0 0 auto;
+                width: 230px;
+                scroll-snap-align: start;
+                background: #FFFFFF;
+                border: 1px solid #E6ECF3;
+                border-radius: 14px;
+                overflow: hidden;
+                box-shadow: 0 2px 10px rgba(20, 60, 110, 0.06);
+            }
+            .destaque-card img {
+                width: 100%;
+                aspect-ratio: 4 / 3;
+                object-fit: cover;
+                display: block;
+            }
+            .destaque-card .destaque-texto {
+                padding: 0.7rem 0.85rem 0.9rem;
+            }
+            .destaque-card .destaque-titulo {
+                font-weight: 700;
+                color: #143C6E;
+                font-size: 0.9rem;
+                margin-bottom: 0.2rem;
+            }
+            .destaque-card .destaque-desc {
+                color: #6B7A8F;
+                font-size: 0.79rem;
+                line-height: 1.4;
+            }
         </style>
         """,
         unsafe_allow_html=True,
     )
+
+
+def _carrossel_destaques():
+    """Carrossel horizontal (arraste para o lado) com fotos de destaque —
+    ex: técnicos da equipe, trajetória de carreira dentro da empresa.
+    Some por completo se o admin não tiver cadastrado nenhum destaque ativo."""
+    destaques = listar_destaques_ativos()
+    if not destaques:
+        return
+
+    st.write("")
+    st.markdown('<div class="secao-titulo">🌟 Nossa Equipe</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="secao-sub">Arraste para o lado para conhecer nossos técnicos e trajetórias dentro da empresa.</div>',
+        unsafe_allow_html=True,
+    )
+
+    cartoes_html = "".join(
+        f"""
+        <div class="destaque-card">
+            <img src="{destaque['foto_url']}" alt="{destaque['titulo']}" />
+            <div class="destaque-texto">
+                <div class="destaque-titulo">{destaque['titulo']}</div>
+                {f'<div class="destaque-desc">{destaque["descricao"]}</div>' if destaque.get('descricao') else ''}
+            </div>
+        </div>
+        """
+        for destaque in destaques
+    )
+    st.markdown(f'<div class="destaques-scroll">{cartoes_html}</div>', unsafe_allow_html=True)
 
 
 def tela_inicio():
@@ -325,6 +398,9 @@ def tela_inicio():
                 if st.button("Acessar", key=f"acesso_rapido_{destino}", use_container_width=True):
                     st.session_state["pagina_atual"] = destino
                     st.rerun()
+
+    # ---------------- CARROSSEL DE DESTAQUES (equipe/carreira) ----------------
+    _carrossel_destaques()
 
     # ---------------- DÚVIDAS DO DIA A DIA ----------------
     st.write("")

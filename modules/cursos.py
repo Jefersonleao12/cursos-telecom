@@ -187,11 +187,29 @@ def tela_detalhe_curso():
                 st.caption("Este módulo ainda não possui aulas cadastradas.")
             else:
                 concluidas_modulo = set(aulas_concluidas_do_modulo(aluno_id, modulo["id"]))
+
+                # As aulas do módulo são liberadas uma de cada vez, na ordem.
+                # Antes, todas as aulas apareciam juntas e cada cronômetro de
+                # tempo mínimo começava a contar assim que a página abria —
+                # ou seja, o tempo de uma aula "vazava" pra outra (o aluno
+                # conseguia liberar a aula 2, de 5 min, só porque tinha
+                # deixado a aula 1, de 10 min, aberta em segundo plano).
+                # Só renderizar (e só então começar a contar o tempo da)
+                # próxima aula pendente evita isso: cada cronômetro só
+                # começa quando o aluno realmente chega naquela aula.
+                aula_anterior_concluida = True
                 for aula in aulas:
                     aula_concluida = aula["id"] in concluidas_modulo
+                    aula_desbloqueada = aula_anterior_concluida
+
                     st.markdown(f"**Aula {aula['ordem']}: {aula['titulo']}**")
-                    _bloco_aula(aluno_id, aula, aula_concluida)
+                    if not aula_desbloqueada:
+                        st.caption("🔒 Assista a aula anterior para desbloquear esta.")
+                    else:
+                        _bloco_aula(aluno_id, aula, aula_concluida)
                     st.write("")
+
+                    aula_anterior_concluida = aula_concluida
 
                 todas_aulas_concluidas = len(concluidas_modulo) == len(aulas)
 
