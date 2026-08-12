@@ -25,9 +25,9 @@ def get_supabase_client() -> Client:
     except (KeyError, FileNotFoundError):
         st.error(
             "⚠️ As credenciais do Supabase não foram configuradas.\n\n"
-            "Copie `.streamlit/secrets.toml.exemplo` para `.streamlit/secrets.toml` "
-            "(localmente) ou configure as 'Secrets' no painel do Streamlit Community Cloud "
-            "(em produção) com as chaves SUPABASE_URL e SUPABASE_SERVICE_KEY."
+            "Preencha `.streamlit/secrets.toml` (localmente) ou configure as "
+            "'Secrets' no painel do Streamlit Community Cloud (em produção) "
+            "com as chaves SUPABASE_URL e SUPABASE_SERVICE_KEY."
         )
         st.stop()
 
