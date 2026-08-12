@@ -194,19 +194,22 @@ def main():
             st.caption(st.session_state["aluno_empresa"])
         st.divider()
 
+        # Lido uma única vez, ANTES de desenhar os botões: cada botão é
+        # desenhado (com seu destaque "primary"/"secondary" já decidido)
+        # antes de sabermos se ELE MESMO foi o clicado — então, se algum
+        # botão já lesse "pagina_atual" depois de outro tê-la alterado no
+        # meio do mesmo laço, o destaque saía errado (um botão diferente
+        # do clicado ficava marcado como atual). Congelar o valor aqui
+        # garante que todos os botões deste desenho usem a MESMA página
+        # (a anterior) — e o st.rerun() após o clique é o que dispara o
+        # próximo desenho já com o destaque certo, sem essa inconsistência.
+        pagina_ativa = st.session_state["pagina_atual"]
+
         def _botao_menu(rotulo, destino, grupo=None):
-            # Lê "pagina_atual" na hora (em vez de uma vez só antes do
-            # loop) e não força um st.rerun() extra: um clique em botão já
-            # reroda o script inteiro sozinho, então o roteamento mais
-            # abaixo (mesma execução) já pega o novo valor. Chamar
-            # st.rerun() aqui faria essa execução inteira (config de
-            # página, PWA, todo o menu lateral) rodar em dobro a cada
-            # clique — a app inteira ficava perceptivelmente mais lenta
-            # pra trocar de página.
-            pagina_atual = st.session_state["pagina_atual"]
-            ativo = pagina_atual == destino or (grupo and pagina_atual in grupo)
+            ativo = pagina_ativa == destino or (grupo and pagina_ativa in grupo)
             if st.button(rotulo, use_container_width=True, type="primary" if ativo else "secondary"):
                 st.session_state["pagina_atual"] = destino
+                st.rerun()
 
         _botao_menu("🏠 Início", "inicio")
         _botao_menu("📚 Meus Cursos", "lista_cursos", grupo={"lista_cursos", "detalhe_curso"})
