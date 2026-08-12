@@ -5,7 +5,7 @@
 // janela com cara de app (sem barra de endereço), abrir links externos no
 // navegador padrão em vez de dentro do app, e lembrar a sessão entre uma
 // abertura e outra.
-const { app, BrowserWindow, shell, session, Menu } = require("electron");
+const { app, BrowserWindow, shell, session, Menu, dialog, clipboard } = require("electron");
 const path = require("path");
 const fs = require("fs");
 
@@ -35,6 +35,22 @@ function salvarUltimaUrl(url) {
   }
 }
 
+// Abre um link no navegador padrão do Windows. Em algumas máquinas (ex:
+// antivírus/política corporativa restringindo o app, sem navegador padrão
+// definido) o shell.openExternal pode falhar silenciosamente — nesse caso
+// copiamos o link e avisamos o usuário em vez de simplesmente não fazer nada.
+function abrirLinkExterno(janela, url) {
+  shell.openExternal(url).catch(() => {
+    clipboard.writeText(url);
+    dialog.showMessageBox(janela, {
+      type: "warning",
+      title: "Não foi possível abrir o link",
+      message: "Não consegui abrir o navegador automaticamente. Copiei o endereço abaixo para a área de transferência — cole em qualquer navegador para acessar:",
+      detail: url,
+    });
+  });
+}
+
 function criarJanelaPrincipal() {
   const janela = new BrowserWindow({
     width: 1280,
@@ -54,9 +70,10 @@ function criarJanelaPrincipal() {
 
   Menu.setApplicationMenu(null);
 
-  // Links que abririam em nova aba (ex: target="_blank") vão pro navegador padrão.
+  // Links que abririam em nova aba (ex: target="_blank", como o botão
+  // "Abrir" dos Materiais) vão pro navegador padrão.
   janela.webContents.setWindowOpenHandler(({ url }) => {
-    shell.openExternal(url);
+    abrirLinkExterno(janela, url);
     return { action: "deny" };
   });
 
@@ -65,7 +82,7 @@ function criarJanelaPrincipal() {
     const destino = new URL(url);
     if (destino.hostname !== DOMINIO_PERMITIDO) {
       evento.preventDefault();
-      shell.openExternal(url);
+      abrirLinkExterno(janela, url);
     }
   });
 
