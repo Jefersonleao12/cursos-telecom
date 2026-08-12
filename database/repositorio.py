@@ -838,41 +838,19 @@ def listar_todos_resultados_provas():
 
 
 # ---------------------------------------------------------------------------
-# MATERIAIS (fotos, documentos e arquivos para download pelos alunos)
+# MATERIAIS (links para arquivos/pastas do Google Drive, organizados por
+# categoria — cada material é um card com ícone + título clicável)
 # ---------------------------------------------------------------------------
 
-# Nome do "bucket" (pasta) no Supabase Storage onde os arquivos ficam guardados.
-# Precisa ser criado uma vez no painel do Supabase (Storage -> New bucket),
-# marcado como "Public bucket" para que os links de download funcionem.
-_BUCKET_MATERIAIS = "materiais"
-
-
-def enviar_material(titulo: str, descricao: str, categoria: str, arquivo_bytes: bytes, nome_arquivo: str):
-    """
-    Sobe o arquivo para o Supabase Storage e grava o registro (título, categoria,
-    descrição etc.) na tabela 'materiais'. Retorna o registro criado.
-    """
+def criar_material(titulo: str, descricao: str, categoria: str, link_url: str, icone: str):
+    """Grava um novo material (link) na tabela 'materiais'. Retorna o registro criado."""
     sb = get_supabase_client()
-
-    extensao = nome_arquivo.rsplit(".", 1)[-1].lower() if "." in nome_arquivo else ""
-    # Prefixamos com um código único para nunca haver conflito de nomes no Storage,
-    # mesmo que dois arquivos diferentes se chamem igual (ex: "manual.pdf").
-    caminho_storage = f"{uuid.uuid4().hex}_{nome_arquivo}"
-
-    sb.storage.from_(_BUCKET_MATERIAIS).upload(
-        caminho_storage,
-        arquivo_bytes,
-        file_options={"content-type": "application/octet-stream"},
-    )
-
     novo = {
         "titulo": titulo.strip(),
         "descricao": descricao.strip() if descricao else None,
         "categoria": categoria.strip(),
-        "nome_arquivo": nome_arquivo,
-        "caminho_storage": caminho_storage,
-        "tipo_arquivo": extensao,
-        "tamanho_bytes": len(arquivo_bytes),
+        "link_url": link_url.strip(),
+        "icone": icone or "🔗",
     }
     resposta = sb.table("materiais").insert(novo).execute()
     listar_materiais.clear()
@@ -896,28 +874,23 @@ def listar_categorias_materiais():
     return categorias
 
 
-def url_publica_material(caminho_storage: str) -> str:
-    """Devolve o link direto de download do arquivo no Supabase Storage."""
+def excluir_material(material_id):
+    """Remove o registro do material (o arquivo em si continua no Drive do admin)."""
     sb = get_supabase_client()
-    return sb.storage.from_(_BUCKET_MATERIAIS).get_public_url(caminho_storage)
-
-
-def excluir_material(material_id, caminho_storage: str):
-    """Remove o arquivo do Storage e o registro correspondente do banco."""
-    sb = get_supabase_client()
-    sb.storage.from_(_BUCKET_MATERIAIS).remove([caminho_storage])
     sb.table("materiais").delete().eq("id", material_id).execute()
     listar_materiais.clear()
     listar_categorias_materiais.clear()
 
 
-def editar_material(material_id, titulo: str, descricao: str, categoria: str):
-    """Atualiza só os dados (título/descrição/categoria) — o arquivo continua o mesmo."""
+def editar_material(material_id, titulo: str, descricao: str, categoria: str, link_url: str, icone: str):
+    """Atualiza os dados do material (título/descrição/categoria/link/ícone)."""
     sb = get_supabase_client()
     dados = {
         "titulo": titulo.strip(),
         "descricao": descricao.strip() if descricao else None,
         "categoria": categoria.strip(),
+        "link_url": link_url.strip(),
+        "icone": icone or "🔗",
     }
     sb.table("materiais").update(dados).eq("id", material_id).execute()
     listar_materiais.clear()

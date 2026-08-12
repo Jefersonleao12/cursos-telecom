@@ -42,7 +42,7 @@ from database.repositorio import (
     obter_tempos_curso,
     listar_materiais,
     listar_categorias_materiais,
-    enviar_material,
+    criar_material,
     excluir_material,
     editar_material,
     listar_duvidas,
@@ -61,6 +61,20 @@ from database.repositorio import (
     excluir_destaque,
     listar_todos_destaques,
 )
+
+
+# Ícones que o admin pode escolher para cada material (é só um link, então
+# não dá pra "adivinhar" o ícone pelo tipo de arquivo como antes).
+_ICONES_MATERIAIS = {
+    "📁 Pasta / Drive": "📁",
+    "📄 Documento": "📄",
+    "📊 Planilha": "📊",
+    "🖼️ Fotos": "🖼️",
+    "🎥 Vídeo": "🎥",
+    "🛠️ Equipamentos e ferramentas": "🛠️",
+    "📘 Manual": "📘",
+    "🔗 Link genérico": "🔗",
+}
 
 
 def _formatar_duracao(segundos: float) -> str:
@@ -789,6 +803,10 @@ def tela_admin():
 
     # ---------------- MATERIAIS ----------------
     with aba_materiais:
+        st.caption(
+            "Cada material é um link (ex: pasta ou arquivo do Google Drive) — o "
+            "aluno vê um card com ícone e título, e clica para abrir."
+        )
         st.subheader("Materiais cadastrados")
         materiais = listar_materiais()
 
@@ -797,15 +815,15 @@ def tela_admin():
                 with st.container(border=True):
                     col_info, col_editar, col_excluir = st.columns([3, 1, 1])
                     with col_info:
-                        st.write(f"**{m['titulo']}** — categoria: {m.get('categoria') or '-'}")
-                        st.caption(f"Arquivo original: {m['nome_arquivo']}")
+                        st.write(f"{m.get('icone') or '🔗'} **{m['titulo']}** — categoria: {m.get('categoria') or '-'}")
+                        st.caption(m.get("link_url") or "(sem link)")
                     with col_editar:
                         if st.button("✏️ Editar", key=f"editar_material_btn_{m['id']}", use_container_width=True):
                             st.session_state["material_em_edicao"] = m["id"]
                             st.rerun()
                     with col_excluir:
                         if st.button("🗑️ Excluir", key=f"excluir_material_{m['id']}", use_container_width=True):
-                            excluir_material(m["id"], m["caminho_storage"])
+                            excluir_material(m["id"])
                             st.success("Material excluído.")
                             st.rerun()
 
@@ -814,7 +832,16 @@ def tela_admin():
                             novo_titulo_material = st.text_input("Título *", value=m["titulo"])
                             nova_descricao_material = st.text_area("Descrição", value=m.get("descricao") or "")
                             nova_categoria_material = st.text_input("Categoria *", value=m.get("categoria") or "")
-                            st.caption("O arquivo em si não muda aqui — exclua e suba de novo se precisar trocar o arquivo.")
+                            novo_link_material = st.text_input("Link (Google Drive ou outro) *", value=m.get("link_url") or "")
+                            icone_atual = m.get("icone") or "🔗"
+                            indice_icone = (
+                                list(_ICONES_MATERIAIS.values()).index(icone_atual)
+                                if icone_atual in _ICONES_MATERIAIS.values() else 0
+                            )
+                            novo_icone_label = st.selectbox(
+                                "Ícone", list(_ICONES_MATERIAIS.keys()), index=indice_icone,
+                                key=f"icone_editar_{m['id']}",
+                            )
                             col_salvar, col_cancelar = st.columns(2)
                             with col_salvar:
                                 salvar_edicao_material = st.form_submit_button("Salvar alterações", type="primary", use_container_width=True)
@@ -822,10 +849,14 @@ def tela_admin():
                                 cancelar_edicao_material = st.form_submit_button("Cancelar", use_container_width=True)
 
                         if salvar_edicao_material:
-                            if not novo_titulo_material or not nova_categoria_material:
+                            if not novo_titulo_material or not nova_categoria_material or not novo_link_material:
                                 st.warning("Preencha os campos obrigatórios (*).")
                             else:
-                                editar_material(m["id"], novo_titulo_material, nova_descricao_material, nova_categoria_material)
+                                editar_material(
+                                    m["id"], novo_titulo_material, nova_descricao_material,
+                                    nova_categoria_material, novo_link_material,
+                                    _ICONES_MATERIAIS[novo_icone_label],
+                                )
                                 st.session_state.pop("material_em_edicao", None)
                                 st.success("Material atualizado.")
                                 st.rerun()
@@ -836,36 +867,41 @@ def tela_admin():
             st.caption("Nenhum material cadastrado ainda.")
 
         st.divider()
-        st.subheader("Enviar novo material")
+        st.subheader("Adicionar novo material")
 
         categorias_existentes = listar_categorias_materiais()
         opcoes_categoria = categorias_existentes + ["+ Nova categoria..."]
 
         with st.form("form_novo_material", clear_on_submit=True):
-            titulo_material = st.text_input("Título *")
+            titulo_material = st.text_input("Título *", placeholder="Ex: Atualização de equipamentos e ferramentas")
             descricao_material = st.text_area("Descrição (opcional)")
             categoria_opcao = st.selectbox("Categoria *", opcoes_categoria)
             nova_categoria = ""
             if categoria_opcao == "+ Nova categoria...":
                 nova_categoria = st.text_input("Nome da nova categoria *")
-            arquivo = st.file_uploader(
-                "Arquivo *",
-                help="Fotos, PDFs, planilhas, documentos do Word, vídeos, etc.",
+            link_material = st.text_input(
+                "Link (Google Drive ou outro) *",
+                placeholder="https://drive.google.com/...",
+                help="Cole aqui o link de compartilhamento da pasta ou arquivo no Google Drive "
+                     "(lembre de deixar o compartilhamento como 'Qualquer pessoa com o link').",
             )
-            enviar = st.form_submit_button("Enviar material", type="primary")
+            icone_label_novo = st.selectbox("Ícone", list(_ICONES_MATERIAIS.keys()))
+            enviar = st.form_submit_button("Adicionar material", type="primary")
 
         if enviar:
             categoria_final = (
                 nova_categoria.strip() if categoria_opcao == "+ Nova categoria..." else categoria_opcao
             )
-            if not titulo_material or not categoria_final or arquivo is None:
-                st.warning("Preencha todos os campos obrigatórios (*) e escolha um arquivo.")
+            if not titulo_material or not categoria_final or not link_material or not link_material.strip():
+                st.warning("Preencha todos os campos obrigatórios (*).")
+            elif not link_material.strip().lower().startswith(("http://", "https://")):
+                st.warning("O link precisa começar com http:// ou https://")
             else:
-                enviar_material(
+                criar_material(
                     titulo_material, descricao_material, categoria_final,
-                    arquivo.getvalue(), arquivo.name,
+                    link_material, _ICONES_MATERIAIS[icone_label_novo],
                 )
-                st.success(f"Material '{titulo_material}' enviado com sucesso!")
+                st.success(f"Material '{titulo_material}' adicionado com sucesso!")
                 st.rerun()
 
     # ---------------- DÚVIDAS ----------------

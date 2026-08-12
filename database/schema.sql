@@ -143,21 +143,30 @@ create table if not exists public.certificados (
     unique (aluno_id, curso_id)
 );
 
--- MATERIAIS: fotos, documentos e arquivos disponibilizados para download.
--- O arquivo em si fica no Supabase Storage (bucket "materiais"); aqui só
--- guardamos os metadados (título, categoria, caminho do arquivo etc.).
+-- MATERIAIS: fotos, documentos e arquivos disponibilizados como link (ex:
+-- pasta/arquivo do Google Drive) para os alunos consultarem. Cada material é
+-- um card com ícone + título que abre o link em outra aba.
 -- ----------------------------------------------------------------------------
 create table if not exists public.materiais (
     id                bigint generated always as identity primary key,
     titulo            text not null,
     descricao         text,
     categoria         text not null,
-    nome_arquivo      text not null,
-    caminho_storage   text not null,
+    link_url          text not null,          -- link do Google Drive (ou outro serviço) com o material
+    icone             text not null default '🔗',
+    -- colunas antigas (versão com upload de arquivo p/ Supabase Storage),
+    -- mantidas só para não quebrar bancos já existentes; não são mais usadas.
+    nome_arquivo      text,
+    caminho_storage   text,
     tipo_arquivo      text,
     tamanho_bytes     bigint,
     criado_em         timestamptz not null default now()
 );
+-- Migração de bancos criados antes desta versão (upload de arquivo -> link):
+alter table public.materiais add column if not exists link_url text;
+alter table public.materiais add column if not exists icone text not null default '🔗';
+alter table public.materiais alter column nome_arquivo drop not null;
+alter table public.materiais alter column caminho_storage drop not null;
 
 -- ----------------------------------------------------------------------------
 -- DÚVIDAS (perguntas do dia a dia enviadas pelos alunos na página inicial)
