@@ -71,8 +71,9 @@ _ICONES_MATERIAIS = {
     "📊 Planilha": "📊",
     "🖼️ Fotos": "🖼️",
     "🎥 Vídeo": "🎥",
-    "🛠️ Equipamentos e ferramentas": "🛠️",
+    "🛠️ Ferramentas": "🛠️",
     "📘 Manual": "📘",
+    "🔄 Atualizações": "🔄",
     "🔗 Link genérico": "🔗",
 }
 
