@@ -212,6 +212,12 @@ class MainActivity : AppCompatActivity() {
         settings.mediaPlaybackRequiresUserGesture = false
         settings.setSupportZoom(false)
         settings.mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
+        // Necessário para o WebView sequer chamar onCreateWindow (abaixo) em
+        // links que abririam em nova aba/janela (target="_blank", o botão
+        // "Abrir" dos Materiais, window.open() etc.) — sem isso, o clique
+        // não faz literalmente nada, sem erro nenhum.
+        settings.setSupportMultipleWindows(true)
+        settings.javaScriptCanOpenWindowsAutomatically = true
 
         webView.addJavascriptInterface(WebAppInterface(this), "Android")
 
@@ -316,6 +322,40 @@ class MainActivity : AppCompatActivity() {
 
                 viewTelaCheia = null
                 callbackTelaCheia = null
+            }
+
+            // Links que abririam em nova aba/janela (target="_blank", como o
+            // botão "Abrir" dos Materiais, ou o link do WhatsApp nas
+            // Dúvidas) caem aqui em vez de em shouldOverrideUrlLoading — são
+            // sempre um recurso EXTERNO à plataforma (ex: uma pasta do
+            // Google Drive), diferente da navegação normal de página
+            // inteira (essa sim fica dentro do app). O Android exige
+            // "entregar" uma WebView de verdade pra essa janela nova — como
+            // o app é uma casca só (sem suportar múltiplas janelas de
+            // verdade de fato), usamos uma WebView descartável só pra
+            // capturar qual URL foi pedida, e mandamos pro app certo do
+            // celular (navegador, Google Drive, WhatsApp etc.) em vez de
+            // tentar abrir dentro do próprio app.
+            override fun onCreateWindow(
+                view: WebView,
+                isDialog: Boolean,
+                isUserGesture: Boolean,
+                resultMsg: android.os.Message
+            ): Boolean {
+                val webViewTemporaria = WebView(this@MainActivity)
+                webViewTemporaria.webViewClient = object : WebViewClient() {
+                    override fun shouldOverrideUrlLoading(v: WebView, request: WebResourceRequest): Boolean {
+                        try {
+                            startActivity(Intent(Intent.ACTION_VIEW, request.url))
+                        } catch (_: Exception) {
+                            // Nenhum app instalado consegue abrir o link — ignora.
+                        }
+                        return true
+                    }
+                }
+                (resultMsg.obj as WebView.WebViewTransport).webView = webViewTemporaria
+                resultMsg.sendToTarget()
+                return true
             }
         }
 
