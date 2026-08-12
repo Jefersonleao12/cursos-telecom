@@ -33,6 +33,7 @@ from database.repositorio import (
     trocar_senha_aluno,
 )
 from modules.whatsapp import notificar_pedido_redefinicao_senha
+from modules.session_storage import ler_sessao_local, gravar_sessao_local, apagar_sessao_local
 from utils.helpers import email_valido, FILIAIS
 
 # Caminho da logo: assets/logo.png, na raiz do projeto (um nível acima de modules/)
@@ -111,12 +112,19 @@ def _login_efetuado(aluno: dict, lembrar: bool = True):
     st.session_state["aluno_deve_trocar_senha"] = aluno.get("deve_trocar_senha", False)
 
     if lembrar:
-        # Grava o token na URL para sobreviver a um F5 (ver docstring do módulo).
-        st.query_params[_PARAM_SESSAO] = _gerar_token_sessao(aluno["id"])
+        token = _gerar_token_sessao(aluno["id"])
+        # Grava o token na URL para sobreviver a um F5 (ver docstring do
+        # módulo) e também no localStorage do navegador, que persiste
+        # mesmo que o aluno abra a plataforma de novo por uma URL "limpa"
+        # (favorito, digitando o endereço, atalho do PWA) — como um cookie
+        # de sessão, deixa o login mais rápido e "lembrado" de verdade.
+        st.query_params[_PARAM_SESSAO] = token
+        gravar_sessao_local(token)
 
 
 def fazer_logout():
-    """Remove todos os dados da sessão, apaga o token da URL e volta para o login."""
+    """Remove todos os dados da sessão, apaga o token da URL/localStorage e volta para o login."""
+    apagar_sessao_local()
     for chave in list(st.session_state.keys()):
         del st.session_state[chave]
     st.query_params.clear()
@@ -147,6 +155,37 @@ def _restaurar_sessao_da_url() -> bool:
         return False
 
     _login_efetuado(aluno, lembrar=False)  # o token já está na URL, não precisa regravar
+    return True
+
+
+def _restaurar_sessao_local():
+    """
+    Tenta restaurar a sessão a partir do token salvo no localStorage do
+    navegador (ver modules/session_storage.py) — usado quando não há token
+    na URL (ex: aluno abriu a plataforma de novo por um favorito/atalho
+    "limpo"). Retorna:
+    - "pendente" se a resposta do JavaScript ainda não chegou (só acontece
+      por uma fração de segundo, na primeiríssima renderização);
+    - True se restaurou a sessão com sucesso;
+    - False se não havia nada salvo, ou o token era inválido/expirado.
+    """
+    token = ler_sessao_local()
+    if token is None:
+        return "pendente"
+    if not token:
+        return False
+
+    aluno_id = _validar_token_sessao(token)
+    if not aluno_id:
+        apagar_sessao_local()
+        return False
+
+    aluno = buscar_aluno_por_id(aluno_id)
+    if not aluno or not aluno.get("ativo", True):
+        apagar_sessao_local()
+        return False
+
+    _login_efetuado(aluno)  # renova o token tanto na URL quanto no localStorage
     return True
 
 
@@ -440,6 +479,23 @@ def exigir_login():
             _tela_trocar_senha_obrigatoria()
             st.stop()
         return  # sessão restaurada a partir do token da URL — sem precisar logar de novo
+
+    resultado_local = _restaurar_sessao_local()
+    if resultado_local == "pendente":
+        # Aguardando o round-trip do componente que lê o localStorage —
+        # dura só uma fração de segundo; a resposta dispara sozinha uma
+        # nova execução assim que chega, sem precisar de ação do aluno.
+        st.markdown(
+            "<div style='display:flex; justify-content:center; margin-top:4rem;'>"
+            "<span style='color:#6B7A8F;'>Carregando…</span></div>",
+            unsafe_allow_html=True,
+        )
+        st.stop()
+    if resultado_local:
+        if st.session_state.get("aluno_deve_trocar_senha"):
+            _tela_trocar_senha_obrigatoria()
+            st.stop()
+        return  # sessão restaurada a partir do localStorage — sem precisar logar de novo
 
     _estilos_auth()
 

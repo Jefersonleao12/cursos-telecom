@@ -35,9 +35,14 @@ st.set_page_config(
 # editar o <head> da página diretamente pelo Python, então usamos esse
 # componente para "empurrar" as tags necessárias (manifest, ícone, cor do
 # tema) para o documento de verdade e registrar o service worker.
-# Isso roda em toda página, silenciosamente — não aparece nada na tela.
+# Isso roda silenciosamente — não aparece nada na tela. Só precisa rodar
+# UMA vez por sessão do navegador (as tags, uma vez inseridas, continuam
+# lá); sem essa guarda, esse componente (um iframe extra) seria remontado
+# em toda troca de página/clique, deixando a navegação mais lenta à toa.
 # ----------------------------------------------------------------------------
-components.html(
+if not st.session_state.get("_pwa_configurado"):
+    st.session_state["_pwa_configurado"] = True
+    components.html(
     """
     <script>
         (function () {
@@ -88,9 +93,9 @@ components.html(
         })();
     </script>
     """,
-    height=0,
-    width=0,
-)
+        height=0,
+        width=0,
+    )
 
 # Ícone (só o "N" circular, sem o texto) usado no topo da barra lateral.
 _CAMINHO_ICONE = Path(__file__).resolve().parent / "assets" / "icone.png"
@@ -189,13 +194,19 @@ def main():
             st.caption(st.session_state["aluno_empresa"])
         st.divider()
 
-        pagina_ativa = st.session_state["pagina_atual"]
-
         def _botao_menu(rotulo, destino, grupo=None):
-            ativo = pagina_ativa == destino or (grupo and pagina_ativa in grupo)
+            # Lê "pagina_atual" na hora (em vez de uma vez só antes do
+            # loop) e não força um st.rerun() extra: um clique em botão já
+            # reroda o script inteiro sozinho, então o roteamento mais
+            # abaixo (mesma execução) já pega o novo valor. Chamar
+            # st.rerun() aqui faria essa execução inteira (config de
+            # página, PWA, todo o menu lateral) rodar em dobro a cada
+            # clique — a app inteira ficava perceptivelmente mais lenta
+            # pra trocar de página.
+            pagina_atual = st.session_state["pagina_atual"]
+            ativo = pagina_atual == destino or (grupo and pagina_atual in grupo)
             if st.button(rotulo, use_container_width=True, type="primary" if ativo else "secondary"):
                 st.session_state["pagina_atual"] = destino
-                st.rerun()
 
         _botao_menu("🏠 Início", "inicio")
         _botao_menu("📚 Meus Cursos", "lista_cursos", grupo={"lista_cursos", "detalhe_curso"})
