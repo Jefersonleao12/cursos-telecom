@@ -1,0 +1,34 @@
+# Blueprint do Render (https://render.com) para a Plataforma de Treinamentos
+# em Telecomunicações.
+#
+# COMO USAR:
+# 1) No painel do Render, clique em "New +" -> "Blueprint"
+# 2) Conecte este repositório do GitHub
+# 3) O Render lê este arquivo sozinho e já propõe o serviço abaixo
+# 4) Antes de criar, preencha os valores dos "Secrets" pedidos (eles ficam
+#    marcados como "sync: false" abaixo de propósito, pra nunca ficarem
+#    salvos aqui no código — só no painel do Render):
+#      SUPABASE_URL, SUPABASE_SERVICE_KEY  (obrigatórios)
+#      WHATSAPP_PHONE, WHATSAPP_APIKEY     (opcionais, notificação por WhatsApp)
+# 5) Clique em "Apply" — o Render builda e publica o app sozinho a partir daí
+#
+# Sem este arquivo, também dá pra criar o serviço manualmente em
+# "New +" -> "Web Service", usando os mesmos comandos de build/start abaixo.
+services:
+  - type: web
+    name: cursos-telecom
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: WHATSAPP_PHONE
+        sync: false
+      - key: WHATSAPP_APIKEY
+        sync: false

@@ -12,14 +12,13 @@ Sistema web gratuito (custo zero) para treinamentos corporativos, com:
 - **Python + Streamlit** — front-end e back-end no mesmo código
 - **Supabase (PostgreSQL)** — banco de dados gratuito
 - **YouTube (não listado)** — hospedagem dos vídeos
-- **Streamlit Community Cloud** — hospedagem do site, de graça
+- **Hospedagem do site**: Streamlit Community Cloud ou Render (ver seção abaixo) — o código não depende de nenhum dos dois em particular
 
 ## Como rodar localmente
 
 ```bash
 pip install -r requirements.txt
-cp .streamlit/secrets.toml.exemplo .streamlit/secrets.toml
-# edite o secrets.toml com as suas chaves do Supabase
+# preencha .streamlit/secrets.toml com as suas chaves do Supabase
 streamlit run app.py
 ```
 
@@ -35,6 +34,49 @@ modules/provas.py         → avaliações e cálculo de notas
 modules/certificado.py    → geração do PDF do certificado
 modules/admin.py          → painel para cadastrar cursos/aulas/provas
 ```
+
+## Hospedagem: Streamlit Community Cloud vs Render
+
+O projeto roda em qualquer um dos dois sem mudar código — as credenciais
+(Supabase, WhatsApp) são lidas tanto de `st.secrets` (Streamlit Cloud) quanto
+de variáveis de ambiente (Render, ou qualquer outro host), ver
+`utils/helpers.obter_segredo`.
+
+**Diferença prática importante:** no plano gratuito do Render, o serviço
+"dorme" depois de ~15 min sem acesso e demora uns 30-50s pra acordar no
+próximo acesso (o Streamlit Cloud gratuito também dorme, de um jeito
+parecido). Pra ficar sempre no ar sem essa espera, é preciso um plano pago do
+Render (a partir de uns US$ 7/mês).
+
+### Como migrar para o Render
+
+1. Crie uma conta em https://render.com (dá pra entrar direto com a conta do GitHub).
+2. No painel, clique em **New +** → **Blueprint** e conecte este repositório
+   (`Jefersonleao12/cursos-telecom`) — o Render já lê o arquivo `render.yaml`
+   da raiz do projeto e propõe o serviço sozinho.
+   - Alternativa sem Blueprint: **New +** → **Web Service**, escolha o repo, e
+     preencha manualmente:
+     - Build Command: `pip install -r requirements.txt`
+     - Start Command: `streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true`
+3. Antes de confirmar a criação, preencha as variáveis de ambiente pedidas
+   (mesmos valores que já estão configurados hoje no Streamlit Cloud):
+   - `SUPABASE_URL`
+   - `SUPABASE_SERVICE_KEY`
+   - `WHATSAPP_PHONE` (opcional)
+   - `WHATSAPP_APIKEY` (opcional)
+4. Clique em **Apply**/**Create Web Service** — o primeiro deploy leva
+   alguns minutos. Quando terminar, o Render te dá uma URL do tipo
+   `https://cursos-telecom.onrender.com` (ou parecido).
+5. **Teste tudo nessa URL antes de desligar o Streamlit Cloud**: login,
+   cursos/vídeos, provas, certificado em PDF, materiais, avisos/destaques,
+   e o botão de instalar no iPhone (PWA).
+6. Avise para atualizar o APK e o EXE com a URL nova — eles têm o endereço
+   do Streamlit Cloud fixo no código
+   (`mobile-app/.../res/values/strings.xml` e `desktop-app/main.js`) e
+   precisam ser recompilados apontando pro Render antes de continuar
+   funcionando.
+7. Só depois de confirmar que tudo funciona na nova URL (site + apps
+   recompilados), desative/exclua o app no Streamlit Community Cloud.
 
 ## App para Android (APK) e Windows (EXE)
 

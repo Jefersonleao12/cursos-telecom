@@ -2,9 +2,30 @@
 Funções utilitárias usadas em várias partes do sistema.
 Mantê-las separadas facilita testar e reaproveitar o código.
 """
+import os
 import re
 import uuid
 from datetime import datetime
+
+import streamlit as st
+
+
+def obter_segredo(chave: str, default=None):
+    """
+    Lê uma credencial (Supabase, WhatsApp etc.) tanto de `st.secrets`
+    (arquivo .streamlit/secrets.toml local, ou "Secrets" no painel do
+    Streamlit Community Cloud) quanto de variável de ambiente do sistema
+    operacional (usado no Render e em qualquer outro host que não seja o
+    Streamlit Community Cloud). Isso deixa o projeto independente de onde
+    ele está hospedado, sem precisar mudar nada no código pra trocar de
+    provedor — só configurar a credencial do jeito que aquele host espera.
+    """
+    try:
+        if chave in st.secrets:
+            return st.secrets[chave]
+    except Exception:
+        pass  # sem secrets.toml configurado: cai para a variável de ambiente
+    return os.environ.get(chave, default)
 
 
 # Lista de filiais (cidades) disponíveis para o aluno selecionar no cadastro.

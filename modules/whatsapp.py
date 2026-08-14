@@ -12,8 +12,9 @@ pequeno limite de mensagens por minuto. Por isso, a dúvida do aluno é SEMPRE
 salva no banco de dados primeiro (ver database/repositorio.py) — o WhatsApp
 é um "bônus" de agilidade, não a única forma de a pergunta chegar até você.
 """
-import streamlit as st
 import requests
+
+from utils.helpers import obter_segredo
 
 
 def _chamar_callmebot(texto: str) -> tuple[bool, str]:
@@ -23,14 +24,8 @@ def _chamar_callmebot(texto: str) -> tuple[bool, str]:
     API Key inválida/expirada) — o motivo real vem no corpo da resposta,
     por isso não basta olhar o status_code.
     """
-    try:
-        telefone = st.secrets["WHATSAPP_PHONE"]
-        apikey = st.secrets["WHATSAPP_APIKEY"]
-    except (KeyError, FileNotFoundError):
-        return False, (
-            "WHATSAPP_PHONE e/ou WHATSAPP_APIKEY não estão configurados nos "
-            "Secrets do app."
-        )
+    telefone = obter_segredo("WHATSAPP_PHONE")
+    apikey = obter_segredo("WHATSAPP_APIKEY")
 
     if not telefone or not apikey:
         return False, "WHATSAPP_PHONE ou WHATSAPP_APIKEY está vazio nos Secrets do app."

@@ -34,7 +34,7 @@ from database.repositorio import (
 )
 from modules.whatsapp import notificar_pedido_redefinicao_senha
 from modules.session_storage import ler_sessao_local, gravar_sessao_local, apagar_sessao_local
-from utils.helpers import email_valido, FILIAIS
+from utils.helpers import email_valido, obter_segredo, FILIAIS
 
 # Caminho da logo: assets/logo.png, na raiz do projeto (um nível acima de modules/)
 _CAMINHO_LOGO = Path(__file__).resolve().parent.parent / "assets" / "logo.png"
@@ -65,10 +65,11 @@ def verificar_senha(senha_digitada: str, senha_hash_salva: str) -> bool:
 def _chave_secreta() -> bytes:
     """
     Chave usada para assinar o token de sessão. Reaproveita a chave de
-    serviço do Supabase (já configurada em secrets.toml) para não exigir
-    nenhuma configuração extra do usuário.
+    serviço do Supabase (já configurada de qualquer forma, em secrets.toml
+    ou variável de ambiente — ver utils/helpers.obter_segredo) para não
+    exigir nenhuma configuração extra do usuário.
     """
-    chave = st.secrets.get("SUPABASE_SERVICE_KEY", "chave-padrao-troque-em-producao")
+    chave = obter_segredo("SUPABASE_SERVICE_KEY", "chave-padrao-troque-em-producao")
     return f"cursos-telecom::token-sessao::{chave}".encode("utf-8")
 
 
