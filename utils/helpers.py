@@ -19,13 +19,26 @@ def obter_segredo(chave: str, default=None):
     Streamlit Community Cloud). Isso deixa o projeto independente de onde
     ele está hospedado, sem precisar mudar nada no código pra trocar de
     provedor — só configurar a credencial do jeito que aquele host espera.
+
+    Também limpa espaços/quebras de linha "escondidos" que podem entrar
+    sem querer ao colar um valor longo (o campo de variáveis de ambiente
+    do Render, por exemplo, quebra a linha visualmente pra exibir — o que
+    é só aparência — mas se uma quebra de linha real ficar no meio do
+    valor colado, fica impossível notar só olhando, e uma chave JWT do
+    Supabase com qualquer espaço/quebra vira "Invalid API key" na hora.
+    Nem URL nem chave de API têm espaço de verdade, então é seguro remover.
     """
+    valor = None
     try:
         if chave in st.secrets:
-            return st.secrets[chave]
+            valor = st.secrets[chave]
     except Exception:
         pass  # sem secrets.toml configurado: cai para a variável de ambiente
-    return os.environ.get(chave, default)
+    if valor is None:
+        valor = os.environ.get(chave, default)
+    if isinstance(valor, str):
+        valor = re.sub(r"\s+", "", valor)
+    return valor
 
 
 # Lista de filiais (cidades) disponíveis para o aluno selecionar no cadastro.
