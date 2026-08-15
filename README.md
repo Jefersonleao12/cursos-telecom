@@ -18,7 +18,8 @@ Sistema web gratuito (custo zero) para treinamentos corporativos, com:
 
 ```bash
 pip install -r requirements.txt
-# preencha .streamlit/secrets.toml com as suas chaves do Supabase
+cp .streamlit/secrets.toml.example .streamlit/secrets.toml
+# preencha o novo .streamlit/secrets.toml com as suas chaves do Supabase
 streamlit run app.py
 ```
 
