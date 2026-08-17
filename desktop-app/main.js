@@ -9,8 +9,8 @@ const { app, BrowserWindow, shell, session, Menu, dialog, clipboard } = require(
 const path = require("path");
 const fs = require("fs");
 
-const URL_APP = "https://cursos-telecom.streamlit.app/";
-const DOMINIO_PERMITIDO = "cursos-telecom.streamlit.app";
+const URL_APP = "https://cursos-telecom.onrender.com/";
+const DOMINIO_PERMITIDO = "cursos-telecom.onrender.com";
 const ARQUIVO_ESTADO = path.join(app.getPath("userData"), "ultima-sessao.json");
 
 function lerUltimaUrl() {

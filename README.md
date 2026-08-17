@@ -82,7 +82,7 @@ Render (a partir de uns US$ 7/mês).
 ## App para Android (APK) e Windows (EXE)
 
 Além do site, o projeto tem duas "cascas" nativas que abrem
-`https://cursos-telecom.streamlit.app/` como se fosse um app instalado —
+`https://cursos-telecom.onrender.com/` como se fosse um app instalado —
 mantendo o aluno logado entre uma abertura e outra e permitindo baixar o
 certificado de capacitação em PDF direto pelo app:
 
@@ -111,7 +111,7 @@ Safari (e ainda não instalou) e mostra um aviso na tela Início explicando
 como instalar (`modules/inicio.py`, `_aviso_instalar_iphone`). O passo a
 passo para o aluno é:
 
-1. Abrir `https://cursos-telecom.streamlit.app/` no **Safari** (não funciona
+1. Abrir `https://cursos-telecom.onrender.com/` no **Safari** (não funciona
    pelo Chrome/Instagram no iPhone — só o Safari tem essa opção).
 2. Tocar no ícone de **Compartilhar** (quadrado com uma seta para cima).
 3. Tocar em **"Adicionar à Tela de Início"**.

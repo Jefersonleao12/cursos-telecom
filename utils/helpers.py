@@ -70,6 +70,39 @@ def email_valido(email: str) -> bool:
     return re.match(padrao, email or "") is not None
 
 
+def somente_digitos(texto: str) -> str:
+    """Remove tudo que não for número (usado pra CPF/telefone digitados com ou sem pontuação)."""
+    return re.sub(r"\D", "", texto or "")
+
+
+def cpf_valido(cpf: str) -> bool:
+    """
+    Valida um CPF (só o formato/dígitos verificadores, não confere se a
+    pessoa existe de verdade) — aceita com ou sem pontuação
+    (000.000.000-00 ou 00000000000).
+    """
+    digitos = somente_digitos(cpf)
+    if len(digitos) != 11 or digitos == digitos[0] * 11:
+        return False
+
+    def _digito_verificador(parcial: str) -> str:
+        soma = sum(int(d) * peso for d, peso in zip(parcial, range(len(parcial) + 1, 1, -1)))
+        resto = (soma * 10) % 11
+        return str(resto if resto < 10 else 0)
+
+    d1 = _digito_verificador(digitos[:9])
+    d2 = _digito_verificador(digitos[:9] + d1)
+    return digitos[-2:] == d1 + d2
+
+
+def formatar_cpf(cpf: str) -> str:
+    """Formata um CPF de 11 dígitos como 000.000.000-00 (só para exibição)."""
+    digitos = somente_digitos(cpf)
+    if len(digitos) != 11:
+        return cpf or ""
+    return f"{digitos[:3]}.{digitos[3:6]}.{digitos[6:9]}-{digitos[9:]}"
+
+
 def gerar_codigo_verificacao() -> str:
     """Gera um código único e curto para validar a autenticidade de um certificado."""
     return f"CERT-{uuid.uuid4().hex[:10].upper()}"

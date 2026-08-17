@@ -18,21 +18,25 @@ create table if not exists public.alunos (
     id             uuid primary key default gen_random_uuid(),
     nome_completo  text not null,
     email          text unique not null,
+    cpf            text unique,         -- login e senha inicial do aluno (cadastro é feito só pelo admin)
     senha_hash     text not null,       -- senha JAMAIS é salva em texto puro (usamos bcrypt)
     empresa        text,
     cargo          text,
-    filial         text,                -- cidade/filial escolhida pelo aluno no cadastro
-    telefone       text,                -- telefone de contato (opcional, o aluno preenche em "Meu Perfil")
+    filial         text,                -- cidade/filial do aluno
+    telefone       text,                -- WhatsApp de contato
     is_admin       boolean not null default false,
     ativo          boolean not null default true,   -- acesso pode ser bloqueado pelo admin sem excluir a conta
-    deve_trocar_senha            boolean not null default false, -- true após o admin gerar uma senha temporária
+    deve_trocar_senha            boolean not null default false, -- true após o admin gerar uma senha temporária (ou cadastrar o aluno)
+    deve_definir_foto            boolean not null default false, -- true até o aluno definir a foto de perfil pela 1ª vez
     solicitou_redefinicao_senha  boolean not null default false, -- "esqueci minha senha", aguardando o admin
     foto_url       text,                -- link público da foto de perfil (Supabase Storage)
     criado_em      timestamptz not null default now()
 );
--- Garante a coluna também em bancos que já tinham a tabela "alunos" criada
+-- Garante as colunas também em bancos que já tinham a tabela "alunos" criada
 -- antes desta versão (rodar este script de novo é seguro/idempotente).
 alter table public.alunos add column if not exists telefone text;
+alter table public.alunos add column if not exists cpf text unique;
+alter table public.alunos add column if not exists deve_definir_foto boolean not null default false;
 
 -- ----------------------------------------------------------------------------
 -- CURSOS
