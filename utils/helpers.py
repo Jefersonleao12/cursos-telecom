@@ -1,24 +1,28 @@
 """
 Funções utilitárias usadas em várias partes do sistema.
 Mantê-las separadas facilita testar e reaproveitar o código.
+
+Sem dependência de nenhum framework de UI — compartilhado pelas duas apps
+que coexistem durante a migração (Streamlit em app.py/modules/*.py, e
+FastAPI em webapp/).
 """
 import os
 import re
 import uuid
 from datetime import datetime
 
-import streamlit as st
-
 
 def obter_segredo(chave: str, default=None):
     """
     Lê uma credencial (Supabase, WhatsApp etc.) tanto de `st.secrets`
     (arquivo .streamlit/secrets.toml local, ou "Secrets" no painel do
-    Streamlit Community Cloud) quanto de variável de ambiente do sistema
-    operacional (usado no Render e em qualquer outro host que não seja o
-    Streamlit Community Cloud). Isso deixa o projeto independente de onde
-    ele está hospedado, sem precisar mudar nada no código pra trocar de
-    provedor — só configurar a credencial do jeito que aquele host espera.
+    Streamlit Community Cloud — só quando a app Streamlit ainda está no
+    ar) quanto de variável de ambiente do sistema operacional (usado no
+    Render, na nova app FastAPI, ou em qualquer outro host). O import do
+    streamlit é feito aqui dentro, de propósito: assim esta função
+    continua funcionando tanto na app antiga quanto na nova (que nem tem
+    o pacote streamlit instalado) sem precisar de nenhuma configuração
+    extra pra trocar de provedor de hospedagem.
 
     Também limpa espaços/quebras de linha "escondidos" que podem entrar
     sem querer ao colar um valor longo (o campo de variáveis de ambiente
@@ -30,10 +34,11 @@ def obter_segredo(chave: str, default=None):
     """
     valor = None
     try:
+        import streamlit as st
         if chave in st.secrets:
             valor = st.secrets[chave]
     except Exception:
-        pass  # sem secrets.toml configurado: cai para a variável de ambiente
+        pass  # sem streamlit instalado, ou sem secrets.toml: cai para a variável de ambiente
     if valor is None:
         valor = os.environ.get(chave, default)
     if isinstance(valor, str):

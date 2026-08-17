@@ -4,14 +4,16 @@ Camada de acesso a dados (Repositório).
 Concentra TODAS as consultas ao Supabase em um único lugar. Isso facilita a
 manutenção: se um dia você quiser trocar de banco de dados ou entender como
 alguma tela busca suas informações, é só olhar aqui.
+
+Sem dependência de nenhum framework de UI (nem Streamlit, nem FastAPI) —
+compartilhado pelas duas apps que coexistem durante a migração.
 """
 import io
 import time
 import uuid
 from datetime import datetime, timezone
 
-import streamlit as st
-
+from database.cache import cache_com_ttl
 from database.supabase_client import get_supabase_client
 
 
@@ -290,14 +292,14 @@ def contar_alunos_por_filial():
 # CURSOS
 # ---------------------------------------------------------------------------
 
-@st.cache_data(ttl=20, show_spinner=False)
+@cache_com_ttl(ttl=20)
 def listar_cursos():
     sb = get_supabase_client()
     resposta = sb.table("cursos").select("*").order("criado_em", desc=True).execute()
     return resposta.data
 
 
-@st.cache_data(ttl=20, show_spinner=False)
+@cache_com_ttl(ttl=20)
 def buscar_curso(curso_id: int):
     sb = get_supabase_client()
     resposta = sb.table("cursos").select("*").eq("id", curso_id).execute()
@@ -343,14 +345,14 @@ def excluir_curso(curso_id: int):
 # MÓDULOS (assuntos dentro de um curso)
 # ---------------------------------------------------------------------------
 
-@st.cache_data(ttl=20, show_spinner=False)
+@cache_com_ttl(ttl=20)
 def listar_modulos_do_curso(curso_id: int):
     sb = get_supabase_client()
     resposta = sb.table("modulos").select("*").eq("curso_id", curso_id).order("ordem").execute()
     return resposta.data
 
 
-@st.cache_data(ttl=20, show_spinner=False)
+@cache_com_ttl(ttl=20)
 def buscar_modulo(modulo_id: int):
     sb = get_supabase_client()
     resposta = sb.table("modulos").select("*").eq("id", modulo_id).execute()
@@ -385,7 +387,7 @@ def excluir_modulo(modulo_id: int):
 # AULAS (agora pertencem a um módulo)
 # ---------------------------------------------------------------------------
 
-@st.cache_data(ttl=20, show_spinner=False)
+@cache_com_ttl(ttl=20)
 def listar_aulas_do_modulo(modulo_id: int):
     sb = get_supabase_client()
     resposta = (
@@ -398,7 +400,7 @@ def listar_aulas_do_modulo(modulo_id: int):
     return resposta.data
 
 
-@st.cache_data(ttl=20, show_spinner=False)
+@cache_com_ttl(ttl=20)
 def listar_aulas_do_curso(curso_id: int):
     """Todas as aulas do curso, de TODOS os módulos juntos — usado para
     calcular o progresso geral do curso (barra de progresso no topo)."""
@@ -460,7 +462,7 @@ def marcar_aula_concluida(aluno_id: str, aula_id: int):
     _consultar_aulas_concluidas.clear()
 
 
-@st.cache_data(ttl=15, show_spinner=False)
+@cache_com_ttl(ttl=15)
 def _consultar_aulas_concluidas(aluno_id: str, ids_aulas: tuple):
     """
     Função interna (cacheada): dado um conjunto de IDs de aula, devolve quais
@@ -539,7 +541,7 @@ def curso_totalmente_concluido(aluno_id: str, curso_id: int) -> bool:
     return all(modulo_esta_completo(aluno_id, m["id"]) for m in modulos)
 
 
-@st.cache_data(ttl=60, show_spinner=False)
+@cache_com_ttl(ttl=60)
 def calcular_ranking_alunos():
     """
     Ranking dos alunos por progresso nos cursos, usado na tela "Top Alunos"
@@ -664,7 +666,7 @@ def obter_tempos_curso(aluno_id: str, curso_id: int):
 # PROVAS E PERGUNTAS
 # ---------------------------------------------------------------------------
 
-@st.cache_data(ttl=20, show_spinner=False)
+@cache_com_ttl(ttl=20)
 def buscar_prova_do_modulo(modulo_id: int):
     sb = get_supabase_client()
     resposta = sb.table("provas").select("*").eq("modulo_id", modulo_id).execute()
@@ -672,7 +674,7 @@ def buscar_prova_do_modulo(modulo_id: int):
     return dados[0] if dados else None
 
 
-@st.cache_data(ttl=20, show_spinner=False)
+@cache_com_ttl(ttl=20)
 def buscar_prova_do_curso(curso_id: int):
     """Compatibilidade: retorna a primeira prova encontrada entre os módulos do curso."""
     sb = get_supabase_client()
@@ -681,7 +683,7 @@ def buscar_prova_do_curso(curso_id: int):
     return dados[0] if dados else None
 
 
-@st.cache_data(ttl=20, show_spinner=False)
+@cache_com_ttl(ttl=20)
 def listar_provas_do_curso(curso_id: int):
     """Todas as provas do curso, uma por módulo (útil para o dashboard/admin)."""
     sb = get_supabase_client()
@@ -723,7 +725,7 @@ def excluir_prova(prova_id: int):
     listar_provas_do_curso.clear()
 
 
-@st.cache_data(ttl=20, show_spinner=False)
+@cache_com_ttl(ttl=20)
 def listar_perguntas(prova_id: int):
     sb = get_supabase_client()
     resposta = (
@@ -792,7 +794,7 @@ def salvar_resultado_prova(aluno_id: str, prova_id: int, nota: float, aprovado: 
     return resposta.data[0]
 
 
-@st.cache_data(ttl=15, show_spinner=False)
+@cache_com_ttl(ttl=15)
 def melhor_resultado(aluno_id: str, prova_id: int):
     """
     Retorna o melhor resultado (maior nota) que o aluno já obteve nesta prova.
@@ -921,7 +923,7 @@ def criar_material(titulo: str, descricao: str, categoria: str, link_url: str, i
     return resposta.data[0]
 
 
-@st.cache_data(ttl=20, show_spinner=False)
+@cache_com_ttl(ttl=20)
 def listar_materiais():
     """Lista todos os materiais, do mais recente para o mais antigo."""
     sb = get_supabase_client()
@@ -929,7 +931,7 @@ def listar_materiais():
     return resposta.data
 
 
-@st.cache_data(ttl=20, show_spinner=False)
+@cache_com_ttl(ttl=20)
 def listar_categorias_materiais():
     """Lista as categorias já usadas (sem repetir), em ordem alfabética."""
     materiais = listar_materiais()
@@ -1006,7 +1008,7 @@ def criar_aviso(titulo: str, mensagem: str):
     return resposta.data[0]
 
 
-@st.cache_data(ttl=20, show_spinner=False)
+@cache_com_ttl(ttl=20)
 def listar_avisos_ativos():
     """Usado na tela de Início — mostra só os avisos que o admin não desativou."""
     sb = get_supabase_client()
@@ -1141,7 +1143,7 @@ def excluir_destaque(destaque_id, caminho_storage: str):
     listar_todos_destaques.clear()
 
 
-@st.cache_data(ttl=20, show_spinner=False)
+@cache_com_ttl(ttl=20)
 def listar_destaques_ativos():
     """Usado na tela de Início — só os destaques que o admin não desativou, em ordem."""
     sb = get_supabase_client()
@@ -1155,7 +1157,7 @@ def listar_destaques_ativos():
     return resposta.data
 
 
-@st.cache_data(ttl=20, show_spinner=False)
+@cache_com_ttl(ttl=20)
 def listar_todos_destaques():
     """Usado no painel admin — mostra ativos e inativos, para gerenciar."""
     sb = get_supabase_client()
