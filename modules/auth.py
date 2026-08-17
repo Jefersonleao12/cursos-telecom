@@ -1,5 +1,11 @@
 """
-Módulo de Autenticação: cadastro e login de alunos.
+Módulo de Autenticação: login de alunos.
+
+Não existe mais autocadastro — por segurança (a plataforma tem aulas e
+informações internas da empresa, e o link é público), toda conta é criada
+pelo administrador no painel ("Alunos" → "Cadastrar novo aluno"). O login
+é feito com o CPF do aluno (senha inicial = o próprio CPF); no primeiro
+acesso, é pedida uma foto de perfil (uma única vez).
 
 A senha NUNCA é salva em texto puro — usamos bcrypt para gerar um hash
 seguro e irreversível, que é o que fica armazenado no banco de dados.
@@ -26,15 +32,16 @@ import streamlit as st
 import bcrypt
 
 from database.repositorio import (
-    criar_aluno,
-    buscar_aluno_por_email,
+    buscar_aluno_por_cpf,
     buscar_aluno_por_id,
     solicitar_redefinicao_senha,
     trocar_senha_aluno,
+    atualizar_foto_perfil,
+    desmarcar_definir_foto,
 )
 from modules.whatsapp import notificar_pedido_redefinicao_senha
 from modules.session_storage import ler_sessao_local, gravar_sessao_local, apagar_sessao_local
-from utils.helpers import email_valido, obter_segredo, FILIAIS
+from utils.helpers import obter_segredo, somente_digitos
 
 # Caminho da logo: assets/logo.png, na raiz do projeto (um nível acima de modules/)
 _CAMINHO_LOGO = Path(__file__).resolve().parent.parent / "assets" / "logo.png"
@@ -104,6 +111,7 @@ def _login_efetuado(aluno: dict, lembrar: bool = True):
     st.session_state["aluno_id"] = aluno["id"]
     st.session_state["aluno_nome"] = aluno["nome_completo"]
     st.session_state["aluno_email"] = aluno["email"]
+    st.session_state["aluno_cpf"] = aluno.get("cpf") or ""
     st.session_state["aluno_empresa"] = aluno.get("empresa") or ""
     st.session_state["aluno_cargo"] = aluno.get("cargo") or ""
     st.session_state["aluno_filial"] = aluno.get("filial") or ""
@@ -111,6 +119,7 @@ def _login_efetuado(aluno: dict, lembrar: bool = True):
     st.session_state["aluno_foto_url"] = aluno.get("foto_url") or ""
     st.session_state["aluno_is_admin"] = aluno.get("is_admin", False)
     st.session_state["aluno_deve_trocar_senha"] = aluno.get("deve_trocar_senha", False)
+    st.session_state["aluno_deve_definir_foto"] = aluno.get("deve_definir_foto", False)
 
     if lembrar:
         token = _gerar_token_sessao(aluno["id"])
@@ -306,44 +315,32 @@ def _painel_hero():
     )
 
 
-def _seletor_login_cadastro():
-    """Alterna entre login/cadastro com dois botões estilo 'abas'."""
-    pagina_atual = st.session_state.get("pagina_auth", "login")
-    col_login, col_cadastro = st.columns(2)
-    with col_login:
-        if st.button(
-            "Entrar", use_container_width=True,
-            type="primary" if pagina_atual == "login" else "secondary",
-        ):
-            st.session_state["pagina_auth"] = "login"
-            st.rerun()
-    with col_cadastro:
-        if st.button(
-            "Criar cadastro", use_container_width=True,
-            type="primary" if pagina_atual == "cadastro" else "secondary",
-        ):
-            st.session_state["pagina_auth"] = "cadastro"
-            st.rerun()
-    st.write("")
-
-
 def tela_login():
     st.markdown('<div class="auth-card-title">🔐 Entrar na plataforma</div>', unsafe_allow_html=True)
-    st.markdown('<div class="auth-card-sub">Use o e-mail e a senha do seu cadastro.</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="auth-card-sub">Use seu CPF e a senha do seu cadastro '
+        '(cadastro feito pelo administrador).</div>',
+        unsafe_allow_html=True,
+    )
 
     with st.form("form_login", clear_on_submit=False):
-        email = st.text_input("📧 E-mail", placeholder="voce@empresa.com")
+        cpf = st.text_input("🪪 CPF", placeholder="Somente números")
         senha = st.text_input("🔒 Senha", type="password", placeholder="Sua senha")
         entrar = st.form_submit_button("Entrar", width="stretch", type="primary")
 
     if entrar:
-        if not email or not senha:
-            st.warning("Preencha e-mail e senha.")
+        if not cpf or not senha:
+            st.warning("Preencha CPF e senha.")
             return
 
-        aluno = buscar_aluno_por_email(email)
+        cpf_normalizado = somente_digitos(cpf)
+        if len(cpf_normalizado) != 11:
+            st.warning("Digite um CPF válido (11 números).")
+            return
+
+        aluno = buscar_aluno_por_cpf(cpf_normalizado)
         if aluno is None:
-            st.error("E-mail não encontrado. Verifique ou cadastre-se acima.")
+            st.error("CPF não encontrado. Confira o número ou fale com o administrador.")
             return
 
         if not aluno.get("ativo", True):
@@ -358,76 +355,28 @@ def tela_login():
 
     with st.expander("Esqueci minha senha"):
         st.caption(
-            "Informe o e-mail do seu cadastro. Um pedido de redefinição será "
+            "Informe o CPF do seu cadastro. Um pedido de redefinição será "
             "enviado para o administrador, que vai gerar uma nova senha para você."
         )
         with st.form("form_esqueci_senha", clear_on_submit=True):
-            email_recuperacao = st.text_input("E-mail cadastrado", key="email_recuperacao_senha")
+            cpf_recuperacao = st.text_input("CPF cadastrado", key="cpf_recuperacao_senha")
             pedir_redefinicao = st.form_submit_button("Solicitar redefinição de senha")
 
         if pedir_redefinicao:
-            if not email_recuperacao:
-                st.warning("Digite o e-mail do seu cadastro.")
+            if not cpf_recuperacao:
+                st.warning("Digite o CPF do seu cadastro.")
             else:
-                aluno_encontrado = solicitar_redefinicao_senha(email_recuperacao)
+                aluno_encontrado = solicitar_redefinicao_senha(cpf_recuperacao)
                 if aluno_encontrado:
                     notificar_pedido_redefinicao_senha(
                         aluno_encontrado["nome_completo"], aluno_encontrado["email"]
                     )
-                # Mesma mensagem independente de o e-mail existir ou não,
-                # para não revelar quais e-mails têm cadastro na plataforma.
+                # Mesma mensagem independente de o CPF existir ou não, para
+                # não revelar quais CPFs têm cadastro na plataforma.
                 st.success(
-                    "Se este e-mail estiver cadastrado, o pedido foi enviado. "
+                    "Se este CPF estiver cadastrado, o pedido foi enviado. "
                     "Aguarde o administrador entrar em contato com sua nova senha."
                 )
-
-
-def tela_cadastro():
-    st.markdown('<div class="auth-card-title">📝 Criar cadastro de aluno</div>', unsafe_allow_html=True)
-    st.markdown('<div class="auth-card-sub">Leva menos de um minuto.</div>', unsafe_allow_html=True)
-
-    with st.form("form_cadastro", clear_on_submit=False):
-        nome = st.text_input("Nome completo *")
-        email = st.text_input("E-mail *")
-        col_empresa, col_cargo = st.columns(2)
-        with col_empresa:
-            empresa = st.text_input("Empresa")
-        with col_cargo:
-            cargo = st.text_input("Cargo / Função")
-        filial = st.selectbox(
-            "Filial (cidade) *",
-            options=[""] + FILIAIS,
-            format_func=lambda v: "Selecione..." if v == "" else v,
-        )
-        senha = st.text_input("Senha *", type="password", help="Mínimo de 6 caracteres.")
-        confirmar_senha = st.text_input("Confirmar senha *", type="password")
-        cadastrar = st.form_submit_button("Cadastrar", width="stretch", type="primary")
-
-    if cadastrar:
-        if not nome or not email or not senha:
-            st.warning("Preencha todos os campos obrigatórios (*).")
-            return
-        if not filial:
-            st.warning("Selecione sua filial (cidade).")
-            return
-        if not email_valido(email):
-            st.warning("Digite um e-mail válido.")
-            return
-        if len(senha) < 6:
-            st.warning("A senha deve ter pelo menos 6 caracteres.")
-            return
-        if senha != confirmar_senha:
-            st.warning("As senhas não coincidem.")
-            return
-        if buscar_aluno_por_email(email) is not None:
-            st.error("Já existe um cadastro com este e-mail. Faça login acima.")
-            return
-
-        senha_hash = gerar_hash_senha(senha)
-        novo_aluno = criar_aluno(nome, email, senha_hash, empresa, cargo, filial)
-        st.success("Cadastro realizado com sucesso!")
-        _login_efetuado(novo_aluno)
-        st.rerun()
 
 
 def _tela_trocar_senha_obrigatoria():
@@ -461,24 +410,63 @@ def _tela_trocar_senha_obrigatoria():
                 st.rerun()
 
 
+def _tela_definir_foto_obrigatoria():
+    """
+    Mostrada uma única vez, no primeiro acesso de toda conta criada pelo
+    admin — pede a foto de perfil antes de liberar o resto da plataforma.
+    Depois que o aluno define a foto, essa tela nunca mais aparece pra ele
+    (deve_definir_foto vira False e fica assim, mesmo trocando de foto
+    depois em 'Meu Perfil').
+    """
+    st.title("📷 Adicione sua foto de perfil")
+    st.info("Antes de continuar, defina uma foto de perfil. É só dessa vez.")
+
+    _esq, centro, _dir = st.columns([1, 2, 1])
+    with centro:
+        nova_foto = st.file_uploader(
+            "Escolha uma foto", type=["jpg", "jpeg", "png"], label_visibility="collapsed",
+        )
+        if nova_foto is not None:
+            st.image(nova_foto, caption="Pré-visualização", width="stretch")
+            if st.button("Salvar foto e continuar", type="primary", width="stretch"):
+                nova_url = atualizar_foto_perfil(st.session_state["aluno_id"], nova_foto.getvalue())
+                desmarcar_definir_foto(st.session_state["aluno_id"])
+                st.session_state["aluno_foto_url"] = nova_url
+                st.session_state["aluno_deve_definir_foto"] = False
+                st.success("Foto salva!")
+                st.rerun()
+
+
+def _telas_obrigatorias_pendentes() -> bool:
+    """
+    Confere se o aluno logado precisa passar por alguma tela obrigatória
+    (troca de senha temporária, e/ou definir a foto de perfil no 1º
+    acesso) antes de usar o resto da plataforma. Se sim, já mostra a tela
+    certa e interrompe a execução (st.stop()); devolve True nesse caso.
+    """
+    if st.session_state.get("aluno_deve_trocar_senha"):
+        _tela_trocar_senha_obrigatoria()
+        st.stop()
+    if st.session_state.get("aluno_deve_definir_foto"):
+        _tela_definir_foto_obrigatoria()
+        st.stop()
+    return False
+
+
 def exigir_login():
     """
     Função 'porteira': se o usuário não estiver logado, tenta primeiro
     restaurar a sessão a partir do token na URL (sobrevive a F5); se não
-    conseguir, mostra as telas de login/cadastro e interrompe a execução
-    do restante do app (st.stop()).
+    conseguir, mostra a tela de login e interrompe a execução do restante
+    do app (st.stop()).
     Chame esta função no início do app.py, antes de montar o resto da interface.
     """
     if st.session_state.get("aluno_logado"):
-        if st.session_state.get("aluno_deve_trocar_senha"):
-            _tela_trocar_senha_obrigatoria()
-            st.stop()
+        _telas_obrigatorias_pendentes()
         return  # já está logado, o app.py segue o fluxo normal
 
     if _restaurar_sessao_da_url():
-        if st.session_state.get("aluno_deve_trocar_senha"):
-            _tela_trocar_senha_obrigatoria()
-            st.stop()
+        _telas_obrigatorias_pendentes()
         return  # sessão restaurada a partir do token da URL — sem precisar logar de novo
 
     resultado_local = _restaurar_sessao_local()
@@ -493,9 +481,7 @@ def exigir_login():
         )
         st.stop()
     if resultado_local:
-        if st.session_state.get("aluno_deve_trocar_senha"):
-            _tela_trocar_senha_obrigatoria()
-            st.stop()
+        _telas_obrigatorias_pendentes()
         return  # sessão restaurada a partir do localStorage — sem precisar logar de novo
 
     _estilos_auth()
@@ -503,7 +489,7 @@ def exigir_login():
     # A logo fica sozinha, pequena, acima de tudo — é a primeira coisa que
     # aparece na tela, sem competir em altura com o painel azul (que é bem
     # maior). Assim quem abre pelo celular já vê a marca Norte Tel e, logo
-    # abaixo, o "Entrar"/"Criar cadastro", sem precisar rolar a tela.
+    # abaixo, o "Entrar", sem precisar rolar a tela.
     _esq_logo, _centro_logo, _dir_logo = st.columns([1, 2, 1])
     with _centro_logo:
         st.image(str(_CAMINHO_LOGO), width="stretch")
@@ -512,18 +498,14 @@ def exigir_login():
     # propósito: no celular, o Streamlit empilha essas duas colunas na
     # mesma ordem em que aparecem aqui — se o painel viesse primeiro, quem
     # abrisse pelo celular precisaria rolar a tela toda pra baixo só pra
-    # chegar no "Entrar"/"Criar cadastro". Assim, o formulário já aparece
-    # em cima (celular) ou à esquerda (computador), e o painel azul (que
-    # continua com o mesmo visual de sempre) vem em seguida.
+    # chegar no "Entrar". Assim, o formulário já aparece em cima (celular)
+    # ou à esquerda (computador), e o painel azul (que continua com o
+    # mesmo visual de sempre) vem em seguida.
     col_form, col_hero = st.columns([6, 5], gap="large")
 
     with col_form:
         with st.container(border=True):
-            _seletor_login_cadastro()
-            if st.session_state.get("pagina_auth") == "cadastro":
-                tela_cadastro()
-            else:
-                tela_login()
+            tela_login()
 
     with col_hero:
         _painel_hero()

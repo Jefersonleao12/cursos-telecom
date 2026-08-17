@@ -27,20 +27,83 @@ def buscar_aluno_por_email(email: str):
     return dados[0] if dados else None
 
 
-def criar_aluno(nome_completo: str, email: str, senha_hash: str, empresa: str, cargo: str, filial: str = None):
-    """Cria um novo aluno no banco. Retorna o registro criado (já com o id gerado)."""
+def buscar_aluno_por_cpf(cpf: str):
+    """Retorna o registro do aluno pelo CPF (só dígitos), ou None se não existir. Usado no login."""
+    from utils.helpers import somente_digitos
+
     sb = get_supabase_client()
+    resposta = sb.table("alunos").select("*").eq("cpf", somente_digitos(cpf)).execute()
+    dados = resposta.data
+    return dados[0] if dados else None
+
+
+def criar_aluno_admin(nome_completo: str, cpf: str, email: str, telefone: str, filial: str, cargo: str):
+    """
+    Cria um novo aluno pelo painel de administração — não existe mais
+    autocadastro pelo próprio aluno. A senha inicial é o próprio CPF (sem
+    pontuação); o aluno pode trocá-la depois em 'Meu Perfil', se quiser.
+    Marca deve_definir_foto=True pra pedir a foto de perfil uma única vez,
+    no primeiro acesso. Retorna o registro criado.
+    """
+    from utils.helpers import somente_digitos
+
+    sb = get_supabase_client()
+    cpf_normalizado = somente_digitos(cpf)
     novo = {
         "nome_completo": nome_completo.strip(),
+        "cpf": cpf_normalizado,
         "email": email.lower().strip(),
-        "senha_hash": senha_hash,
-        "empresa": empresa.strip() if empresa else None,
+        "senha_hash": gerar_hash_senha_cpf(cpf_normalizado),
+        "empresa": "Norte Tel",
         "cargo": cargo.strip() if cargo else None,
         "filial": filial.strip() if filial else None,
+        "telefone": somente_digitos(telefone) if telefone else None,
         "is_admin": False,
+        "deve_definir_foto": True,
     }
     resposta = sb.table("alunos").insert(novo).execute()
     return resposta.data[0]
+
+
+def gerar_hash_senha_cpf(cpf: str) -> str:
+    """Gera o hash bcrypt de um CPF (só dígitos) para usar como senha."""
+    import bcrypt as _bcrypt
+
+    return _bcrypt.hashpw(cpf.encode("utf-8"), _bcrypt.gensalt()).decode("utf-8")
+
+
+def editar_aluno_admin(
+    aluno_id: str, nome_completo: str, cpf: str, email: str, telefone: str, filial: str, cargo: str,
+    resetar_senha_para_cpf: bool = False,
+):
+    """
+    Atualiza os dados de um aluno já cadastrado (painel de administração) —
+    usado tanto para correções gerais quanto para completar o CPF de contas
+    criadas antes dessa mudança. Se resetar_senha_para_cpf=True, a senha
+    também é redefinida para o novo CPF (usado ao migrar uma conta antiga).
+    """
+    from utils.helpers import somente_digitos
+
+    sb = get_supabase_client()
+    cpf_normalizado = somente_digitos(cpf) if cpf else None
+    dados = {
+        "nome_completo": nome_completo.strip(),
+        "cpf": cpf_normalizado,
+        "email": email.lower().strip(),
+        "telefone": somente_digitos(telefone) if telefone else None,
+        "filial": filial.strip() if filial else None,
+        "cargo": cargo.strip() if cargo else None,
+    }
+    if resetar_senha_para_cpf and cpf_normalizado:
+        dados["senha_hash"] = gerar_hash_senha_cpf(cpf_normalizado)
+        dados["deve_trocar_senha"] = False
+    sb.table("alunos").update(dados).eq("id", aluno_id).execute()
+
+
+def desmarcar_definir_foto(aluno_id: str):
+    """Usado depois que o aluno define a foto de perfil pela 1ª vez (obrigatório no 1º acesso)."""
+    sb = get_supabase_client()
+    sb.table("alunos").update({"deve_definir_foto": False}).eq("id", aluno_id).execute()
 
 
 def buscar_aluno_por_id(aluno_id: str):
@@ -150,16 +213,16 @@ def definir_admin_aluno(aluno_id: str, is_admin: bool):
     sb.table("alunos").update({"is_admin": is_admin}).eq("id", aluno_id).execute()
 
 
-def solicitar_redefinicao_senha(email: str):
+def solicitar_redefinicao_senha(cpf: str):
     """
     Usado na tela de login ('Esqueci minha senha'). Marca a conta para que o
     admin veja o pedido no painel e gere uma senha temporária. Retorna o
-    aluno encontrado, ou None se o e-mail não existir (a tela sempre mostra
-    a mesma mensagem de sucesso nos dois casos, para não revelar quais
-    e-mails têm cadastro).
+    aluno encontrado, ou None se o CPF não existir (a tela sempre mostra a
+    mesma mensagem de sucesso nos dois casos, para não revelar quais CPFs
+    têm cadastro).
     """
     sb = get_supabase_client()
-    aluno = buscar_aluno_por_email(email)
+    aluno = buscar_aluno_por_cpf(cpf)
     if aluno is None:
         return None
     sb.table("alunos").update({"solicitou_redefinicao_senha": True}).eq("id", aluno["id"]).execute()

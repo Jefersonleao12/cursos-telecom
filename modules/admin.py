@@ -11,8 +11,13 @@ import streamlit as st
 from datetime import datetime
 
 from modules.whatsapp import diagnosticar_configuracao
+from utils.helpers import FILIAIS, cpf_valido, email_valido, formatar_cpf, somente_digitos
 
 from database.repositorio import (
+    criar_aluno_admin,
+    editar_aluno_admin,
+    buscar_aluno_por_cpf,
+    buscar_aluno_por_email,
     listar_cursos,
     criar_curso,
     editar_curso,
@@ -676,35 +681,87 @@ def tela_admin():
 
     # ---------------- ALUNOS ----------------
     with aba_alunos:
+        with st.expander("➕ Cadastrar novo aluno"):
+            st.caption(
+                "Não existe mais autocadastro — o aluno só consegue acessar a "
+                "plataforma depois de cadastrado aqui. A senha inicial é o "
+                "próprio CPF; no primeiro acesso, ele será pedido a definir "
+                "uma foto de perfil."
+            )
+            with st.form("form_novo_aluno", clear_on_submit=True):
+                nome_novo = st.text_input("Nome completo *")
+                cpf_novo = st.text_input("CPF *", placeholder="Somente números ou 000.000.000-00")
+                email_novo = st.text_input("E-mail *")
+                telefone_novo = st.text_input("WhatsApp", placeholder="(69) 9xxxx-xxxx")
+                col_filial_novo, col_cargo_novo = st.columns(2)
+                with col_filial_novo:
+                    filial_novo = st.selectbox(
+                        "Filial (cidade) *", options=[""] + FILIAIS,
+                        format_func=lambda v: "Selecione..." if v == "" else v,
+                        key="filial_novo_aluno",
+                    )
+                with col_cargo_novo:
+                    cargo_novo = st.text_input("Cargo / Função", key="cargo_novo_aluno")
+                cadastrar_aluno = st.form_submit_button("Cadastrar aluno", type="primary")
+
+            if cadastrar_aluno:
+                if not nome_novo or not cpf_novo or not email_novo or not filial_novo:
+                    st.warning("Preencha todos os campos obrigatórios (*).")
+                elif not cpf_valido(cpf_novo):
+                    st.warning("CPF inválido. Confira os números digitados.")
+                elif not email_valido(email_novo):
+                    st.warning("Digite um e-mail válido.")
+                elif buscar_aluno_por_cpf(cpf_novo) is not None:
+                    st.error("Já existe um aluno cadastrado com esse CPF.")
+                elif buscar_aluno_por_email(email_novo) is not None:
+                    st.error("Já existe um aluno cadastrado com esse e-mail.")
+                else:
+                    criar_aluno_admin(nome_novo, cpf_novo, email_novo, telefone_novo, filial_novo, cargo_novo)
+                    st.success(
+                        f"Aluno **{nome_novo}** cadastrado! Login: CPF `{formatar_cpf(cpf_novo)}` "
+                        f"· Senha inicial: o próprio CPF (só números)."
+                    )
+                    st.rerun()
+
         st.subheader("Alunos cadastrados")
         alunos = listar_todos_alunos()
         if not alunos:
             st.info("Nenhum aluno cadastrado ainda.")
         else:
             busca = st.text_input(
-                "🔎 Buscar por nome, e-mail ou empresa",
+                "🔎 Buscar por nome, e-mail ou CPF",
                 placeholder="Digite para filtrar a lista abaixo...",
             )
             if busca:
+                termo_digitos = somente_digitos(busca)
                 termo = busca.strip().lower()
                 alunos = [
                     a for a in alunos
                     if termo in a["nome_completo"].lower()
                     or termo in a["email"].lower()
-                    or termo in (a.get("empresa") or "").lower()
+                    or (termo_digitos and termo_digitos in (a.get("cpf") or ""))
                 ]
                 st.caption(f"{len(alunos)} aluno(s) encontrado(s).")
 
             cursos = listar_cursos()
 
-            # Destaque no topo: pedidos de "esqueci minha senha" pendentes
+            # Destaque no topo: pedidos de "esqueci minha senha" pendentes,
+            # e contas antigas que ainda não têm CPF cadastrado (não
+            # conseguem mais logar até alguém completar o CPF delas).
             pedidos_senha = [a for a in alunos if a.get("solicitou_redefinicao_senha")]
             if pedidos_senha:
                 st.warning(f"🔑 {len(pedidos_senha)} aluno(s) pediram redefinição de senha — veja abaixo.")
+            sem_cpf = [a for a in alunos if not a.get("cpf")]
+            if sem_cpf:
+                st.warning(
+                    f"🪪 {len(sem_cpf)} conta(s) ainda sem CPF cadastrado — "
+                    f"essas pessoas não conseguem entrar até você completar o CPF (botão ✏️ Editar)."
+                )
 
             for aluno in alunos:
                 destaque = " 🔑" if aluno.get("solicitou_redefinicao_senha") else ""
                 inativo_label = " · 🚫 acesso desativado" if not aluno.get("ativo", True) else ""
+                sem_cpf_label = " · 🪪 sem CPF" if not aluno.get("cpf") else ""
                 with st.container(border=True):
                     col_foto, col_texto = st.columns([1, 8])
                     with col_foto:
@@ -718,10 +775,10 @@ def tela_admin():
                                 unsafe_allow_html=True,
                             )
                     with col_texto:
-                        st.write(f"**{aluno['nome_completo']}**{destaque} — {aluno['email']}{inativo_label}")
+                        st.write(f"**{aluno['nome_completo']}**{destaque}{sem_cpf_label} — {aluno['email']}{inativo_label}")
                         st.caption(
-                            f"Empresa: {aluno.get('empresa') or '-'} · Cargo: {aluno.get('cargo') or '-'} · "
-                            f"Filial: {aluno.get('filial') or '-'}"
+                            f"CPF: {formatar_cpf(aluno['cpf']) if aluno.get('cpf') else '-'} · "
+                            f"Cargo: {aluno.get('cargo') or '-'} · Filial: {aluno.get('filial') or '-'}"
                         )
                     if aluno.get("is_admin"):
                         st.caption("⭐ Administrador")
@@ -742,7 +799,11 @@ def tela_admin():
                             st.caption(linha)
 
                     st.write("")
-                    col_admin, col_acesso, col_senha = st.columns(3)
+                    col_editar, col_admin, col_acesso, col_senha = st.columns(4)
+                    with col_editar:
+                        if st.button("✏️ Editar", key=f"editar_aluno_btn_{aluno['id']}", use_container_width=True):
+                            st.session_state["aluno_em_edicao"] = aluno["id"]
+                            st.rerun()
                     with col_admin:
                         if aluno.get("is_admin"):
                             if st.button("⭐ Remover admin", key=f"remover_admin_{aluno['id']}", use_container_width=True):
@@ -775,6 +836,61 @@ def tela_admin():
                         )
                         if st.button("Ok, já anotei", key=f"limpar_senha_{aluno['id']}"):
                             st.session_state.pop(f"nova_senha_gerada_{aluno['id']}", None)
+                            st.rerun()
+
+                    if st.session_state.get("aluno_em_edicao") == aluno["id"]:
+                        cpf_atual = aluno.get("cpf") or ""
+                        with st.form(f"form_editar_aluno_{aluno['id']}"):
+                            novo_nome = st.text_input("Nome completo *", value=aluno["nome_completo"])
+                            novo_cpf = st.text_input(
+                                "CPF *", value=formatar_cpf(cpf_atual) if cpf_atual else "",
+                                placeholder="Somente números ou 000.000.000-00",
+                            )
+                            novo_email = st.text_input("E-mail *", value=aluno["email"])
+                            novo_telefone = st.text_input("WhatsApp", value=aluno.get("telefone") or "")
+                            filial_atual = aluno.get("filial") or ""
+                            indice_filial = FILIAIS.index(filial_atual) + 1 if filial_atual in FILIAIS else 0
+                            nova_filial = st.selectbox(
+                                "Filial (cidade) *", options=[""] + FILIAIS, index=indice_filial,
+                                format_func=lambda v: "Selecione..." if v == "" else v,
+                            )
+                            novo_cargo = st.text_input("Cargo / Função", value=aluno.get("cargo") or "")
+                            resetar_senha = st.checkbox(
+                                "Também redefinir a senha para este CPF",
+                                value=not cpf_atual,  # marcado por padrão quando está completando o CPF de uma conta antiga
+                                help="Redefine a senha do aluno para o CPF informado acima (ele pode trocar depois em 'Meu Perfil').",
+                            )
+                            col_salvar_aluno, col_cancelar_aluno = st.columns(2)
+                            with col_salvar_aluno:
+                                salvar_aluno = st.form_submit_button("Salvar alterações", type="primary", use_container_width=True)
+                            with col_cancelar_aluno:
+                                cancelar_aluno = st.form_submit_button("Cancelar", use_container_width=True)
+
+                        if salvar_aluno:
+                            if not novo_nome or not novo_cpf or not novo_email or not nova_filial:
+                                st.warning("Preencha todos os campos obrigatórios (*).")
+                            elif not cpf_valido(novo_cpf):
+                                st.warning("CPF inválido. Confira os números digitados.")
+                            elif not email_valido(novo_email):
+                                st.warning("Digite um e-mail válido.")
+                            else:
+                                outro_aluno_com_cpf = buscar_aluno_por_cpf(novo_cpf)
+                                outro_aluno_com_email = buscar_aluno_por_email(novo_email)
+                                if outro_aluno_com_cpf and outro_aluno_com_cpf["id"] != aluno["id"]:
+                                    st.error("Já existe outro aluno cadastrado com esse CPF.")
+                                elif outro_aluno_com_email and outro_aluno_com_email["id"] != aluno["id"]:
+                                    st.error("Já existe outro aluno cadastrado com esse e-mail.")
+                                else:
+                                    editar_aluno_admin(
+                                        aluno["id"], novo_nome, novo_cpf, novo_email,
+                                        novo_telefone, nova_filial, novo_cargo,
+                                        resetar_senha_para_cpf=resetar_senha,
+                                    )
+                                    st.session_state.pop("aluno_em_edicao", None)
+                                    st.success("Dados do aluno atualizados.")
+                                    st.rerun()
+                        if cancelar_aluno:
+                            st.session_state.pop("aluno_em_edicao", None)
                             st.rerun()
 
     # ---------------- FILIAIS ----------------
