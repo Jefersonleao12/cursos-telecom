@@ -423,6 +423,14 @@ def listar_aulas_do_curso(curso_id: int):
     return resposta.data
 
 
+@cache_com_ttl(ttl=20)
+def buscar_aula(aula_id: int):
+    sb = get_supabase_client()
+    resposta = sb.table("aulas").select("*").eq("id", aula_id).execute()
+    dados = resposta.data
+    return dados[0] if dados else None
+
+
 def criar_aula(modulo_id: int, curso_id: int, titulo: str, url_video: str, ordem: int, duracao_minutos: int):
     sb = get_supabase_client()
     nova = {
@@ -450,6 +458,7 @@ def editar_aula(aula_id: int, titulo: str, url_video: str, ordem: int, duracao_m
     sb.table("aulas").update(dados).eq("id", aula_id).execute()
     listar_aulas_do_modulo.clear()
     listar_aulas_do_curso.clear()
+    buscar_aula.clear()
 
 
 def excluir_aula(aula_id: int):
@@ -457,6 +466,7 @@ def excluir_aula(aula_id: int):
     sb.table("aulas").delete().eq("id", aula_id).execute()
     listar_aulas_do_modulo.clear()
     listar_aulas_do_curso.clear()
+    buscar_aula.clear()
 
 
 # ---------------------------------------------------------------------------
@@ -474,6 +484,45 @@ def marcar_aula_concluida(aluno_id: str, aula_id: int):
     }
     sb.table("progresso_aulas").upsert(registro, on_conflict="aluno_id,aula_id").execute()
     _consultar_aulas_concluidas.clear()
+
+
+def buscar_progresso_aula(aluno_id: str, aula_id: int):
+    """Retorna o registro de progresso do aluno nesta aula, ou None se ele
+    nunca chegou a abri-la."""
+    sb = get_supabase_client()
+    resposta = (
+        sb.table("progresso_aulas")
+        .select("*")
+        .eq("aluno_id", aluno_id)
+        .eq("aula_id", aula_id)
+        .execute()
+    )
+    dados = resposta.data
+    return dados[0] if dados else None
+
+
+def registrar_inicio_aula(aluno_id: str, aula_id: int):
+    """
+    Registra (uma única vez) o instante em que o aluno começou a assistir
+    esta aula. Usado pela app nova (webapp/) para checar no SERVIDOR se já
+    se passou tempo suficiente antes de liberar a conclusão da aula, em vez
+    de confiar só num cronômetro rodando no navegador do aluno (fácil de
+    burlar mudando o relógio do sistema ou chamando a rota direto). Não faz
+    nada se já existir um registro — não reinicia o cronômetro toda vez que
+    o aluno reabre a aula.
+    """
+    existente = buscar_progresso_aula(aluno_id, aula_id)
+    if existente and existente.get("iniciada_em"):
+        return
+    sb = get_supabase_client()
+    sb.table("progresso_aulas").upsert(
+        {
+            "aluno_id": aluno_id,
+            "aula_id": aula_id,
+            "iniciada_em": datetime.now(timezone.utc).isoformat(),
+        },
+        on_conflict="aluno_id,aula_id",
+    ).execute()
 
 
 @cache_com_ttl(ttl=15)

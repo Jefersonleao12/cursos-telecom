@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block titulo %}{{ curso.titulo }} — Norte Tel{% endblock %}
+{% block conteudo %}
+<a href="/cursos" class="text-sm text-norte-azul-claro hover:underline">&larr; Voltar para Meus Cursos</a>
+
+<h1 class="text-2xl font-bold text-slate-800 mt-3">{{ curso.titulo }}</h1>
+<p class="text-sm text-slate-500 mt-1">Instrutor: {{ curso.instrutor }} · Carga horária: {{ curso.carga_horaria or '-' }}h</p>
+{% if curso.descricao %}
+<p class="text-sm text-slate-600 mt-2">{{ curso.descricao }}</p>
+{% endif %}
+
+<div class="mt-4 w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+    <div class="h-full bg-norte-azul-claro" style="width: {{ progresso_geral_pct }}%"></div>
+</div>
+<p class="text-xs text-slate-500 mt-1">Progresso geral do curso: {{ progresso_geral_pct }}%</p>
+<p class="text-xs text-slate-400 mt-0.5">{{ modulos_estado | length }} módulo(s) neste curso</p>
+
+<hr class="my-6 border-slate-200">
+
+{% if not modulos_estado %}
+<div class="rounded-lg bg-slate-100 text-slate-600 text-sm px-4 py-3">Este curso ainda não possui módulos cadastrados.</div>
+{% endif %}
+
+{% for item in modulos_estado %}
+<div id="modulo-{{ item.modulo.id }}" class="mb-4">
+    {% if not item.desbloqueado %}
+    <div class="bg-slate-50 border border-slate-200 rounded-xl px-5 py-4">
+        <p class="font-semibold text-slate-400">🔒 Módulo {{ item.indice }}: {{ item.modulo.titulo }}</p>
+        <p class="text-xs text-slate-400 mt-1">Conclua o módulo anterior para desbloquear este.</p>
+    </div>
+    {% else %}
+    <details class="bg-white border border-slate-200 rounded-xl overflow-hidden" {{ "open" if not item.completo }}>
+        <summary class="cursor-pointer select-none px-5 py-4 font-semibold text-slate-800 hover:bg-slate-50">
+            {{ "✅" if item.completo else "▶️" }} Módulo {{ item.indice }}: {{ item.modulo.titulo }}
+        </summary>
+        <div class="px-5 pb-5 space-y-5 border-t border-slate-100 pt-4">
+            {% if not item.aulas %}
+            <p class="text-sm text-slate-400">Este módulo ainda não possui aulas cadastradas.</p>
+            {% endif %}
+
+            {% for ae in item.aulas %}
+            {% set aula = ae.aula %}
+            <div id="aula-{{ aula.id }}"
+                 x-data="{ restantes: {{ ae.segundos_restantes }} }"
+                 x-init="if (restantes > 0) { let t = setInterval(() => { restantes--; if (restantes <= 0) clearInterval(t); }, 1000); }">
+                <p class="font-semibold text-sm text-slate-800">Aula {{ aula.ordem }}: {{ aula.titulo }}</p>
+
+                {% if not ae.desbloqueada %}
+                <p class="text-xs text-slate-400 mt-1">🔒 Assista a aula anterior para desbloquear esta.</p>
+
+                {% elif ae.concluida %}
+                {% if ae.embed.embed_url %}
+                <iframe src="{{ ae.embed.embed_url }}" class="w-full aspect-video rounded-lg mt-2 border border-slate-200" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                {% else %}
+                <video src="{{ aula.url_video }}" controls class="w-full rounded-lg mt-2 border border-slate-200"></video>
+                {% endif %}
+                <p class="text-xs text-green-600 mt-2">✅ Você já concluiu esta aula.</p>
+
+                {% else %}
+                {% if ae.embed.embed_url %}
+                <iframe src="{{ ae.embed.embed_url }}" class="w-full aspect-video rounded-lg mt-2 border border-slate-200" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                {% else %}
+                <video src="{{ aula.url_video }}" controls class="w-full rounded-lg mt-2 border border-slate-200"></video>
+                {% endif %}
+                <p class="text-xs text-slate-500 mt-2" x-show="restantes > 0" x-cloak>
+                    ▶️ Continue assistindo — faltam ~<span x-text="Math.ceil(restantes / 60)"></span> min para liberar a conclusão.
+                </p>
+                <form action="/cursos/{{ curso.id }}/aulas/{{ aula.id }}/concluir" method="post" class="mt-2">
+                    <button type="submit" :disabled="restantes > 0"
+                            class="text-sm font-semibold rounded-lg px-4 py-2 transition"
+                            :class="restantes > 0 ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-norte-azul hover:bg-norte-azul-escuro text-white'">
+                        <span x-show="restantes <= 0">Marcar aula como concluída</span>
+                        <span x-show="restantes > 0" x-cloak>Aguarde a liberação...</span>
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            {% if item.todas_aulas_concluidas and item.prova %}
+            <div class="border-t border-slate-100 pt-4">
+                <h3 class="font-bold text-slate-800 mb-2">📝 Avaliação — {{ item.prova.titulo }}</h3>
+
+                {% if erro_prova_modulo_id == item.modulo.id and erro_prova_msg %}
+                <div class="rounded-lg bg-amber-50 text-amber-800 text-sm px-4 py-3 mb-3">{{ erro_prova_msg }}</div>
+                {% endif %}
+
+                {% if not item.perguntas_prova %}
+                <p class="text-sm text-slate-400">Esta avaliação ainda não possui perguntas cadastradas.</p>
+
+                {% elif item.resultado_prova and item.resultado_prova.aprovado %}
+                <div class="rounded-lg bg-green-50 text-green-700 text-sm px-4 py-3">
+                    ✅ Aprovado com nota {{ "%.1f"|format(item.resultado_prova.nota) }}.
+                </div>
+
+                {% elif item.resultado_prova and not item.resultado_prova.liberado_para_nova_tentativa %}
+                <div class="rounded-lg bg-red-50 text-red-700 text-sm px-4 py-3">
+                    Você já enviou esta avaliação e não atingiu a nota mínima
+                    (sua nota: {{ "%.1f"|format(item.resultado_prova.nota) }} de {{ "%.1f"|format(item.prova.nota_minima) }} necessários).
+                </div>
+                <p class="text-xs text-slate-500 mt-2">
+                    A nota fica registrada e não pode ser refeita livremente. Se quiser uma nova chance,
+                    entre em contato com a equipe responsável — após uma análise, a avaliação pode ser
+                    liberada novamente para você.
+                </p>
+
+                {% else %}
+                <p class="text-xs text-slate-500 mb-3">
+                    A avaliação tem {{ item.perguntas_prova | length }} pergunta(s).
+                    Nota mínima para aprovação: {{ "%.1f"|format(item.prova.nota_minima) }} de 10.
+                </p>
+                <form action="/cursos/{{ curso.id }}/modulos/{{ item.modulo.id }}/prova" method="post" class="space-y-4">
+                    {% for pergunta in item.perguntas_prova %}
+                    <fieldset>
+                        <legend class="text-sm font-semibold text-slate-800 mb-1.5">{{ loop.index }}. {{ pergunta.enunciado }}</legend>
+                        <div class="space-y-1.5">
+                            {% for letra, texto in [("A", pergunta.opcao_a), ("B", pergunta.opcao_b), ("C", pergunta.opcao_c), ("D", pergunta.opcao_d)] %}
+                            <label class="flex items-start gap-2 text-sm text-slate-700">
+                                <input type="radio" name="pergunta_{{ pergunta.id }}" value="{{ letra }}" required class="mt-0.5">
+                                <span>{{ letra }}) {{ texto }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </fieldset>
+                    {% endfor %}
+                    <button type="submit" class="w-full bg-norte-azul hover:bg-norte-azul-escuro text-white text-sm font-semibold rounded-lg py-2.5 transition">
+                        Enviar Avaliação
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+            {% elif item.todas_aulas_concluidas and not item.completo %}
+            <div class="rounded-lg bg-green-50 text-green-700 text-sm px-4 py-3">
+                Módulo concluído! Siga para o próximo. 🎉
+            </div>
+            {% endif %}
+        </div>
+    </details>
+    {% endif %}
+</div>
+{% endfor %}
+
+{% if modulos_estado %}
+<hr class="my-6 border-slate-200">
+{% if curso_completo_agora %}
+<div class="rounded-lg bg-green-50 text-green-700 text-sm px-4 py-3">
+    🎉 Parabéns! Você concluiu TODOS os módulos deste curso. O certificado de capacitação chega na próxima etapa da plataforma.
+</div>
+{% else %}
+<div class="rounded-lg bg-blue-50 text-norte-azul text-sm px-4 py-3">
+    Conclua os vídeos e as avaliações de cada módulo, em ordem, para liberar o certificado de capacitação.
+</div>
+{% endif %}
+{% endif %}
+{% endblock %}

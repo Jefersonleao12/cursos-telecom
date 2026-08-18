@@ -89,6 +89,13 @@ create table if not exists public.progresso_aulas (
     aula_id        bigint not null references public.aulas(id) on delete cascade,
     concluida      boolean not null default false,
     concluida_em   timestamptz,
+    -- Instante em que o aluno abriu a aula pela primeira vez. A app nova
+    -- (webapp/) usa isso para checar no SERVIDOR se já passou tempo
+    -- suficiente de reprodução antes de liberar a conclusão — os vídeos
+    -- agora vêm do Google Drive, que (assim como o YouTube antes) não
+    -- expõe o tempo real assistido para o servidor, então o cronômetro
+    -- precisa ser contado a partir de quando a aula foi aberta.
+    iniciada_em    timestamptz,
     unique (aluno_id, aula_id)
 );
 create index if not exists idx_progresso_aluno on public.progresso_aulas(aluno_id);
