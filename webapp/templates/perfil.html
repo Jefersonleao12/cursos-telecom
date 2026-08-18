@@ -15,7 +15,7 @@
 
     <!-- MEUS DADOS -->
     <div x-show="aba === 'dados'" x-cloak>
-        <div class="bg-white rounded-2xl border border-slate-200 p-6 max-w-xl">
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 max-w-xl mx-auto">
             {% if sucesso_dados %}
             <div class="rounded-lg bg-green-50 text-green-700 text-sm px-4 py-3 mb-4">{{ sucesso_dados }}</div>
             {% endif %}
@@ -23,7 +23,7 @@
             <div class="rounded-lg bg-red-50 text-red-700 text-sm px-4 py-3 mb-4">{{ erro_dados }}</div>
             {% endif %}
 
-            <div class="flex items-center gap-4 mb-6" x-data="{ aberto: false, preview: null }">
+            <div class="flex flex-col items-center gap-2 mb-6" x-data="{ aberto: false, preview: null }">
                 <button @click="aberto = true" type="button" class="relative group shrink-0 rounded-full">
                     {% if aluno.foto_url %}
                     <img src="{{ aluno.foto_url }}" alt="" class="w-20 h-20 rounded-full object-cover border border-slate-200">
@@ -111,7 +111,7 @@
 
     <!-- TROCAR SENHA -->
     <div x-show="aba === 'senha'" x-cloak>
-        <div class="bg-white rounded-2xl border border-slate-200 p-6 max-w-md">
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 max-w-md mx-auto">
             <p class="text-sm text-slate-500 mb-4">Por segurança, informe sua senha atual antes de definir uma nova.</p>
 
             {% if sucesso_senha %}
