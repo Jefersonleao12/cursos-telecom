@@ -21,6 +21,7 @@ from webapp.routers.admin.avisos import router as admin_avisos_router
 from webapp.routers.admin.cursos import router as admin_cursos_router
 from webapp.routers.admin.dashboard import router as admin_dashboard_router
 from webapp.routers.admin.destaques import router as admin_destaques_router
+from webapp.routers.admin.duvidas import router as admin_duvidas_router
 from webapp.routers.admin.filiais import router as admin_filiais_router
 from webapp.routers.admin.materiais import router as admin_materiais_router
 from webapp.routers.admin.modulos import router as admin_modulos_router
@@ -58,6 +59,7 @@ app.include_router(admin_filiais_router)
 app.include_router(admin_materiais_router)
 app.include_router(admin_avisos_router)
 app.include_router(admin_destaques_router)
+app.include_router(admin_duvidas_router)
 
 
 @app.get("/healthz", response_class=PlainTextResponse)
