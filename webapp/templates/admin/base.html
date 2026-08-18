@@ -28,14 +28,18 @@
     </div>
 </div>
 
-<nav class="flex gap-1 border-b border-slate-200 mb-6 overflow-x-auto">
-    {% for href, rotulo in secoes_admin %}
-    <a href="{{ href }}"
-       class="px-3 py-2 text-sm font-semibold whitespace-nowrap border-b-2 transition {{ 'border-norte-azul text-norte-azul' if request.url.path == href else 'border-transparent text-slate-500 hover:text-slate-700' }}">
-        {{ rotulo }}
-    </a>
-    {% endfor %}
-</nav>
+<div class="grid md:grid-cols-[210px_1fr] gap-6 items-start">
+    <nav class="flex md:flex-col gap-1 overflow-x-auto md:overflow-visible border-b md:border-b-0 border-slate-200 pb-2 md:pb-0">
+        {% for href, rotulo in secoes_admin %}
+        <a href="{{ href }}"
+           class="px-3 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition {{ 'bg-norte-azul text-white' if request.url.path == href else 'text-slate-600 hover:bg-slate-100' }}">
+            {{ rotulo }}
+        </a>
+        {% endfor %}
+    </nav>
 
-{% block admin_conteudo %}{% endblock %}
+    <div class="min-w-0">
+        {% block admin_conteudo %}{% endblock %}
+    </div>
+</div>
 {% endblock %}
