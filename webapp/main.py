@@ -19,6 +19,7 @@ from webapp.routers.certificados import router as certificados_router
 from webapp.routers.cursos import router as cursos_router
 from webapp.routers.inicio import router as inicio_router
 from webapp.routers.materiais import router as materiais_router
+from webapp.routers.perfil import router as perfil_router
 from webapp.routers.ranking import router as ranking_router
 
 app = FastAPI(title="Treinamentos Telecom (nova versão)")
@@ -36,6 +37,7 @@ app.include_router(cursos_router)
 app.include_router(materiais_router)
 app.include_router(ranking_router)
 app.include_router(certificados_router)
+app.include_router(perfil_router)
 
 
 @app.get("/healthz", response_class=PlainTextResponse)

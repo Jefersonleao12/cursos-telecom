@@ -35,7 +35,7 @@
                 <span>Norte Tel</span>
             </a>
             <nav class="hidden md:flex items-center gap-1 text-sm">
-                {% for href, rotulo in [("/", "Início"), ("/cursos", "Cursos"), ("/materiais", "Materiais"), ("/ranking", "Ranking"), ("/certificados", "Certificados")] %}
+                {% for href, rotulo in [("/", "Início"), ("/cursos", "Cursos"), ("/materiais", "Materiais"), ("/ranking", "Ranking"), ("/certificados", "Certificados"), ("/perfil", "Perfil")] %}
                 <a href="{{ href }}"
                    class="px-3 py-1.5 rounded-lg transition {{ 'bg-white/15 font-semibold' if request.url.path == href else 'hover:bg-white/10' }}">
                     {{ rotulo }}
@@ -43,10 +43,12 @@
                 {% endfor %}
             </nav>
             <div class="flex items-center gap-3">
-                <span class="text-sm opacity-90 hidden sm:inline">{{ aluno.nome_completo }}</span>
-                {% if aluno.foto_url %}
-                <img src="{{ aluno.foto_url }}" alt="" class="w-8 h-8 rounded-full object-cover border border-white/40">
-                {% endif %}
+                <a href="/perfil" class="flex items-center gap-2 hover:opacity-80 transition">
+                    <span class="text-sm opacity-90 hidden sm:inline">{{ aluno.nome_completo }}</span>
+                    {% if aluno.foto_url %}
+                    <img src="{{ aluno.foto_url }}" alt="" class="w-8 h-8 rounded-full object-cover border border-white/40">
+                    {% endif %}
+                </a>
                 <form action="/logout" method="post">
                     <button type="submit" class="text-sm bg-white/10 hover:bg-white/20 rounded px-3 py-1.5 transition">
                         Sair
@@ -55,7 +57,7 @@
             </div>
         </div>
         <nav class="md:hidden flex items-center gap-1 text-sm px-4 pb-3 overflow-x-auto">
-            {% for href, rotulo in [("/", "Início"), ("/cursos", "Cursos"), ("/materiais", "Materiais"), ("/ranking", "Ranking"), ("/certificados", "Certificados")] %}
+            {% for href, rotulo in [("/", "Início"), ("/cursos", "Cursos"), ("/materiais", "Materiais"), ("/ranking", "Ranking"), ("/certificados", "Certificados"), ("/perfil", "Perfil")] %}
             <a href="{{ href }}"
                class="px-3 py-1.5 rounded-lg whitespace-nowrap transition {{ 'bg-white/15 font-semibold' if request.url.path == href else 'hover:bg-white/10' }}">
                 {{ rotulo }}

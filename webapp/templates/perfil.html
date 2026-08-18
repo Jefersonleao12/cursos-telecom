@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% block titulo %}Meu Perfil — Norte Tel{% endblock %}
+{% block conteudo %}
+<h1 class="text-2xl font-bold text-norte-azul mb-4">👤 Meu Perfil</h1>
+
+<div x-data="{ aba: '{{ aba_ativa or 'dados' }}' }">
+    <div class="flex gap-1 border-b border-slate-200 mb-6">
+        <button @click="aba = 'dados'" :class="aba === 'dados' ? 'border-norte-azul text-norte-azul' : 'border-transparent text-slate-500'"
+                class="px-4 py-2 text-sm font-semibold border-b-2 transition">Meus Dados</button>
+        <button @click="aba = 'senha'" :class="aba === 'senha' ? 'border-norte-azul text-norte-azul' : 'border-transparent text-slate-500'"
+                class="px-4 py-2 text-sm font-semibold border-b-2 transition">Trocar Senha</button>
+        <button @click="aba = 'historico'" :class="aba === 'historico' ? 'border-norte-azul text-norte-azul' : 'border-transparent text-slate-500'"
+                class="px-4 py-2 text-sm font-semibold border-b-2 transition">Meu Histórico</button>
+    </div>
+
+    <!-- MEUS DADOS -->
+    <div x-show="aba === 'dados'" x-cloak>
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 max-w-xl">
+            {% if sucesso_dados %}
+            <div class="rounded-lg bg-green-50 text-green-700 text-sm px-4 py-3 mb-4">{{ sucesso_dados }}</div>
+            {% endif %}
+            {% if erro_dados %}
+            <div class="rounded-lg bg-red-50 text-red-700 text-sm px-4 py-3 mb-4">{{ erro_dados }}</div>
+            {% endif %}
+
+            <div class="flex items-start gap-4 mb-6" x-data="{ editando: false, preview: null }">
+                {% if aluno.foto_url %}
+                <img src="{{ aluno.foto_url }}" alt="" class="w-20 h-20 rounded-full object-cover border border-slate-200 shrink-0">
+                {% else %}
+                <div class="w-20 h-20 rounded-full bg-blue-50 flex items-center justify-center text-3xl shrink-0">👤</div>
+                {% endif %}
+                <div class="flex-1">
+                    <button @click="editando = !editando" type="button" class="text-sm bg-slate-100 hover:bg-slate-200 rounded-lg px-3 py-1.5 transition">
+                        ✏️ Editar foto
+                    </button>
+                    <form x-show="editando" x-cloak action="/perfil/foto" method="post" enctype="multipart/form-data" class="mt-3 space-y-2">
+                        <input type="file" name="foto" accept="image/jpeg,image/png"
+                               @change="preview = $event.target.files.length ? URL.createObjectURL($event.target.files[0]) : null"
+                               class="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-sm file:font-medium hover:file:bg-slate-200">
+                        <template x-if="preview">
+                            <img :src="preview" alt="Pré-visualização" class="w-20 h-20 rounded-full object-cover border border-slate-200">
+                        </template>
+                        <button type="submit" class="bg-norte-azul hover:bg-norte-azul-escuro text-white text-sm font-semibold rounded-lg px-4 py-1.5 transition">
+                            📷 Salvar nova foto
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <form action="/perfil/dados" method="post" class="space-y-4">
+                <div class="grid sm:grid-cols-2 gap-4 text-sm text-slate-500 mb-2">
+                    <p>Nome: <strong class="text-slate-700">{{ aluno.nome_completo }}</strong></p>
+                    <p>E-mail: <strong class="text-slate-700">{{ aluno.email }}</strong></p>
+                </div>
+                <p class="text-xs text-slate-400 mb-4">Para trocar nome ou e-mail, entre em contato com o administrador.</p>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Empresa</label>
+                    <input type="text" name="empresa" value="{{ aluno.empresa or '' }}"
+                           class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Cargo / Função</label>
+                    <input type="text" name="cargo" value="{{ aluno.cargo or '' }}"
+                           class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Telefone de contato</label>
+                    <input type="text" name="telefone" value="{{ aluno.telefone or '' }}" placeholder="(69) 9xxxx-xxxx"
+                           class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+                    <p class="text-xs text-slate-400 mt-1">Usado só para o administrador te retornar mais fácil quando você envia uma dúvida.</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Filial (cidade)</label>
+                    <select name="filial" class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+                        <option value="" {{ "selected" if not aluno.filial }}>Selecione...</option>
+                        {% for f in filiais %}
+                        <option value="{{ f }}" {{ "selected" if aluno.filial == f }}>{{ f }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="bg-norte-azul hover:bg-norte-azul-escuro text-white text-sm font-semibold rounded-lg px-5 py-2.5 transition">
+                    Salvar alterações
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- TROCAR SENHA -->
+    <div x-show="aba === 'senha'" x-cloak>
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 max-w-md">
+            <p class="text-sm text-slate-500 mb-4">Por segurança, informe sua senha atual antes de definir uma nova.</p>
+
+            {% if sucesso_senha %}
+            <div class="rounded-lg bg-green-50 text-green-700 text-sm px-4 py-3 mb-4">{{ sucesso_senha }}</div>
+            {% endif %}
+            {% if erro_senha %}
+            <div class="rounded-lg bg-red-50 text-red-700 text-sm px-4 py-3 mb-4">{{ erro_senha }}</div>
+            {% endif %}
+
+            <form action="/perfil/senha" method="post" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Senha atual</label>
+                    <input type="password" name="senha_atual" required
+                           class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Nova senha</label>
+                    <input type="password" name="nova_senha" minlength="6" required
+                           class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+                    <p class="text-xs text-slate-400 mt-1">Mínimo de 6 caracteres.</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Confirmar nova senha</label>
+                    <input type="password" name="confirmar" minlength="6" required
+                           class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+                </div>
+                <button type="submit" class="bg-norte-azul hover:bg-norte-azul-escuro text-white text-sm font-semibold rounded-lg px-5 py-2.5 transition">
+                    Trocar senha
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MEU HISTÓRICO -->
+    <div x-show="aba === 'historico'" x-cloak>
+        {% if not historico %}
+        <div class="rounded-lg bg-slate-100 text-slate-600 text-sm px-4 py-3">
+            Você ainda não começou nenhum curso. Vá até "Cursos" para começar!
+        </div>
+        {% else %}
+        <div class="space-y-4">
+            {% for item in historico %}
+            <div class="bg-white rounded-2xl border border-slate-200 p-5">
+                <h3 class="font-bold text-slate-800 mb-1">{{ item.curso.titulo }}</h3>
+                <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden mb-1">
+                    <div class="h-full bg-norte-azul-claro" style="width: {{ item.progresso_pct }}%"></div>
+                </div>
+                <p class="text-xs text-slate-500 mb-4">{{ item.progresso_pct }}% das aulas concluídas</p>
+
+                <div class="grid grid-cols-3 gap-3 text-center">
+                    <div>
+                        <p class="text-xs text-slate-400">{{ "Tempo até concluir" if item.tempo_conclusao else "Status do curso" }}</p>
+                        <p class="text-sm font-bold text-slate-700">{{ item.tempo_conclusao or "Em andamento" }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400">Nota média nas avaliações</p>
+                        <p class="text-sm font-bold text-slate-700">{{ "%.1f/10"|format(item.nota_media) if item.nota_media is not none else "-" }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400">Tempo total nas provas</p>
+                        <p class="text-sm font-bold text-slate-700">{{ item.tempo_total_provas or "-" }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
