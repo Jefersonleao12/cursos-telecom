@@ -100,19 +100,26 @@ def editar_aluno_admin(
         dados["senha_hash"] = gerar_hash_senha_cpf(cpf_normalizado)
         dados["deve_trocar_senha"] = False
     sb.table("alunos").update(dados).eq("id", aluno_id).execute()
+    buscar_aluno_por_id.clear()
 
 
 def desmarcar_definir_foto(aluno_id: str):
     """Usado depois que o aluno define a foto de perfil pela 1ª vez (obrigatório no 1º acesso)."""
     sb = get_supabase_client()
     sb.table("alunos").update({"deve_definir_foto": False}).eq("id", aluno_id).execute()
+    buscar_aluno_por_id.clear()
 
 
+@cache_com_ttl(ttl=10)
 def buscar_aluno_por_id(aluno_id: str):
     """Retorna o registro do aluno pelo id, ou None se não existir.
 
-    Usado para restaurar a sessão do aluno após um F5 / recarregamento de
-    página, a partir do token de sessão guardado na URL (ver modules/auth.py).
+    Usado para restaurar a sessão do aluno (a cada requisição, na app
+    nova — ver webapp/middleware.py — ou após um F5 na app antiga). TTL
+    curto (10s) porque toda escrita relevante na tabela alunos já chama
+    `.clear()` nesta função (ver ativar/desativar acesso, trocar senha
+    etc.) — o cache existe só pra evitar bater no banco a cada requisição
+    HTTP, não pra esconder mudanças reais por muito tempo.
     """
     sb = get_supabase_client()
     resposta = sb.table("alunos").select("*").eq("id", aluno_id).execute()
@@ -140,6 +147,7 @@ def atualizar_perfil_aluno(aluno_id: str, empresa: str, cargo: str, filial: str,
         "telefone": telefone.strip() if telefone else None,
     }
     sb.table("alunos").update(dados).eq("id", aluno_id).execute()
+    buscar_aluno_por_id.clear()
 
 
 def trocar_senha_aluno(aluno_id: str, novo_hash_senha: str):
@@ -148,6 +156,7 @@ def trocar_senha_aluno(aluno_id: str, novo_hash_senha: str):
     sb.table("alunos").update(
         {"senha_hash": novo_hash_senha, "deve_trocar_senha": False}
     ).eq("id", aluno_id).execute()
+    buscar_aluno_por_id.clear()
 
 
 # Nome do bucket no Supabase Storage onde ficam as fotos de perfil.
@@ -197,6 +206,7 @@ def atualizar_foto_perfil(aluno_id: str, arquivo_bytes: bytes) -> str:
     # tempo na URL força o navegador a tratá-la como um arquivo novo.
     url = f"{url_base}?v={int(time.time())}"
     sb.table("alunos").update({"foto_url": url}).eq("id", aluno_id).execute()
+    buscar_aluno_por_id.clear()
     return url
 
 
@@ -208,11 +218,13 @@ def definir_acesso_aluno(aluno_id: str, ativo: bool):
     """Ativa ou desativa o acesso de um aluno (login passa a ser bloqueado se ativo=False)."""
     sb = get_supabase_client()
     sb.table("alunos").update({"ativo": ativo}).eq("id", aluno_id).execute()
+    buscar_aluno_por_id.clear()
 
 
 def definir_admin_aluno(aluno_id: str, is_admin: bool):
     sb = get_supabase_client()
     sb.table("alunos").update({"is_admin": is_admin}).eq("id", aluno_id).execute()
+    buscar_aluno_por_id.clear()
 
 
 def solicitar_redefinicao_senha(cpf: str):
@@ -228,6 +240,7 @@ def solicitar_redefinicao_senha(cpf: str):
     if aluno is None:
         return None
     sb.table("alunos").update({"solicitou_redefinicao_senha": True}).eq("id", aluno["id"]).execute()
+    buscar_aluno_por_id.clear()
     return aluno
 
 
@@ -268,6 +281,7 @@ def gerar_senha_temporaria(aluno_id: str) -> str:
             "solicitou_redefinicao_senha": False,
         }
     ).eq("id", aluno_id).execute()
+    buscar_aluno_por_id.clear()
 
     return senha_temporaria
 

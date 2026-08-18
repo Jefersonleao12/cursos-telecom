@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block titulo %}Defina uma nova senha — Norte Tel{% endblock %}
+{% block conteudo %}
+<div class="max-w-md mx-auto bg-white rounded-2xl shadow-lg p-8">
+    <h1 class="text-xl font-bold text-norte-azul mb-2">🔒 Defina uma nova senha</h1>
+    <p class="text-sm text-slate-500 mb-6">
+        Sua senha foi redefinida pelo administrador. Por segurança, defina uma nova senha
+        só sua antes de continuar.
+    </p>
+
+    {% if erro %}
+    <div class="mb-4 rounded-lg bg-red-50 text-red-700 text-sm px-4 py-3">{{ erro }}</div>
+    {% endif %}
+
+    <form action="/trocar-senha-obrigatoria" method="post" class="space-y-4">
+        <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Nova senha</label>
+            <input type="password" name="nova_senha" minlength="6" required
+                   class="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+            <p class="text-xs text-slate-400 mt-1">Mínimo de 6 caracteres.</p>
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Confirmar nova senha</label>
+            <input type="password" name="confirmar" minlength="6" required
+                   class="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+        </div>
+        <button type="submit"
+                class="w-full bg-norte-azul hover:bg-norte-azul-escuro text-white font-semibold rounded-lg py-2.5 transition">
+            Salvar nova senha
+        </button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block titulo %}Foto de perfil — Norte Tel{% endblock %}
+{% block conteudo %}
+<div class="max-w-md mx-auto bg-white rounded-2xl shadow-lg p-8" x-data="{ preview: null }">
+    <h1 class="text-xl font-bold text-norte-azul mb-2">📷 Adicione sua foto de perfil</h1>
+    <p class="text-sm text-slate-500 mb-6">Antes de continuar, defina uma foto de perfil. É só dessa vez.</p>
+
+    {% if erro %}
+    <div class="mb-4 rounded-lg bg-red-50 text-red-700 text-sm px-4 py-3">{{ erro }}</div>
+    {% endif %}
+
+    <form action="/definir-foto-obrigatoria" method="post" enctype="multipart/form-data" class="space-y-4">
+        <input type="file" name="foto" accept="image/jpeg,image/png" required
+               @change="preview = $event.target.files.length ? URL.createObjectURL($event.target.files[0]) : null"
+               class="block w-full text-sm text-slate-600 file:mr-4 file:rounded-lg file:border-0 file:bg-slate-100 file:px-4 file:py-2 file:text-sm file:font-medium hover:file:bg-slate-200">
+
+        <template x-if="preview">
+            <img :src="preview" alt="Pré-visualização" class="w-32 h-32 rounded-full object-cover mx-auto border border-slate-200">
+        </template>
+
+        <button type="submit"
+                class="w-full bg-norte-azul hover:bg-norte-azul-escuro text-white font-semibold rounded-lg py-2.5 transition">
+            Salvar foto e continuar
+        </button>
+    </form>
+</div>
+{% endblock %}

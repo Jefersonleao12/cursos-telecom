@@ -13,12 +13,21 @@ from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 
 from database.repositorio import listar_cursos
+from webapp.auth.routes import router as auth_router
+from webapp.middleware import AutenticacaoMiddleware
+from webapp.routers.inicio import router as inicio_router
 
 app = FastAPI(title="Treinamentos Telecom (nova versão)")
 
-# Reaproveita a mesma pasta static/ da app antiga (ícones e manifest do
-# PWA) — nenhum arquivo precisou ser duplicado.
+# Reaproveita as mesmas pastas static/ (ícones, manifest do PWA) e assets/
+# (logo) da app antiga — nenhum arquivo precisou ser duplicado.
 app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/assets", StaticFiles(directory="assets"), name="assets")
+
+app.add_middleware(AutenticacaoMiddleware)
+
+app.include_router(auth_router)
+app.include_router(inicio_router)
 
 
 @app.get("/healthz", response_class=PlainTextResponse)

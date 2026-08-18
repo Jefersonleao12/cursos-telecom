@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block titulo %}Norte Tel — Treinamentos{% endblock %}</title>
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
+    <link rel="icon" href="/static/icon-192.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'norte-azul': '#143C6E',
+                        'norte-azul-escuro': '#0F2E56',
+                        'norte-azul-claro': '#1F5AA8',
+                    },
+                },
+            },
+        };
+    </script>
+    <style>[x-cloak] { display: none !important; }</style>
+    {% block cabecalho_extra %}{% endblock %}
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-800">
+    {% if aluno %}
+    <header class="bg-gradient-to-r from-norte-azul-escuro via-norte-azul to-norte-azul-claro text-white">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+            <a href="/" class="flex items-center gap-2 font-semibold">
+                <img src="/assets/icone.png" alt="" class="w-8 h-8 rounded">
+                <span>Norte Tel</span>
+            </a>
+            <div class="flex items-center gap-3">
+                <span class="text-sm opacity-90 hidden sm:inline">{{ aluno.nome_completo }}</span>
+                {% if aluno.foto_url %}
+                <img src="{{ aluno.foto_url }}" alt="" class="w-8 h-8 rounded-full object-cover border border-white/40">
+                {% endif %}
+                <form action="/logout" method="post">
+                    <button type="submit" class="text-sm bg-white/10 hover:bg-white/20 rounded px-3 py-1.5 transition">
+                        Sair
+                    </button>
+                </form>
+            </div>
+        </div>
+    </header>
+    {% endif %}
+
+    <main class="max-w-5xl mx-auto px-4 py-8">
+        {% block conteudo %}{% endblock %}
+    </main>
+</body>
+</html>
