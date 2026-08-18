@@ -1,22 +1,12 @@
 """
-Módulo de Certificados.
-
-Gera automaticamente o PDF do certificado para alunos aprovados na
-avaliação (com nome do aluno, empresa, curso, instrutor/assinatura e
-código de verificação) e mantém o histórico de certificados emitidos.
+Geração do PDF do certificado de capacitação — portado quase literalmente
+de modules/certificado.py (a função já era pura, sem nenhuma dependência
+do Streamlit; só o resto daquele módulo, que desenhava a tela, usava
+st.session_state). O PDF é sempre gerado na hora do download, nunca em
+cache, para nunca ficar desatualizado se o nome do aluno ou do curso
+mudar depois de emitido.
 """
 from fpdf import FPDF
-import streamlit as st
-
-from database.repositorio import (
-    buscar_certificado,
-    emitir_certificado,
-    curso_totalmente_concluido,
-    nota_final_curso,
-    listar_cursos,
-)
-from utils.helpers import gerar_codigo_verificacao, formatar_data_br
-
 
 AZUL = (20, 60, 110)
 CINZA_ESCURO = (30, 30, 30)
@@ -119,70 +109,3 @@ def gerar_pdf_certificado(
 
     saida = pdf.output()
     return bytes(saida)
-
-
-def _preparar_e_baixar_certificado(aluno_id, curso, nota):
-    """Garante que exista um registro de certificado (cria se necessário) e devolve o PDF em bytes."""
-    certificado = buscar_certificado(aluno_id, curso["id"])
-    if certificado is None:
-        codigo = gerar_codigo_verificacao()
-        certificado = emitir_certificado(aluno_id, curso["id"], codigo)
-
-    data_formatada = formatar_data_br(certificado["emitido_em"])
-
-    pdf_bytes = gerar_pdf_certificado(
-        nome_aluno=st.session_state["aluno_nome"],
-        empresa=st.session_state.get("aluno_empresa", ""),
-        curso_titulo=curso["titulo"],
-        instrutor=curso["instrutor"],
-        carga_horaria=curso.get("carga_horaria"),
-        nota=nota,
-        data_emissao=data_formatada,
-        codigo_verificacao=certificado["codigo_verificacao"],
-    )
-    return pdf_bytes
-
-
-def tela_certificados():
-    st.title("🏆 Meus Certificados de Capacitação")
-    st.warning(
-        "⚠️ Este é um **Certificado de Capacitação**, referente a um curso livre (de capacitação/extensão). "
-        "Não se trata de diploma, título acadêmico ou certificação técnica regulamentada. Cursos livres "
-        "independem de credenciamento junto ao Ministério da Educação (MEC), nos termos da legislação "
-        "educacional brasileira."
-    )
-
-    aluno_id = st.session_state["aluno_id"]
-    cursos = listar_cursos()
-
-    algum_certificado = False
-
-    for curso in cursos:
-        if not curso_totalmente_concluido(aluno_id, curso["id"]):
-            continue
-
-        nota = nota_final_curso(aluno_id, curso["id"])
-
-        algum_certificado = True
-        with st.container(border=True):
-            col_info, col_botao = st.columns([3, 1])
-            with col_info:
-                st.markdown(f"### {curso['titulo']}")
-                texto_nota = f"Nota final {nota:.1f}" if nota is not None else "Concluído"
-                st.caption(f"{texto_nota} · Instrutor: {curso['instrutor']}")
-            with col_botao:
-                pdf_bytes = _preparar_e_baixar_certificado(aluno_id, curso, nota)
-                st.download_button(
-                    label="⬇️ Baixar PDF",
-                    data=pdf_bytes,
-                    file_name=f"certificado_capacitacao_{curso['titulo'].replace(' ', '_')}.pdf",
-                    mime="application/pdf",
-                    use_container_width=True,
-                    key=f"download_{curso['id']}",
-                )
-
-    if not algum_certificado:
-        st.info(
-            "Você ainda não possui certificados de capacitação. Conclua todos os módulos de "
-            "um curso (vídeos e avaliações) para gerar o seu."
-        )

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block titulo %}Meus Certificados — Norte Tel{% endblock %}
+{% block conteudo %}
+<h1 class="text-2xl font-bold text-norte-azul mb-4">🏆 Meus Certificados de Capacitação</h1>
+
+<div class="rounded-lg bg-amber-50 text-amber-800 text-sm px-4 py-3 mb-6">
+    ⚠️ Este é um <strong>Certificado de Capacitação</strong>, referente a um curso livre (de capacitação/extensão).
+    Não se trata de diploma, título acadêmico ou certificação técnica regulamentada. Cursos livres independem de
+    credenciamento junto ao Ministério da Educação (MEC), nos termos da legislação educacional brasileira.
+</div>
+
+{% if not itens %}
+<div class="rounded-lg bg-slate-100 text-slate-600 text-sm px-4 py-3">
+    Você ainda não possui certificados de capacitação. Conclua todos os módulos de um curso (vídeos e avaliações)
+    para gerar o seu.
+</div>
+{% else %}
+<div class="space-y-3">
+    {% for item in itens %}
+    <div class="bg-white rounded-xl border border-slate-200 p-4 flex flex-col sm:flex-row sm:items-center gap-4">
+        <div class="flex-1">
+            <h2 class="font-bold text-slate-800">{{ item.curso.titulo }}</h2>
+            <p class="text-sm text-slate-500">
+                {{ "Nota final %.1f"|format(item.nota) if item.nota is not none else "Concluído" }}
+                · Instrutor: {{ item.curso.instrutor }}
+            </p>
+        </div>
+        <a href="/certificados/{{ item.curso.id }}.pdf"
+           class="shrink-0 text-center bg-norte-azul hover:bg-norte-azul-escuro text-white text-sm font-semibold rounded-lg px-5 py-2.5 transition">
+            ⬇️ Baixar PDF
+        </a>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

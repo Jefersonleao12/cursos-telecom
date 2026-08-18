@@ -143,8 +143,12 @@
 {% if modulos_estado %}
 <hr class="my-6 border-slate-200">
 {% if curso_completo_agora %}
-<div class="rounded-lg bg-green-50 text-green-700 text-sm px-4 py-3">
-    🎉 Parabéns! Você concluiu TODOS os módulos deste curso. O certificado de capacitação chega na próxima etapa da plataforma.
+<div class="rounded-lg bg-green-50 text-green-700 text-sm px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+    <span>🎉 Parabéns! Você concluiu TODOS os módulos deste curso.</span>
+    <a href="/certificados/{{ curso.id }}.pdf"
+       class="shrink-0 text-center bg-norte-azul hover:bg-norte-azul-escuro text-white text-sm font-semibold rounded-lg px-4 py-2 transition">
+        Ver meu certificado de capacitação
+    </a>
 </div>
 {% else %}
 <div class="rounded-lg bg-blue-50 text-norte-azul text-sm px-4 py-3">
