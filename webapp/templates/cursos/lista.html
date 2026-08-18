@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block titulo %}Meus Cursos — Norte Tel{% endblock %}
+{% block conteudo %}
+<h1 class="text-2xl font-bold text-norte-azul mb-4">📚 Meus Cursos</h1>
+
+<form action="/cursos" method="get" class="mb-6">
+    <input type="text" name="q" value="{{ termo_busca }}" placeholder="🔎 Buscar curso pelo nome..."
+           class="w-full rounded-lg border border-slate-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+</form>
+
+{% if not itens %}
+    {% if termo_busca %}
+    <div class="rounded-lg bg-amber-50 text-amber-800 text-sm px-4 py-3">Nenhum curso encontrado com esse nome.</div>
+    {% else %}
+    <div class="rounded-lg bg-slate-100 text-slate-600 text-sm px-4 py-3">Nenhum curso disponível no momento. Volte em breve!</div>
+    {% endif %}
+{% else %}
+<div class="space-y-4">
+    {% for item in itens %}
+    {% set curso = item.curso %}
+    <div class="bg-white rounded-2xl border border-slate-200 p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+        <div class="flex-1">
+            <h2 class="text-lg font-bold text-slate-800">{{ curso.titulo }}</h2>
+            <span class="inline-block mt-1 text-xs font-semibold px-2.5 py-1 rounded-full
+                {% if item.status_classe == 'concluido' %}bg-green-50 text-green-700
+                {% elif item.status_classe == 'andamento' %}bg-amber-50 text-amber-700
+                {% else %}bg-slate-100 text-slate-600{% endif %}">
+                {{ item.status_rotulo }}
+            </span>
+            <p class="text-sm text-slate-500 mt-2">
+                Instrutor: {{ curso.instrutor }} · Carga horária: {{ curso.carga_horaria or '-' }}h
+            </p>
+            {% if curso.descricao %}
+            <p class="text-sm text-slate-600 mt-1">{{ curso.descricao }}</p>
+            {% endif %}
+            <div class="mt-3 w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                <div class="h-full bg-norte-azul-claro" style="width: {{ item.progresso_pct }}%"></div>
+            </div>
+            <p class="text-xs text-slate-500 mt-1">{{ item.progresso_pct }}% concluído</p>
+        </div>
+        <a href="/cursos/{{ curso.id }}"
+           class="shrink-0 text-center bg-norte-azul hover:bg-norte-azul-escuro text-white text-sm font-semibold rounded-lg px-5 py-2.5 transition">
+            Acessar curso
+        </a>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

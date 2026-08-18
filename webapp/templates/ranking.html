@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block titulo %}Top Alunos — Norte Tel{% endblock %}
+{% block conteudo %}
+<h1 class="text-2xl font-bold text-norte-azul mb-1">🏅 Top Alunos</h1>
+<p class="text-sm text-slate-500 mb-6">
+    Os alunos com mais progresso na plataforma — continue estudando para aparecer aqui e subir de posição!
+</p>
+
+{% if not tem_ranking %}
+<div class="rounded-lg bg-slate-100 text-slate-600 text-sm px-4 py-3">
+    Ninguém começou um curso ainda. Seja o primeiro a aparecer aqui! 💪
+</div>
+{% else %}
+<div class="space-y-3">
+    {% for linha in top %}
+    {% set item = linha.item %}
+    <div class="bg-white rounded-xl border {{ 'border-norte-azul-claro ring-1 ring-norte-azul-claro' if linha.eh_voce else 'border-slate-200' }} p-4 flex flex-col sm:flex-row sm:items-center gap-4">
+        <div class="flex items-center gap-4 flex-1 min-w-0">
+            <div class="text-2xl font-bold w-10 text-center shrink-0">{{ linha.medalha }}</div>
+            {% if item.foto_url %}
+            <img src="{{ item.foto_url }}" alt="" class="w-12 h-12 rounded-full object-cover border border-slate-200 shrink-0">
+            {% else %}
+            <div class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-xl shrink-0">👤</div>
+            {% endif %}
+            <div class="min-w-0">
+                <p class="font-bold text-norte-azul truncate">
+                    {{ item.nome_completo }}{% if linha.eh_voce %} (você){% endif %}
+                </p>
+                <p class="text-sm text-slate-500 truncate">
+                    {{ [item.empresa, item.filial] | select | join(' · ') }}
+                </p>
+            </div>
+        </div>
+        <div class="sm:w-56 shrink-0">
+            <p class="text-sm text-slate-700 mb-1">
+                🏆 <strong>{{ item.cursos_concluidos }}</strong>
+                {{ "curso concluído" if item.cursos_concluidos == 1 else "cursos concluídos" }}
+            </p>
+            <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                <div class="h-full bg-norte-azul-claro" style="width: {{ linha.progresso_pct }}%"></div>
+            </div>
+            <p class="text-xs text-slate-500 mt-1">{{ linha.progresso_pct }}% de progresso médio</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<hr class="my-6 border-slate-200">
+
+{% if posicao_atual is none %}
+<div class="rounded-lg bg-slate-100 text-slate-600 text-sm px-4 py-3">
+    Você ainda não apareceu no ranking — comece um curso para entrar na disputa! 💪
+</div>
+{% elif posicao_atual > quantidade_exibida %}
+<div class="rounded-lg bg-blue-50 text-norte-azul text-sm px-4 py-3">
+    📍 Sua posição atual: <strong>{{ posicao_atual }}º lugar</strong> de {{ total_alunos }} alunos no ranking.
+    Continue estudando para subir!
+</div>
+{% else %}
+<div class="rounded-lg bg-green-50 text-green-700 text-sm px-4 py-3">
+    🎉 Você está entre os primeiros do ranking! Continue assim.
+</div>
+{% endif %}
+{% endif %}
+{% endblock %}

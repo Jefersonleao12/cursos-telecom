@@ -34,6 +34,14 @@
                 <img src="/assets/icone.png" alt="" class="w-8 h-8 rounded">
                 <span>Norte Tel</span>
             </a>
+            <nav class="hidden md:flex items-center gap-1 text-sm">
+                {% for href, rotulo in [("/", "Início"), ("/cursos", "Cursos"), ("/materiais", "Materiais"), ("/ranking", "Ranking")] %}
+                <a href="{{ href }}"
+                   class="px-3 py-1.5 rounded-lg transition {{ 'bg-white/15 font-semibold' if request.url.path == href else 'hover:bg-white/10' }}">
+                    {{ rotulo }}
+                </a>
+                {% endfor %}
+            </nav>
             <div class="flex items-center gap-3">
                 <span class="text-sm opacity-90 hidden sm:inline">{{ aluno.nome_completo }}</span>
                 {% if aluno.foto_url %}
@@ -46,6 +54,14 @@
                 </form>
             </div>
         </div>
+        <nav class="md:hidden flex items-center gap-1 text-sm px-4 pb-3 overflow-x-auto">
+            {% for href, rotulo in [("/", "Início"), ("/cursos", "Cursos"), ("/materiais", "Materiais"), ("/ranking", "Ranking")] %}
+            <a href="{{ href }}"
+               class="px-3 py-1.5 rounded-lg whitespace-nowrap transition {{ 'bg-white/15 font-semibold' if request.url.path == href else 'hover:bg-white/10' }}">
+                {{ rotulo }}
+            </a>
+            {% endfor %}
+        </nav>
     </header>
     {% endif %}
 
