@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block conteudo %}
+{% set secoes_admin = [
+    ("/admin", "📊 Dashboard"),
+] %}
+
+<div class="rounded-2xl bg-gradient-to-r from-norte-azul-escuro to-norte-azul-claro text-white p-6 mb-4">
+    <h1 class="text-xl font-bold">⚙️ Painel de Administração</h1>
+    <p class="text-sm opacity-85 mt-1">Gerencie cursos, aulas, provas, materiais e acompanhe os alunos da plataforma.</p>
+</div>
+
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+    <div class="bg-white rounded-xl border border-slate-200 p-4 text-center">
+        <p class="text-2xl font-bold text-norte-azul">{{ visao_geral.cursos }}</p>
+        <p class="text-xs text-slate-500 mt-1">📚 Cursos</p>
+    </div>
+    <div class="bg-white rounded-xl border border-slate-200 p-4 text-center">
+        <p class="text-2xl font-bold text-norte-azul">{{ visao_geral.alunos }}</p>
+        <p class="text-xs text-slate-500 mt-1">🧑‍🎓 Alunos cadastrados</p>
+    </div>
+    <div class="bg-white rounded-xl border border-slate-200 p-4 text-center">
+        <p class="text-2xl font-bold text-norte-azul">{{ visao_geral.duvidas_pendentes }}</p>
+        <p class="text-xs text-slate-500 mt-1">❓ Dúvidas pendentes</p>
+    </div>
+    <div class="bg-white rounded-xl border border-slate-200 p-4 text-center">
+        <p class="text-2xl font-bold text-norte-azul">{{ visao_geral.perguntas }}</p>
+        <p class="text-xs text-slate-500 mt-1">📝 Perguntas de prova</p>
+    </div>
+</div>
+
+<nav class="flex gap-1 border-b border-slate-200 mb-6 overflow-x-auto">
+    {% for href, rotulo in secoes_admin %}
+    <a href="{{ href }}"
+       class="px-3 py-2 text-sm font-semibold whitespace-nowrap border-b-2 transition {{ 'border-norte-azul text-norte-azul' if request.url.path == href else 'border-transparent text-slate-500 hover:text-slate-700' }}">
+        {{ rotulo }}
+    </a>
+    {% endfor %}
+</nav>
+
+{% block admin_conteudo %}{% endblock %}
+{% endblock %}

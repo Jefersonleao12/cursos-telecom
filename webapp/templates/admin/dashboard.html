@@ -1,0 +1,86 @@
+{% extends "admin/base.html" %}
+{% block titulo %}Admin — Dashboard — Norte Tel{% endblock %}
+{% block admin_conteudo %}
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+    <div class="bg-white rounded-xl border border-slate-200 p-4 text-center">
+        <p class="text-2xl font-bold text-norte-azul">{{ total_alunos_ativos }}</p>
+        <p class="text-xs text-slate-500 mt-1">🧑‍🎓 Alunos ativos</p>
+    </div>
+    <div class="bg-white rounded-xl border border-slate-200 p-4 text-center">
+        <p class="text-2xl font-bold text-norte-azul">{{ total_cursos }}</p>
+        <p class="text-xs text-slate-500 mt-1">📚 Cursos</p>
+    </div>
+    <div class="bg-white rounded-xl border border-slate-200 p-4 text-center">
+        <p class="text-2xl font-bold text-norte-azul">{{ total_certificados }}</p>
+        <p class="text-xs text-slate-500 mt-1">🏆 Certificados emitidos</p>
+    </div>
+    <div class="bg-white rounded-xl border border-slate-200 p-4 text-center">
+        <p class="text-2xl font-bold text-norte-azul">{{ taxa_aprovacao }}%</p>
+        <p class="text-xs text-slate-500 mt-1">✅ Taxa média de aprovação</p>
+    </div>
+</div>
+
+<div class="grid md:grid-cols-2 gap-4 mb-6">
+    <div class="bg-white rounded-2xl border border-slate-200 p-5">
+        <h2 class="text-sm font-bold text-slate-700 mb-3">Alunos por filial</h2>
+        {% if not alunos_por_filial %}
+        <p class="text-sm text-slate-400">Nenhum aluno cadastrado ainda.</p>
+        {% else %}
+        <div class="space-y-2">
+            {% for item in alunos_por_filial %}
+            <div>
+                <div class="flex justify-between text-xs text-slate-600 mb-0.5">
+                    <span>{{ item.nome }}</span>
+                    <span class="font-semibold">{{ item.quantidade }}</span>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                    <div class="h-full bg-norte-azul-claro" style="width: {{ (item.quantidade / maximo_filial * 100) if maximo_filial else 0 }}%"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="bg-white rounded-2xl border border-slate-200 p-5">
+        <h2 class="text-sm font-bold text-slate-700 mb-3">Certificados por curso</h2>
+        {% if not certificados_por_curso %}
+        <p class="text-sm text-slate-400">Nenhum certificado emitido ainda.</p>
+        {% else %}
+        <div class="space-y-2">
+            {% for item in certificados_por_curso %}
+            <div>
+                <div class="flex justify-between text-xs text-slate-600 mb-0.5">
+                    <span>{{ item.nome }}</span>
+                    <span class="font-semibold">{{ item.quantidade }}</span>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                    <div class="h-full bg-norte-azul-claro" style="width: {{ (item.quantidade / maximo_certificados * 100) if maximo_certificados else 0 }}%"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="bg-white rounded-2xl border border-slate-200 p-5">
+    <h2 class="text-sm font-bold text-slate-700 mb-3">Progresso médio por curso</h2>
+    {% if not progresso_por_curso %}
+    <p class="text-sm text-slate-400">Ainda não há dados suficientes.</p>
+    {% else %}
+    <div class="space-y-3">
+        {% for item in progresso_por_curso %}
+        <div>
+            <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                <div class="h-full bg-norte-azul-claro" style="width: {{ item.media_pct }}%"></div>
+            </div>
+            <p class="text-xs text-slate-500 mt-1">
+                {{ item.titulo }}: {{ item.media_pct }}% em média ({{ item.alunos }} aluno{{ "s" if item.alunos != 1 else "" }} iniciaram)
+            </p>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

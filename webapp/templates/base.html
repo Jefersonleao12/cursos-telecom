@@ -41,6 +41,12 @@
                     {{ rotulo }}
                 </a>
                 {% endfor %}
+                {% if aluno.is_admin %}
+                <a href="/admin"
+                   class="px-3 py-1.5 rounded-lg transition {{ 'bg-white/15 font-semibold' if request.url.path.startswith('/admin') else 'hover:bg-white/10' }}">
+                    ⚙️ Admin
+                </a>
+                {% endif %}
             </nav>
             <div class="flex items-center gap-3">
                 <a href="/perfil" class="flex items-center gap-2 hover:opacity-80 transition">
@@ -63,6 +69,12 @@
                 {{ rotulo }}
             </a>
             {% endfor %}
+            {% if aluno.is_admin %}
+            <a href="/admin"
+               class="px-3 py-1.5 rounded-lg whitespace-nowrap transition {{ 'bg-white/15 font-semibold' if request.url.path.startswith('/admin') else 'hover:bg-white/10' }}">
+                ⚙️ Admin
+            </a>
+            {% endif %}
         </nav>
     </header>
     {% endif %}
