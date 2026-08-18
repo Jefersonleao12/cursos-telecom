@@ -1,0 +1,33 @@
+{% extends "admin/base.html" %}
+{% block titulo %}Admin — Filiais — Norte Tel{% endblock %}
+{% block admin_conteudo %}
+<h2 class="text-sm font-bold text-slate-700 mb-3">Alunos por filial</h2>
+
+{% if not grupos %}
+<p class="text-sm text-slate-400">Nenhum aluno cadastrado ainda.</p>
+{% else %}
+<p class="text-xs text-slate-500 mb-4">Total geral: {{ total_alunos }} aluno(s) em {{ grupos|length }} filial(is).</p>
+
+<div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+    {% for nome_filial, lista in grupos.items() %}
+    <div class="bg-white rounded-xl border border-slate-200 p-4 text-center">
+        <p class="text-2xl font-bold text-norte-azul">{{ lista|length }}</p>
+        <p class="text-xs text-slate-500 mt-1">{{ nome_filial }}</p>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="space-y-2">
+    {% for nome_filial, lista in grupos.items() %}
+    <details class="bg-white rounded-xl border border-slate-200 p-4">
+        <summary class="cursor-pointer select-none text-sm font-semibold text-slate-700">📍 {{ nome_filial }} — {{ lista|length }} aluno(s)</summary>
+        <ul class="mt-3 space-y-1 text-sm text-slate-600">
+            {% for a in lista %}
+            <li>- {{ a.nome_completo }} ({{ a.email }})</li>
+            {% endfor %}
+        </ul>
+    </details>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}
