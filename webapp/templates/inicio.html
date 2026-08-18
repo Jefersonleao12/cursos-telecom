@@ -1,8 +1,109 @@
 {% extends "base.html" %}
 {% block titulo %}Início — Norte Tel{% endblock %}
 {% block conteudo %}
-<div class="rounded-2xl bg-gradient-to-r from-norte-azul-escuro via-norte-azul to-norte-azul-claro text-white p-8">
-    <p class="text-sm opacity-80 capitalize">{{ data_por_extenso }}</p>
-    <h1 class="text-2xl font-bold mt-1">{{ icone }} {{ saudacao }}, {{ primeiro_nome }}!</h1>
+<div class="rounded-2xl bg-gradient-to-r from-norte-azul-escuro via-norte-azul to-norte-azul-claro text-white p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div>
+        <p class="text-sm opacity-75 capitalize">{{ data_por_extenso }}</p>
+        <h1 class="text-2xl font-bold mt-1">{{ icone }} {{ saudacao }}, {{ primeiro_nome }}!</h1>
+    </div>
+    <div class="border-l-2 border-white/30 pl-5 max-w-md italic text-lg opacity-95">
+        "{{ frase_motivacional }}"
+    </div>
+</div>
+
+{% if avisos %}
+<div class="mt-6 space-y-2">
+    {% for aviso in avisos %}
+    <div class="bg-amber-50 border-l-4 border-amber-500 rounded-lg px-4 py-3">
+        <p class="font-bold text-amber-800 text-sm">📢 {{ aviso.titulo }}</p>
+        <p class="text-amber-900 text-sm whitespace-pre-wrap">{{ aviso.mensagem }}</p>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="grid sm:grid-cols-3 gap-4 mt-6">
+    <div class="bg-white rounded-2xl border border-slate-200 p-4 flex items-center gap-3">
+        <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-xl shrink-0">📚</div>
+        <div>
+            <p class="text-xl font-bold text-norte-azul">{{ resumo.em_andamento }}</p>
+            <p class="text-xs text-slate-500">Cursos em andamento</p>
+        </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-200 p-4 flex items-center gap-3">
+        <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-xl shrink-0">✅</div>
+        <div>
+            <p class="text-xl font-bold text-norte-azul">{{ resumo.concluidos }}</p>
+            <p class="text-xs text-slate-500">Cursos concluídos</p>
+        </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-200 p-4 flex items-center gap-3">
+        <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-xl shrink-0">🏆</div>
+        <div>
+            <p class="text-xl font-bold text-norte-azul">{{ resumo.certificados }}</p>
+            <p class="text-xs text-slate-500">Certificados de capacitação</p>
+        </div>
+    </div>
+</div>
+
+<div class="mt-8">
+    <h2 class="text-base font-bold text-norte-azul flex items-center gap-2">🧭 Acesso rápido</h2>
+    <p class="text-sm text-slate-500 mb-3">Vá direto para onde você precisa.</p>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {% for href, icone_acao, titulo_acao, desc_acao in [
+            ("/cursos", "📚", "Meus Cursos", "Continue de onde parou ou comece um novo curso."),
+            ("/certificados", "🏆", "Certificados de Capacitação", "Baixe seus certificados de capacitação dos cursos concluídos."),
+            ("/ranking", "🏅", "Top Alunos", "Veja quem está mais adiantado nos cursos."),
+            ("/materiais", "🗂️", "Materiais", "Fotos, documentos e arquivos para consulta."),
+        ] %}
+        <a href="{{ href }}" class="bg-white rounded-2xl border border-slate-200 p-4 hover:border-norte-azul-claro hover:shadow-md transition block">
+            <div class="text-2xl mb-1">{{ icone_acao }}</div>
+            <p class="font-bold text-slate-800 text-sm">{{ titulo_acao }}</p>
+            <p class="text-xs text-slate-500 mt-0.5 mb-2">{{ desc_acao }}</p>
+            <span class="text-xs font-semibold text-norte-azul-claro">Acessar →</span>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+
+{% if destaques %}
+<div class="mt-8">
+    <h2 class="text-base font-bold text-norte-azul flex items-center gap-2">🌟 Nossa Equipe</h2>
+    <p class="text-sm text-slate-500 mb-3">Arraste para o lado para conhecer nossos técnicos e trajetórias dentro da empresa.</p>
+    <div class="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-3 -mx-1 px-1">
+        {% for destaque in destaques %}
+        <div class="shrink-0 snap-start w-56 bg-white rounded-2xl border border-slate-200 overflow-hidden">
+            <img src="{{ destaque.foto_url }}" alt="{{ destaque.titulo }}" class="w-full aspect-[4/3] object-cover">
+            <div class="p-3">
+                <p class="font-bold text-norte-azul text-sm">{{ destaque.titulo }}</p>
+                {% if destaque.descricao %}
+                <p class="text-xs text-slate-500 mt-1">{{ destaque.descricao }}</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<div class="mt-8">
+    <h2 class="text-base font-bold text-norte-azul flex items-center gap-2">💬 Tire sua dúvida</h2>
+    <p class="text-sm text-slate-500 mb-3">Escreva sua pergunta e ela chega direto para o time responsável.</p>
+
+    <div class="bg-white rounded-2xl border border-slate-200 p-5 max-w-xl">
+        {% if sucesso_duvida %}
+        <div class="rounded-lg bg-green-50 text-green-700 text-sm px-4 py-3 mb-4">{{ sucesso_duvida }}</div>
+        {% endif %}
+        {% if erro_duvida %}
+        <div class="rounded-lg bg-red-50 text-red-700 text-sm px-4 py-3 mb-4">{{ erro_duvida }}</div>
+        {% endif %}
+        <form action="/duvida" method="post" class="space-y-3">
+            <textarea name="mensagem" rows="4" placeholder="Digite aqui sua dúvida do dia a dia..."
+                      class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro"></textarea>
+            <button type="submit" class="bg-norte-azul hover:bg-norte-azul-escuro text-white text-sm font-semibold rounded-lg px-5 py-2.5 transition">
+                Enviar dúvida
+            </button>
+        </form>
+    </div>
 </div>
 {% endblock %}
