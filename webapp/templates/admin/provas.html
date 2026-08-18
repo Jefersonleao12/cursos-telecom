@@ -1,0 +1,228 @@
+{% extends "admin/base.html" %}
+{% block titulo %}Admin — Provas e Perguntas — Norte Tel{% endblock %}
+{% block admin_conteudo %}
+{% if not cursos %}
+<p class="text-sm text-slate-400">Cadastre um curso primeiro, em "Cursos".</p>
+{% else %}
+<form action="/admin/provas" method="get" class="mb-6 grid sm:grid-cols-2 gap-4 max-w-xl">
+    <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Selecione o curso</label>
+        <select name="curso_id" onchange="this.form.submit()" class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+            {% for c in cursos %}
+            <option value="{{ c.id }}" {{ "selected" if c.id == curso_id }}>{{ c.titulo }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    {% if modulos %}
+    <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Selecione o módulo</label>
+        <select name="modulo_id" onchange="this.form.submit()" class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+            {% for m in modulos %}
+            <option value="{{ m.id }}" {{ "selected" if m.id == modulo_id }}>{{ m.ordem }}. {{ m.titulo }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    {% endif %}
+</form>
+
+{% if not modulos %}
+<p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-4 py-3">Este curso ainda não tem nenhum módulo. Cadastre um em "Módulos" primeiro.</p>
+{% else %}
+
+{% if not prova %}
+<div class="bg-white rounded-2xl border border-slate-200 p-5 max-w-xl">
+    <p class="text-sm text-slate-500 mb-4">
+        Este módulo ainda não tem avaliação. Cadastre uma abaixo (opcional — um módulo também pode ter só vídeos,
+        sem prova).
+    </p>
+    <form action="/admin/provas" method="post" class="space-y-4">
+        <input type="hidden" name="curso_id" value="{{ curso_id }}">
+        <input type="hidden" name="modulo_id" value="{{ modulo_id }}">
+        <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Título da avaliação *</label>
+            <input type="text" name="titulo" value="Avaliação do módulo" required class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Nota mínima para aprovação (0 a 10)</label>
+            <input type="number" name="nota_minima" min="0" max="10" step="0.5" value="7.0" class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+        </div>
+        <button type="submit" class="bg-norte-azul hover:bg-norte-azul-escuro text-white text-sm font-semibold rounded-lg px-5 py-2.5 transition">
+            Criar avaliação
+        </button>
+    </form>
+</div>
+{% else %}
+
+<div class="bg-white rounded-xl border border-slate-200 p-4 mb-4">
+    <div class="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+        <p class="text-sm text-green-700">✅ Avaliação atual: <strong>{{ prova.titulo }}</strong> (nota mínima {{ "%.1f"|format(prova.nota_minima) }})</p>
+        <div class="flex gap-2 shrink-0">
+            <a href="/admin/provas?curso_id={{ curso_id }}&modulo_id={{ modulo_id }}&editar_prova={{ prova.id }}" class="text-xs font-semibold bg-slate-100 hover:bg-slate-200 rounded-lg px-3 py-1.5 transition">✏️ Editar prova</a>
+            <a href="/admin/provas?curso_id={{ curso_id }}&modulo_id={{ modulo_id }}&excluir_prova={{ prova.id }}" class="text-xs font-semibold bg-red-50 text-red-700 hover:bg-red-100 rounded-lg px-3 py-1.5 transition">🗑️ Excluir prova</a>
+        </div>
+    </div>
+
+    {% if excluindo_prova_id == prova.id %}
+    <div class="mt-3 rounded-lg bg-amber-50 text-amber-800 text-sm px-4 py-3">
+        Tem certeza? Isso apaga todas as perguntas e resultados desta avaliação.
+        <form action="/admin/provas/{{ prova.id }}/excluir" method="post" class="flex gap-2 mt-3">
+            <input type="hidden" name="curso_id" value="{{ curso_id }}">
+            <input type="hidden" name="modulo_id" value="{{ modulo_id }}">
+            <button type="submit" class="text-sm font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg px-4 py-1.5 transition">Sim, excluir prova</button>
+            <a href="/admin/provas?curso_id={{ curso_id }}&modulo_id={{ modulo_id }}" class="text-sm font-semibold bg-white border border-slate-300 rounded-lg px-4 py-1.5 transition">Cancelar</a>
+        </form>
+    </div>
+    {% endif %}
+
+    {% if editando_prova_id == prova.id %}
+    <form action="/admin/provas/{{ prova.id }}/editar" method="post" class="mt-3 space-y-3 border-t border-slate-100 pt-3">
+        <input type="hidden" name="curso_id" value="{{ curso_id }}">
+        <input type="hidden" name="modulo_id" value="{{ modulo_id }}">
+        <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1">Título da avaliação *</label>
+            <input type="text" name="titulo" value="{{ prova.titulo }}" required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+        </div>
+        <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1">Nota mínima (0 a 10)</label>
+            <input type="number" name="nota_minima" min="0" max="10" step="0.5" value="{{ prova.nota_minima }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+        </div>
+        <div class="flex gap-2">
+            <button type="submit" class="text-sm font-semibold bg-norte-azul hover:bg-norte-azul-escuro text-white rounded-lg px-4 py-1.5 transition">Salvar alterações</button>
+            <a href="/admin/provas?curso_id={{ curso_id }}&modulo_id={{ modulo_id }}" class="text-sm font-semibold bg-white border border-slate-300 rounded-lg px-4 py-1.5 transition">Cancelar</a>
+        </div>
+    </form>
+    {% endif %}
+</div>
+
+<h2 class="text-sm font-bold text-slate-700 mb-3">{{ perguntas|length }} pergunta(s) cadastrada(s)</h2>
+{% if perguntas %}
+<div class="space-y-3 mb-6">
+    {% for p in perguntas %}
+    <div class="bg-white rounded-xl border border-slate-200 p-4">
+        <div class="flex items-center gap-3 justify-between">
+            <p class="text-sm text-slate-600">{{ loop.index }}. {{ p.enunciado }} <span class="text-slate-400">(resposta correta: {{ p.resposta_correta }})</span></p>
+            <div class="flex gap-2 shrink-0">
+                <a href="/admin/provas?curso_id={{ curso_id }}&modulo_id={{ modulo_id }}&editar_pergunta={{ p.id }}" class="text-xs font-semibold bg-slate-100 hover:bg-slate-200 rounded-lg px-3 py-1.5 transition">✏️</a>
+                <form action="/admin/perguntas/{{ p.id }}/excluir" method="post">
+                    <input type="hidden" name="curso_id" value="{{ curso_id }}">
+                    <input type="hidden" name="modulo_id" value="{{ modulo_id }}">
+                    <button type="submit" class="text-xs font-semibold bg-red-50 text-red-700 hover:bg-red-100 rounded-lg px-3 py-1.5 transition">🗑️</button>
+                </form>
+            </div>
+        </div>
+
+        {% if editando_pergunta_id == p.id %}
+        <form action="/admin/perguntas/{{ p.id }}/editar" method="post" class="mt-3 space-y-3 border-t border-slate-100 pt-3">
+            <input type="hidden" name="curso_id" value="{{ curso_id }}">
+            <input type="hidden" name="modulo_id" value="{{ modulo_id }}">
+            <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1">Enunciado da pergunta *</label>
+                <textarea name="enunciado" rows="2" required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">{{ p.enunciado }}</textarea>
+            </div>
+            <div class="grid sm:grid-cols-2 gap-3">
+                <div><label class="block text-xs font-medium text-slate-700 mb-1">Alternativa A *</label><input type="text" name="opcao_a" value="{{ p.opcao_a }}" required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-norte-azul-claro"></div>
+                <div><label class="block text-xs font-medium text-slate-700 mb-1">Alternativa B *</label><input type="text" name="opcao_b" value="{{ p.opcao_b }}" required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-norte-azul-claro"></div>
+                <div><label class="block text-xs font-medium text-slate-700 mb-1">Alternativa C *</label><input type="text" name="opcao_c" value="{{ p.opcao_c }}" required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-norte-azul-claro"></div>
+                <div><label class="block text-xs font-medium text-slate-700 mb-1">Alternativa D *</label><input type="text" name="opcao_d" value="{{ p.opcao_d }}" required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-norte-azul-claro"></div>
+            </div>
+            <div class="grid sm:grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-medium text-slate-700 mb-1">Alternativa correta *</label>
+                    <select name="resposta_correta" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+                        {% for letra in ["A", "B", "C", "D"] %}
+                        <option value="{{ letra }}" {{ "selected" if p.resposta_correta == letra }}>{{ letra }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-700 mb-1">Ordem</label>
+                    <input type="number" name="ordem" min="1" value="{{ p.ordem }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button type="submit" class="text-sm font-semibold bg-norte-azul hover:bg-norte-azul-escuro text-white rounded-lg px-4 py-1.5 transition">Salvar alterações</button>
+                <a href="/admin/provas?curso_id={{ curso_id }}&modulo_id={{ modulo_id }}" class="text-sm font-semibold bg-white border border-slate-300 rounded-lg px-4 py-1.5 transition">Cancelar</a>
+            </div>
+        </form>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<h2 class="text-sm font-bold text-slate-700 mb-3">Adicionar pergunta</h2>
+<form action="/admin/perguntas" method="post" class="bg-white rounded-2xl border border-slate-200 p-5 space-y-4 max-w-xl mb-6">
+    <input type="hidden" name="curso_id" value="{{ curso_id }}">
+    <input type="hidden" name="modulo_id" value="{{ modulo_id }}">
+    <input type="hidden" name="prova_id" value="{{ prova.id }}">
+    <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Enunciado da pergunta *</label>
+        <textarea name="enunciado" rows="2" required class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro"></textarea>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-4">
+        <div><label class="block text-sm font-medium text-slate-700 mb-1">Alternativa A *</label><input type="text" name="opcao_a" required class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro"></div>
+        <div><label class="block text-sm font-medium text-slate-700 mb-1">Alternativa B *</label><input type="text" name="opcao_b" required class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro"></div>
+        <div><label class="block text-sm font-medium text-slate-700 mb-1">Alternativa C *</label><input type="text" name="opcao_c" required class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro"></div>
+        <div><label class="block text-sm font-medium text-slate-700 mb-1">Alternativa D *</label><input type="text" name="opcao_d" required class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro"></div>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Alternativa correta *</label>
+            <select name="resposta_correta" class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+                {% for letra in ["A", "B", "C", "D"] %}
+                <option value="{{ letra }}">{{ letra }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Ordem</label>
+            <input type="number" name="ordem" min="1" value="{{ perguntas|length + 1 }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+        </div>
+    </div>
+    <button type="submit" class="bg-norte-azul hover:bg-norte-azul-escuro text-white text-sm font-semibold rounded-lg px-5 py-2.5 transition">
+        Salvar pergunta
+    </button>
+</form>
+
+<h2 class="text-sm font-bold text-slate-700 mb-1">Tentativas dos alunos</h2>
+<p class="text-xs text-slate-500 mb-3">
+    Depois de UMA tentativa, o aluno não pode refazer a avaliação sozinho. Se ele reprovou e pedir uma nova
+    chance, libere aqui — vale só para a próxima tentativa dele.
+</p>
+{% if not tentativas %}
+<p class="text-sm text-slate-400">Nenhum aluno fez esta avaliação ainda.</p>
+{% else %}
+<div class="space-y-2">
+    {% for t in tentativas %}
+    {% set r = t.resultado %}
+    <div class="bg-white rounded-xl border border-slate-200 p-4 flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+        <div>
+            <p class="text-sm text-slate-700">
+                <strong>{{ t.nome }}</strong> — {{ "✅ Aprovado" if r.aprovado else "❌ Reprovado" }} (nota {{ "%.1f"|format(r.nota) }})
+            </p>
+            {% if t.tempo_formatado %}
+            <p class="text-xs text-slate-400">Tempo gasto na prova: {{ t.tempo_formatado }}</p>
+            {% endif %}
+        </div>
+        {% if not r.aprovado %}
+        <div class="shrink-0">
+            {% if r.liberado_para_nova_tentativa %}
+            <span class="text-xs text-slate-500">🔓 Liberado — aguardando nova tentativa</span>
+            {% else %}
+            <form action="/admin/resultados/{{ r.id }}/liberar" method="post">
+                <input type="hidden" name="curso_id" value="{{ curso_id }}">
+                <input type="hidden" name="modulo_id" value="{{ modulo_id }}">
+                <button type="submit" class="text-xs font-semibold bg-slate-100 hover:bg-slate-200 rounded-lg px-3 py-1.5 transition">🔓 Liberar nova tentativa</button>
+            </form>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% endif %}
+{% endif %}
+{% endif %}
+{% endblock %}
