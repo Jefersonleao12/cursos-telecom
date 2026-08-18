@@ -1,0 +1,184 @@
+{% extends "admin/base.html" %}
+{% block titulo %}Admin — Alunos — Norte Tel{% endblock %}
+{% block admin_conteudo %}
+<details class="bg-white rounded-2xl border border-slate-200 p-5 mb-6">
+    <summary class="cursor-pointer select-none font-bold text-sm text-slate-700">➕ Cadastrar novo aluno</summary>
+    <p class="text-xs text-slate-500 mt-3 mb-4">
+        Não existe mais autocadastro — o aluno só consegue acessar a plataforma depois de cadastrado aqui. A senha
+        inicial é o próprio CPF; no primeiro acesso, ele será pedido a definir uma foto de perfil.
+    </p>
+
+    {% if erro_cadastro %}
+    <div class="rounded-lg bg-red-50 text-red-700 text-sm px-4 py-3 mb-4">{{ erro_cadastro }}</div>
+    {% endif %}
+    {% if sucesso_cadastro %}
+    <div class="rounded-lg bg-green-50 text-green-700 text-sm px-4 py-3 mb-4">{{ sucesso_cadastro }}</div>
+    {% endif %}
+
+    <form action="/admin/alunos" method="post" class="space-y-4 max-w-xl">
+        <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Nome completo *</label>
+            <input type="text" name="nome_completo" required class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">CPF *</label>
+            <input type="text" name="cpf" placeholder="Somente números ou 000.000.000-00" required class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">E-mail *</label>
+            <input type="email" name="email" required class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">WhatsApp</label>
+            <input type="text" name="telefone" placeholder="(69) 9xxxx-xxxx" class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+        </div>
+        <div class="grid sm:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Filial (cidade) *</label>
+                <select name="filial" required class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+                    <option value="">Selecione...</option>
+                    {% for f in filiais %}
+                    <option value="{{ f }}">{{ f }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Cargo / Função</label>
+                <input type="text" name="cargo" class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+            </div>
+        </div>
+        <button type="submit" class="bg-norte-azul hover:bg-norte-azul-escuro text-white text-sm font-semibold rounded-lg px-5 py-2.5 transition">
+            Cadastrar aluno
+        </button>
+    </form>
+</details>
+
+<h2 class="text-sm font-bold text-slate-700 mb-3">Alunos cadastrados</h2>
+
+{% if not itens %}
+<p class="text-sm text-slate-400">Nenhum aluno cadastrado ainda.</p>
+{% else %}
+<form action="/admin/alunos" method="get" class="mb-4 max-w-md">
+    <input type="text" name="q" value="{{ termo_busca }}" placeholder="🔎 Buscar por nome, e-mail ou CPF..."
+           class="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+</form>
+{% if termo_busca %}
+<p class="text-xs text-slate-500 mb-4">{{ itens|length }} aluno(s) encontrado(s).</p>
+{% endif %}
+
+{% if pedidos_senha %}
+<div class="rounded-lg bg-amber-50 text-amber-800 text-sm px-4 py-3 mb-3">🔑 {{ pedidos_senha }} aluno(s) pediram redefinição de senha — veja abaixo.</div>
+{% endif %}
+{% if sem_cpf %}
+<div class="rounded-lg bg-amber-50 text-amber-800 text-sm px-4 py-3 mb-4">
+    🪪 {{ sem_cpf }} conta(s) ainda sem CPF cadastrado — essas pessoas não conseguem entrar até você completar o CPF (botão ✏️ Editar).
+</div>
+{% endif %}
+
+<div class="space-y-3">
+    {% for item in itens %}
+    {% set a = item.aluno %}
+    <div class="bg-white rounded-xl border border-slate-200 p-4">
+        <div class="flex items-start gap-3">
+            {% if a.foto_url %}
+            <img src="{{ a.foto_url }}" alt="" class="w-11 h-11 rounded-full object-cover border border-slate-200 shrink-0">
+            {% else %}
+            <div class="w-11 h-11 rounded-full bg-blue-50 flex items-center justify-center text-lg shrink-0">👤</div>
+            {% endif %}
+            <div class="min-w-0 flex-1">
+                <p class="text-sm text-slate-700">
+                    <strong>{{ a.nome_completo }}</strong>
+                    {% if a.solicitou_redefinicao_senha %}🔑{% endif %}
+                    {% if not a.cpf %}<span class="text-amber-700"> · 🪪 sem CPF</span>{% endif %}
+                    — {{ a.email }}
+                    {% if not a.ativo %}<span class="text-red-600"> · 🚫 acesso desativado</span>{% endif %}
+                </p>
+                <p class="text-xs text-slate-500">
+                    CPF: {{ item.cpf_formatado or "-" }} · Cargo: {{ a.cargo or "-" }} · Filial: {{ a.filial or "-" }}
+                </p>
+                {% if a.is_admin %}<p class="text-xs text-norte-azul-claro">⭐ Administrador</p>{% endif %}
+                {% for linha in item.progresso %}
+                <p class="text-xs text-slate-400">{{ linha }}</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="flex flex-wrap gap-2 mt-3">
+            <a href="/admin/alunos?editar={{ a.id }}" class="text-xs font-semibold bg-slate-100 hover:bg-slate-200 rounded-lg px-3 py-1.5 transition">✏️ Editar</a>
+            <form action="/admin/alunos/{{ a.id }}/admin" method="post">
+                <input type="hidden" name="tornar" value="{{ 'false' if a.is_admin else 'true' }}">
+                <button type="submit" class="text-xs font-semibold bg-slate-100 hover:bg-slate-200 rounded-lg px-3 py-1.5 transition">
+                    {{ "⭐ Remover admin" if a.is_admin else "⭐ Tornar admin" }}
+                </button>
+            </form>
+            <form action="/admin/alunos/{{ a.id }}/acesso" method="post">
+                <input type="hidden" name="ativar" value="{{ 'false' if a.ativo else 'true' }}">
+                <button type="submit" class="text-xs font-semibold bg-slate-100 hover:bg-slate-200 rounded-lg px-3 py-1.5 transition">
+                    {{ "🚫 Desativar acesso" if a.ativo else "✅ Reativar acesso" }}
+                </button>
+            </form>
+            <form action="/admin/alunos/{{ a.id }}/gerar-senha" method="post">
+                <button type="submit" class="text-xs font-semibold rounded-lg px-3 py-1.5 transition {{ 'bg-norte-azul text-white hover:bg-norte-azul-escuro' if a.solicitou_redefinicao_senha else 'bg-slate-100 hover:bg-slate-200' }}">
+                    {{ "🔑 Atender pedido" if a.solicitou_redefinicao_senha else "🔑 Gerar nova senha" }}
+                </button>
+            </form>
+        </div>
+
+        {% if senha_gerada_id == a.id %}
+        <div class="mt-3 rounded-lg bg-green-50 text-green-700 text-sm px-4 py-3">
+            Senha temporária para <strong>{{ a.nome_completo }}</strong>: <code class="font-mono">{{ senha_gerada_valor }}</code>
+            — repasse por telefone/WhatsApp. Ele será obrigado a trocar no próximo login.
+        </div>
+        {% endif %}
+
+        {% if editando_id == a.id %}
+        <form action="/admin/alunos/{{ a.id }}/editar" method="post" class="mt-3 space-y-3 border-t border-slate-100 pt-3">
+            {% if erro_edicao %}
+            <div class="rounded-lg bg-red-50 text-red-700 text-sm px-4 py-3">{{ erro_edicao }}</div>
+            {% endif %}
+            <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1">Nome completo *</label>
+                <input type="text" name="nome_completo" value="{{ a.nome_completo }}" required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1">CPF *</label>
+                <input type="text" name="cpf" value="{{ item.cpf_formatado or '' }}" placeholder="Somente números ou 000.000.000-00" required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1">E-mail *</label>
+                <input type="email" name="email" value="{{ a.email }}" required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1">WhatsApp</label>
+                <input type="text" name="telefone" value="{{ a.telefone or '' }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+            </div>
+            <div class="grid sm:grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-medium text-slate-700 mb-1">Filial (cidade) *</label>
+                    <select name="filial" required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+                        <option value="">Selecione...</option>
+                        {% for f in filiais %}
+                        <option value="{{ f }}" {{ "selected" if a.filial == f }}>{{ f }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-700 mb-1">Cargo / Função</label>
+                    <input type="text" name="cargo" value="{{ a.cargo or '' }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+                </div>
+            </div>
+            <label class="flex items-center gap-2 text-xs text-slate-600">
+                <input type="checkbox" name="resetar_senha" value="true" {{ "checked" if not a.cpf }}>
+                Também redefinir a senha para este CPF
+            </label>
+            <div class="flex gap-2">
+                <button type="submit" class="text-sm font-semibold bg-norte-azul hover:bg-norte-azul-escuro text-white rounded-lg px-4 py-1.5 transition">Salvar alterações</button>
+                <a href="/admin/alunos" class="text-sm font-semibold bg-white border border-slate-300 rounded-lg px-4 py-1.5 transition">Cancelar</a>
+            </div>
+        </form>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

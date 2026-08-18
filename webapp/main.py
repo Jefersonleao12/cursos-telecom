@@ -15,6 +15,7 @@ from fastapi.staticfiles import StaticFiles
 from database.repositorio import listar_cursos
 from webapp.auth.routes import router as auth_router
 from webapp.middleware import AutenticacaoMiddleware
+from webapp.routers.admin.alunos import router as admin_alunos_router
 from webapp.routers.admin.aulas import router as admin_aulas_router
 from webapp.routers.admin.cursos import router as admin_cursos_router
 from webapp.routers.admin.dashboard import router as admin_dashboard_router
@@ -48,6 +49,7 @@ app.include_router(admin_cursos_router)
 app.include_router(admin_modulos_router)
 app.include_router(admin_aulas_router)
 app.include_router(admin_provas_router)
+app.include_router(admin_alunos_router)
 
 
 @app.get("/healthz", response_class=PlainTextResponse)
