@@ -17,9 +17,12 @@ from webapp.auth.routes import router as auth_router
 from webapp.middleware import AutenticacaoMiddleware
 from webapp.routers.admin.alunos import router as admin_alunos_router
 from webapp.routers.admin.aulas import router as admin_aulas_router
+from webapp.routers.admin.avisos import router as admin_avisos_router
 from webapp.routers.admin.cursos import router as admin_cursos_router
 from webapp.routers.admin.dashboard import router as admin_dashboard_router
+from webapp.routers.admin.destaques import router as admin_destaques_router
 from webapp.routers.admin.filiais import router as admin_filiais_router
+from webapp.routers.admin.materiais import router as admin_materiais_router
 from webapp.routers.admin.modulos import router as admin_modulos_router
 from webapp.routers.admin.provas import router as admin_provas_router
 from webapp.routers.certificados import router as certificados_router
@@ -52,6 +55,9 @@ app.include_router(admin_aulas_router)
 app.include_router(admin_provas_router)
 app.include_router(admin_alunos_router)
 app.include_router(admin_filiais_router)
+app.include_router(admin_materiais_router)
+app.include_router(admin_avisos_router)
+app.include_router(admin_destaques_router)
 
 
 @app.get("/healthz", response_class=PlainTextResponse)

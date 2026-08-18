@@ -1,0 +1,107 @@
+{% extends "admin/base.html" %}
+{% block titulo %}Admin — Destaques — Norte Tel{% endblock %}
+{% block admin_conteudo %}
+<h2 class="text-sm font-bold text-slate-700 mb-1">Carrossel de destaques</h2>
+<p class="text-xs text-slate-500 mb-4">
+    Fotos que aparecem em carrossel na tela de Início dos alunos — ex: técnicos da equipe, trajetória de carreira
+    dentro da empresa. A foto é recortada automaticamente no formato do carrossel (4:3).
+</p>
+
+{% if not destaques %}
+<p class="text-sm text-slate-400 mb-6">Nenhum destaque cadastrado ainda.</p>
+{% else %}
+<div class="space-y-3 mb-6">
+    {% for d in destaques %}
+    <div class="bg-white rounded-xl border border-slate-200 p-4">
+        <div class="flex flex-col sm:flex-row gap-4">
+            <img src="{{ d.foto_url }}" alt="" class="w-full sm:w-32 aspect-[4/3] object-cover rounded-lg border border-slate-200 shrink-0">
+            <div class="flex-1 min-w-0">
+                <p class="text-sm text-slate-700">
+                    <strong>{{ d.titulo }}</strong>{{ " (desativado)" if not d.ativo else "" }}
+                </p>
+                {% if d.descricao %}<p class="text-xs text-slate-500">{{ d.descricao }}</p>{% endif %}
+                <p class="text-xs text-slate-400">Ordem: {{ d.ordem }}</p>
+                <div class="flex gap-2 mt-2">
+                    <a href="/admin/destaques?editar={{ d.id }}" class="text-xs font-semibold bg-slate-100 hover:bg-slate-200 rounded-lg px-3 py-1.5 transition">✏️ Editar</a>
+                    <a href="/admin/destaques?excluir={{ d.id }}" class="text-xs font-semibold bg-red-50 text-red-700 hover:bg-red-100 rounded-lg px-3 py-1.5 transition">🗑️ Excluir</a>
+                </div>
+            </div>
+        </div>
+
+        {% if excluindo_id == d.id %}
+        <div class="mt-3 rounded-lg bg-amber-50 text-amber-800 text-sm px-4 py-3">
+            Tem certeza que quer excluir <strong>{{ d.titulo }}</strong> do carrossel?
+            <form action="/admin/destaques/{{ d.id }}/excluir" method="post" class="flex gap-2 mt-3">
+                <input type="hidden" name="caminho_storage" value="{{ d.caminho_storage }}">
+                <button type="submit" class="text-sm font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg px-4 py-1.5 transition">Sim, excluir</button>
+                <a href="/admin/destaques" class="text-sm font-semibold bg-white border border-slate-300 rounded-lg px-4 py-1.5 transition">Cancelar</a>
+            </form>
+        </div>
+        {% endif %}
+
+        {% if editando_id == d.id %}
+        <form action="/admin/destaques/{{ d.id }}/editar" method="post" enctype="multipart/form-data" class="mt-3 space-y-3 border-t border-slate-100 pt-3">
+            {% if erro_edicao %}
+            <div class="rounded-lg bg-red-50 text-red-700 text-sm px-4 py-3">{{ erro_edicao }}</div>
+            {% endif %}
+            <input type="hidden" name="caminho_storage_atual" value="{{ d.caminho_storage }}">
+            <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1">Título *</label>
+                <input type="text" name="titulo" value="{{ d.titulo }}" required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1">Descrição</label>
+                <textarea name="descricao" rows="2" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">{{ d.descricao or "" }}</textarea>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1">Ordem</label>
+                <input type="number" name="ordem" min="1" value="{{ d.ordem }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+            </div>
+            <label class="flex items-center gap-2 text-xs text-slate-600">
+                <input type="checkbox" name="ativo" value="true" {{ "checked" if d.ativo }}>
+                Ativo (aparece no carrossel)
+            </label>
+            <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1">Trocar foto (opcional)</label>
+                <input type="file" name="foto" accept="image/jpeg,image/png" class="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-sm file:font-medium hover:file:bg-slate-200">
+                <p class="text-xs text-slate-400 mt-1">Deixe em branco para manter a foto atual.</p>
+            </div>
+            <div class="flex gap-2">
+                <button type="submit" class="text-sm font-semibold bg-norte-azul hover:bg-norte-azul-escuro text-white rounded-lg px-4 py-1.5 transition">Salvar alterações</button>
+                <a href="/admin/destaques" class="text-sm font-semibold bg-white border border-slate-300 rounded-lg px-4 py-1.5 transition">Cancelar</a>
+            </div>
+        </form>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<hr class="my-6 border-slate-200">
+
+<h2 class="text-sm font-bold text-slate-700 mb-3">Adicionar destaque</h2>
+{% if erro_cadastro %}
+<div class="rounded-lg bg-red-50 text-red-700 text-sm px-4 py-3 mb-4 max-w-xl">{{ erro_cadastro }}</div>
+{% endif %}
+<form action="/admin/destaques" method="post" enctype="multipart/form-data" class="bg-white rounded-2xl border border-slate-200 p-5 space-y-4 max-w-xl">
+    <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Título *</label>
+        <input type="text" name="titulo" placeholder="Ex: João Silva — Técnico de Fibra Óptica" required class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+    </div>
+    <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Descrição (opcional)</label>
+        <textarea name="descricao" rows="2" placeholder="Ex: Na empresa há 6 anos, começou como auxiliar e hoje é supervisor regional." class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro"></textarea>
+    </div>
+    <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Ordem de exibição</label>
+        <input type="number" name="ordem" min="1" value="{{ destaques|length + 1 }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+    </div>
+    <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Foto *</label>
+        <input type="file" name="foto" accept="image/jpeg,image/png" required class="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-4 file:py-2 file:text-sm file:font-medium hover:file:bg-slate-200">
+    </div>
+    <button type="submit" class="bg-norte-azul hover:bg-norte-azul-escuro text-white text-sm font-semibold rounded-lg px-5 py-2.5 transition">
+        Adicionar ao carrossel
+    </button>
+</form>
+{% endblock %}

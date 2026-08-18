@@ -1,0 +1,48 @@
+{% extends "admin/base.html" %}
+{% block titulo %}Admin — Avisos — Norte Tel{% endblock %}
+{% block admin_conteudo %}
+<h2 class="text-sm font-bold text-slate-700 mb-1">Avisos gerais</h2>
+<p class="text-xs text-slate-500 mb-4">Aparecem para todos os alunos na tela de Início, em destaque.</p>
+
+{% if not avisos %}
+<p class="text-sm text-slate-400 mb-6">Nenhum aviso cadastrado ainda.</p>
+{% else %}
+<div class="space-y-3 mb-6">
+    {% for a in avisos %}
+    <div class="bg-white rounded-xl border border-slate-200 p-4 flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+        <div>
+            <p class="text-sm text-slate-700">
+                <strong>{{ a.titulo }}</strong>{{ " (desativado)" if not a.ativo else "" }}
+            </p>
+            <p class="text-xs text-slate-500">{{ a.mensagem }}</p>
+        </div>
+        {% if a.ativo %}
+        <form action="/admin/avisos/{{ a.id }}/desativar" method="post" class="shrink-0">
+            <button type="submit" class="text-xs font-semibold bg-slate-100 hover:bg-slate-200 rounded-lg px-3 py-1.5 transition">Desativar</button>
+        </form>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<hr class="my-6 border-slate-200">
+
+<h2 class="text-sm font-bold text-slate-700 mb-3">Criar novo aviso</h2>
+{% if erro_cadastro %}
+<div class="rounded-lg bg-red-50 text-red-700 text-sm px-4 py-3 mb-4 max-w-xl">{{ erro_cadastro }}</div>
+{% endif %}
+<form action="/admin/avisos" method="post" class="bg-white rounded-2xl border border-slate-200 p-5 space-y-4 max-w-xl">
+    <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Título *</label>
+        <input type="text" name="titulo" placeholder="Ex: Novo curso disponível!" required class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+    </div>
+    <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Mensagem *</label>
+        <textarea name="mensagem" rows="3" placeholder="Escreva o comunicado para os alunos..." required class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro"></textarea>
+    </div>
+    <button type="submit" class="bg-norte-azul hover:bg-norte-azul-escuro text-white text-sm font-semibold rounded-lg px-5 py-2.5 transition">
+        Publicar aviso
+    </button>
+</form>
+{% endblock %}
