@@ -23,27 +23,50 @@
             <div class="rounded-lg bg-red-50 text-red-700 text-sm px-4 py-3 mb-4">{{ erro_dados }}</div>
             {% endif %}
 
-            <div class="flex items-start gap-4 mb-6" x-data="{ editando: false, preview: null }">
-                {% if aluno.foto_url %}
-                <img src="{{ aluno.foto_url }}" alt="" class="w-20 h-20 rounded-full object-cover border border-slate-200 shrink-0">
-                {% else %}
-                <div class="w-20 h-20 rounded-full bg-blue-50 flex items-center justify-center text-3xl shrink-0">👤</div>
-                {% endif %}
-                <div class="flex-1">
-                    <button @click="editando = !editando" type="button" class="text-sm bg-slate-100 hover:bg-slate-200 rounded-lg px-3 py-1.5 transition">
-                        ✏️ Editar foto
-                    </button>
-                    <form x-show="editando" x-cloak action="/perfil/foto" method="post" enctype="multipart/form-data" class="mt-3 space-y-2">
-                        <input type="file" name="foto" accept="image/jpeg,image/png"
-                               @change="preview = $event.target.files.length ? URL.createObjectURL($event.target.files[0]) : null"
-                               class="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-sm file:font-medium hover:file:bg-slate-200">
-                        <template x-if="preview">
-                            <img :src="preview" alt="Pré-visualização" class="w-20 h-20 rounded-full object-cover border border-slate-200">
-                        </template>
-                        <button type="submit" class="bg-norte-azul hover:bg-norte-azul-escuro text-white text-sm font-semibold rounded-lg px-4 py-1.5 transition">
-                            📷 Salvar nova foto
-                        </button>
-                    </form>
+            <div class="flex items-center gap-4 mb-6" x-data="{ aberto: false, preview: null }">
+                <button @click="aberto = true" type="button" class="relative group shrink-0 rounded-full">
+                    {% if aluno.foto_url %}
+                    <img src="{{ aluno.foto_url }}" alt="" class="w-20 h-20 rounded-full object-cover border border-slate-200">
+                    {% else %}
+                    <div class="w-20 h-20 rounded-full bg-blue-50 flex items-center justify-center text-3xl">👤</div>
+                    {% endif %}
+                    <span class="absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/30 transition flex items-center justify-center text-white text-xs font-semibold opacity-0 group-hover:opacity-100">
+                        ✏️ Editar
+                    </span>
+                </button>
+                <p class="text-sm text-slate-500">Clique na foto para ver maior ou trocar</p>
+
+                <div x-show="aberto" x-cloak
+                     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60"
+                     @click.self="aberto = false">
+                    <div class="bg-white rounded-2xl p-6 max-w-xs w-full">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-slate-800">Foto de perfil</h3>
+                            <button @click="aberto = false; preview = null" type="button" class="text-slate-400 hover:text-slate-600 text-lg leading-none">✕</button>
+                        </div>
+
+                        <div class="flex justify-center mb-4">
+                            <template x-if="preview">
+                                <img :src="preview" alt="Pré-visualização" class="w-40 h-40 rounded-full object-cover border border-slate-200">
+                            </template>
+                            <template x-if="!preview">
+                                {% if aluno.foto_url %}
+                                <img src="{{ aluno.foto_url }}" alt="" class="w-40 h-40 rounded-full object-cover border border-slate-200">
+                                {% else %}
+                                <div class="w-40 h-40 rounded-full bg-blue-50 flex items-center justify-center text-5xl">👤</div>
+                                {% endif %}
+                            </template>
+                        </div>
+
+                        <form action="/perfil/foto" method="post" enctype="multipart/form-data" class="space-y-3">
+                            <input type="file" name="foto" accept="image/jpeg,image/png"
+                                   @change="preview = $event.target.files.length ? URL.createObjectURL($event.target.files[0]) : null"
+                                   class="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-sm file:font-medium hover:file:bg-slate-200">
+                            <button type="submit" class="w-full bg-norte-azul hover:bg-norte-azul-escuro text-white text-sm font-semibold rounded-lg py-2.5 transition">
+                                📷 Salvar nova foto
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
 
