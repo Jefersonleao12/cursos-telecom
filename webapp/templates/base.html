@@ -7,6 +7,9 @@
     <link rel="manifest" href="/static/manifest.json">
     <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
     <link rel="icon" href="/static/icon-192.png">
+    <meta name="theme-color" content="#143C6E">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Norte Tel">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
     <script defer src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js"></script>
@@ -24,6 +27,11 @@
         };
     </script>
     <style>[x-cloak] { display: none !important; }</style>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').catch(function () {});
+        }
+    </script>
     {% block cabecalho_extra %}{% endblock %}
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-800">

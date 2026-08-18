@@ -1,13 +1,10 @@
 package com.nortetel.cursos
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.ActivityInfo
-import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.view.ViewGroup
 import android.view.View
@@ -23,17 +20,15 @@ import android.webkit.WebViewClient
 import androidx.activity.addCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import com.nortetel.cursos.databinding.ActivityMainBinding
 
 /**
  * Casca nativa (WebView) que abre a Plataforma de Treinamentos em
- * Telecomunicações publicada no Streamlit Cloud. O app não guarda nenhum
- * dado nem lógica de negócio — tudo acontece no site; aqui só cuidamos de
- * detalhes que o navegador comum resolve sozinho: permitir baixar o
- * certificado (gerado como blob), lembrar a sessão entre uma abertura e
- * outra do app, manter a página viva ao voltar do segundo plano, vídeo em
- * tela cheia, e recuperar sozinho se o processo que desenha a página cair.
+ * Telecomunicações. O app não guarda nenhum dado nem lógica de negócio —
+ * tudo acontece no site; aqui só cuidamos de detalhes que o navegador
+ * comum resolve sozinho: lembrar a sessão entre uma abertura e outra do
+ * app, manter a página viva ao voltar do segundo plano, vídeo em tela
+ * cheia, e recuperar sozinho se o processo que desenha a página cair.
  */
 class MainActivity : AppCompatActivity() {
 
@@ -62,31 +57,6 @@ class MainActivity : AppCompatActivity() {
         return esquema == "http" || esquema == "https" || esquema == null
     }
 
-    // Script injetado em toda página: intercepta cliques em links "blob:"
-    // (usados pelo botão "Baixar PDF" do certificado) e manda os bytes em
-    // base64 para o Android salvar na pasta Downloads.
-    private val scriptInterceptaDownload = """
-        (function() {
-            if (window.__cursosTelecomDownloadHook) { return; }
-            window.__cursosTelecomDownloadHook = true;
-            document.addEventListener('click', function(evento) {
-                var alvo = evento.target;
-                var link = alvo && alvo.closest ? alvo.closest('a') : null;
-                if (!link || !link.href || link.href.indexOf('blob:') !== 0) { return; }
-                evento.preventDefault();
-                fetch(link.href).then(function(resposta) { return resposta.blob(); }).then(function(blob) {
-                    var leitor = new FileReader();
-                    leitor.onloadend = function() {
-                        var base64 = String(leitor.result).split(',')[1];
-                        var nome = link.download || 'certificado.pdf';
-                        Android.saveBase64File(base64, nome);
-                    };
-                    leitor.readAsDataURL(blob);
-                });
-            }, true);
-        })();
-    """.trimIndent()
-
     private val seletorArquivo = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { resultado ->
@@ -96,10 +66,6 @@ class MainActivity : AppCompatActivity() {
         filePathCallback = null
     }
 
-    private val pedirPermissaoArmazenamento = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { /* concedida ou não: a tentativa de download seguinte já reflete isso */ }
-
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -107,13 +73,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         prefs = getSharedPreferences("cursos_telecom", MODE_PRIVATE)
-
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q &&
-            ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-            pedirPermissaoArmazenamento.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-        }
 
         webView = binding.webView
         configurarWebView(webView)
@@ -219,8 +178,6 @@ class MainActivity : AppCompatActivity() {
         settings.setSupportMultipleWindows(true)
         settings.javaScriptCanOpenWindowsAutomatically = true
 
-        webView.addJavascriptInterface(WebAppInterface(this), "Android")
-
         webView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                 val uri = request.url
@@ -259,7 +216,6 @@ class MainActivity : AppCompatActivity() {
                 super.onPageFinished(view, url)
                 binding.progressBar.visibility = View.GONE
                 binding.swipeRefresh.isRefreshing = false
-                view.evaluateJavascript(scriptInterceptaDownload, null)
 
                 if (url != null && ficaDentroDoWebView(Uri.parse(url))) {
                     prefs.edit().putString("ultima_url", url).apply()
@@ -359,7 +315,10 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Downloads "normais" (materiais hospedados no Supabase Storage, com URL de verdade).
+        // Downloads com URL de servidor de verdade (materiais, e agora também
+        // o certificado em PDF — deixou de ser um link "blob:" na reescrita
+        // sem Streamlit) — o Android entrega pro navegador/visualizador de
+        // PDF padrão do aparelho, sem o app precisar salvar o arquivo sozinho.
         webView.setDownloadListener { url, _, _, _, _ ->
             try {
                 startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))

@@ -9,7 +9,7 @@ até a nova estar validada numa URL separada.
 Para rodar localmente:  uvicorn webapp.main:app --reload
 """
 from fastapi import FastAPI
-from fastapi.responses import JSONResponse, PlainTextResponse
+from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 
 from database.repositorio import listar_cursos
@@ -40,6 +40,13 @@ app = FastAPI(title="Treinamentos Telecom (nova versão)")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 app.mount("/assets", StaticFiles(directory="assets"), name="assets")
 
+# static/manifest.json é compartilhado com a app antiga e tem os caminhos
+# dos ícones "hardcoded" em /app/static/... (prefixo que só existe porque o
+# Streamlit não deixa servir estático na raiz). Em vez de editar o manifest
+# compartilhado — o que arriscaria os ícones do PWA da app antiga, hoje em
+# uso —, montamos o mesmo diretório static/ também sob esse prefixo aqui.
+app.mount("/app/static", StaticFiles(directory="static"), name="static_legacy")
+
 app.add_middleware(AutenticacaoMiddleware)
 
 app.include_router(auth_router)
@@ -60,6 +67,16 @@ app.include_router(admin_materiais_router)
 app.include_router(admin_avisos_router)
 app.include_router(admin_destaques_router)
 app.include_router(admin_duvidas_router)
+
+
+@app.get("/sw.js", include_in_schema=False)
+def service_worker():
+    """
+    Serve o service worker na raiz (não em /static/sw.js) para que o
+    navegador assuma escopo "/" por padrão — igual ao "scope": "/" do
+    manifest.json. Mesmo arquivo da app antiga, sem duplicação.
+    """
+    return FileResponse("static/sw.js", media_type="application/javascript")
 
 
 @app.get("/healthz", response_class=PlainTextResponse)

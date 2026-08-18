@@ -3,12 +3,6 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <!-- Só usada em Android 9 (API 28) ou anterior, pra salvar o certificado
-         em PDF na pasta Downloads. A partir do Android 10 isso é feito via
-         MediaStore, sem precisar dessa permissão. -->
-    <uses-permission
-        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="28" />
 
     <application
         android:allowBackup="true"
