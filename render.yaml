@@ -1,16 +1,30 @@
 # Blueprint do Render (https://render.com) para a Plataforma de Treinamentos
 # em Telecomunicações.
 #
-# COMO USAR:
+# Fase 8 da reescrita (corte de produção): o serviço passou a rodar a nova
+# app (webapp/, FastAPI) em vez da app antiga (app.py, Streamlit) — mesmo
+# serviço, mesma URL de produção, pra nenhum app Android/Desktop já
+# instalado precisar ser recompilado. Ver o plano de migração combinado
+# com o Jeferson.
+#
+# COMO USAR (serviço novo, do zero):
 # 1) No painel do Render, clique em "New +" -> "Blueprint"
 # 2) Conecte este repositório do GitHub
 # 3) O Render lê este arquivo sozinho e já propõe o serviço abaixo
 # 4) Antes de criar, preencha os valores dos "Secrets" pedidos (eles ficam
 #    marcados como "sync: false" abaixo de propósito, pra nunca ficarem
 #    salvos aqui no código — só no painel do Render):
-#      SUPABASE_URL, SUPABASE_SERVICE_KEY  (obrigatórios)
-#      WHATSAPP_PHONE, WHATSAPP_APIKEY     (opcionais, notificação por WhatsApp)
+#      SUPABASE_URL, SUPABASE_SERVICE_KEY, SESSION_SECRET  (obrigatórios)
+#      WHATSAPP_PHONE, WHATSAPP_APIKEY                     (opcionais, notificação por WhatsApp)
 # 5) Clique em "Apply" — o Render builda e publica o app sozinho a partir daí
+#
+# ATUALIZANDO um serviço já existente (o caso da produção, na Fase 8): se o
+# serviço não foi criado via "Blueprint" (ou não está com o sync desse
+# arquivo ativado), o Render NÃO troca os comandos sozinho — é preciso ir em
+# "Settings" do serviço no painel e colar manualmente o Build Command e o
+# Start Command daqui, e cadastrar a SESSION_SECRET nova em "Environment"
+# ANTES do próximo deploy (sem ela a app nova recusa subir, ver
+# webapp/config.py:validar()).
 #
 # Sem este arquivo, também dá pra criar o serviço manualmente em
 # "New +" -> "Web Service", usando os mesmos comandos de build/start abaixo.
@@ -19,14 +33,16 @@ services:
     name: cursos-telecom
     runtime: python
     plan: free
-    buildCommand: pip install -r requirements.txt
-    startCommand: streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true
+    buildCommand: pip install -r requirements-webapp.txt
+    startCommand: uvicorn webapp.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
       - key: SUPABASE_URL
         sync: false
       - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: SESSION_SECRET
         sync: false
       - key: WHATSAPP_PHONE
         sync: false
