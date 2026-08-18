@@ -48,3 +48,25 @@ def healthz_banco():
     """
     cursos = listar_cursos()
     return JSONResponse({"ok": True, "cursos_encontrados": len(cursos)})
+
+
+@app.get("/healthz/rotas")
+def healthz_rotas():
+    """
+    Diagnóstico temporário: lista todas as rotas realmente registradas
+    nesse processo e se o middleware de autenticação está de pé. Existe só
+    pra investigar um caso em que o Render marcava um deploy como "live"
+    mas servia rotas de uma versão anterior do código — pode ser removido
+    depois que essa dúvida for resolvida.
+    """
+    rotas = sorted(
+        f"{','.join(sorted(r.methods))} {r.path}"
+        for r in app.routes
+        if hasattr(r, "methods")
+    )
+    return JSONResponse(
+        {
+            "rotas": rotas,
+            "middlewares": [m.cls.__name__ for m in app.user_middleware],
+        }
+    )
