@@ -1,0 +1,89 @@
+{% extends "admin/base.html" %}
+{% block titulo %}Admin — Módulos — Norte Tel{% endblock %}
+{% block admin_conteudo %}
+<p class="text-sm text-slate-500 mb-4">
+    Cada curso é dividido em módulos (assuntos). O aluno assiste os vídeos de um módulo, faz a prova dele (se
+    houver) e só então o próximo módulo é liberado.
+</p>
+
+{% if not cursos %}
+<p class="text-sm text-slate-400">Cadastre um curso primeiro, em "Cursos".</p>
+{% else %}
+<form action="/admin/modulos" method="get" class="mb-6 max-w-md">
+    <label class="block text-sm font-medium text-slate-700 mb-1">Selecione o curso</label>
+    <select name="curso_id" onchange="this.form.submit()" class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+        {% for c in cursos %}
+        <option value="{{ c.id }}" {{ "selected" if c.id == curso_id }}>{{ c.titulo }}</option>
+        {% endfor %}
+    </select>
+</form>
+
+<h2 class="text-sm font-bold text-slate-700 mb-3">Módulos deste curso</h2>
+
+{% if not modulos %}
+<p class="text-sm text-slate-400 mb-6">Nenhum módulo cadastrado ainda neste curso.</p>
+{% else %}
+<div class="space-y-3 mb-6">
+    {% for modulo in modulos %}
+    <div class="bg-white rounded-xl border border-slate-200 p-4">
+        <div class="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+            <p class="text-sm text-slate-700"><strong>{{ modulo.ordem }}. {{ modulo.titulo }}</strong></p>
+            <div class="flex gap-2 shrink-0">
+                <a href="/admin/modulos?curso_id={{ curso_id }}&editar={{ modulo.id }}" class="text-xs font-semibold bg-slate-100 hover:bg-slate-200 rounded-lg px-3 py-1.5 transition">✏️ Editar</a>
+                <a href="/admin/modulos?curso_id={{ curso_id }}&excluir={{ modulo.id }}" class="text-xs font-semibold bg-red-50 text-red-700 hover:bg-red-100 rounded-lg px-3 py-1.5 transition">🗑️ Excluir</a>
+            </div>
+        </div>
+
+        {% if excluindo_id == modulo.id %}
+        <div class="mt-3 rounded-lg bg-amber-50 text-amber-800 text-sm px-4 py-3">
+            Tem certeza que quer excluir <strong>{{ modulo.titulo }}</strong>? Isso apaga também as aulas, a prova
+            e os resultados desse módulo.
+            <form action="/admin/modulos/{{ modulo.id }}/excluir" method="post" class="flex gap-2 mt-3">
+                <input type="hidden" name="curso_id" value="{{ curso_id }}">
+                <button type="submit" class="text-sm font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg px-4 py-1.5 transition">Sim, excluir</button>
+                <a href="/admin/modulos?curso_id={{ curso_id }}" class="text-sm font-semibold bg-white border border-slate-300 rounded-lg px-4 py-1.5 transition">Cancelar</a>
+            </form>
+        </div>
+        {% endif %}
+
+        {% if editando_id == modulo.id %}
+        <form action="/admin/modulos/{{ modulo.id }}/editar" method="post" class="mt-3 space-y-3 border-t border-slate-100 pt-3">
+            <input type="hidden" name="curso_id" value="{{ curso_id }}">
+            <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1">Título do módulo *</label>
+                <input type="text" name="titulo" value="{{ modulo.titulo }}" required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1">Ordem</label>
+                <input type="number" name="ordem" min="1" value="{{ modulo.ordem }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+            </div>
+            <div class="flex gap-2">
+                <button type="submit" class="text-sm font-semibold bg-norte-azul hover:bg-norte-azul-escuro text-white rounded-lg px-4 py-1.5 transition">Salvar alterações</button>
+                <a href="/admin/modulos?curso_id={{ curso_id }}" class="text-sm font-semibold bg-white border border-slate-300 rounded-lg px-4 py-1.5 transition">Cancelar</a>
+            </div>
+        </form>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<hr class="my-6 border-slate-200">
+
+<h2 class="text-sm font-bold text-slate-700 mb-3">Adicionar módulo</h2>
+<form action="/admin/modulos" method="post" class="bg-white rounded-2xl border border-slate-200 p-5 space-y-4 max-w-xl">
+    <input type="hidden" name="curso_id" value="{{ curso_id }}">
+    <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Título do módulo *</label>
+        <input type="text" name="titulo" placeholder="Ex: Módulo 1 - Fundamentos de Fibra Óptica" required class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+    </div>
+    <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Ordem de exibição</label>
+        <input type="number" name="ordem" min="1" value="{{ modulos|length + 1 }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+    </div>
+    <button type="submit" class="bg-norte-azul hover:bg-norte-azul-escuro text-white text-sm font-semibold rounded-lg px-5 py-2.5 transition">
+        Salvar módulo
+    </button>
+</form>
+{% endif %}
+{% endblock %}

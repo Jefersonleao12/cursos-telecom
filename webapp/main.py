@@ -15,7 +15,10 @@ from fastapi.staticfiles import StaticFiles
 from database.repositorio import listar_cursos
 from webapp.auth.routes import router as auth_router
 from webapp.middleware import AutenticacaoMiddleware
+from webapp.routers.admin.aulas import router as admin_aulas_router
+from webapp.routers.admin.cursos import router as admin_cursos_router
 from webapp.routers.admin.dashboard import router as admin_dashboard_router
+from webapp.routers.admin.modulos import router as admin_modulos_router
 from webapp.routers.certificados import router as certificados_router
 from webapp.routers.cursos import router as cursos_router
 from webapp.routers.inicio import router as inicio_router
@@ -40,6 +43,9 @@ app.include_router(ranking_router)
 app.include_router(certificados_router)
 app.include_router(perfil_router)
 app.include_router(admin_dashboard_router)
+app.include_router(admin_cursos_router)
+app.include_router(admin_modulos_router)
+app.include_router(admin_aulas_router)
 
 
 @app.get("/healthz", response_class=PlainTextResponse)
