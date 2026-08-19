@@ -28,7 +28,10 @@ SERVICE_NAME="cursos-telecom"
 APP_PORT="8000"
 
 echo "==> Detectando IP público..."
-IP_PUBLICO="$(curl -s https://ifconfig.me || curl -s https://api.ipify.org)"
+# "-4" força IPv4 de propósito: um domínio sslip.io não aceita ":" (o
+# separador de um endereço IPv6), então pegar o IPv6 aqui geraria um
+# domínio inválido pro Caddy emitir certificado.
+IP_PUBLICO="$(curl -4 -s https://ifconfig.me || curl -4 -s https://api.ipify.org)"
 if [ -z "$IP_PUBLICO" ]; then
   echo "Não consegui detectar o IP público automaticamente."
   read -rp "Digite o IP público deste servidor: " IP_PUBLICO
