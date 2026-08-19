@@ -608,18 +608,25 @@ def curso_totalmente_concluido(aluno_id: str, curso_id: int) -> bool:
 def calcular_ranking_alunos():
     """
     Ranking dos alunos por progresso nos cursos, usado na tela "Top Alunos"
-    (visível pra todo mundo, não só o admin, como incentivo). Reaproveita
-    calcular_progresso_curso/curso_totalmente_concluido — os mesmos usados
-    no resto do app — pra não ter dois jeitos diferentes de calcular
-    progresso que podem ficar dessincronizados.
+    (visível pra todo mundo, não só o admin, como incentivo).
 
-    Isso significa uma consulta ao banco pra cada combinação de aluno ×
-    curso (e outra por módulo, pra saber se o curso foi concluído) — com
-    vários alunos e cursos, essa conta pode ficar lenta. Como um ranking
-    não precisa estar atualizado no segundo exato, cacheamos o resultado
-    inteiro por 1 minuto: só quem abrir a tela logo depois de esse cache
-    vencer é que espera o cálculo de verdade: todo mundo depois disso (é
-    a maioria) recebe a resposta na hora.
+    Calcula o mesmo resultado que calcular_progresso_curso/
+    curso_totalmente_concluido dariam pra cada aluno, mas SEM chamar essas
+    funções num loop: a versão antiga fazia uma consulta ao Supabase pra
+    cada combinação aluno × curso (e outra por módulo, pra saber se o
+    curso foi concluído) — com vários alunos e cursos isso vira dezenas ou
+    centenas de idas e vindas ao banco, cada uma com sua latência de rede,
+    e ficava visivelmente lento (vários segundos) mesmo com CPU sobrando,
+    porque o gargalo era rede, não processamento.
+
+    Aqui em vez disso buscamos cada tabela envolvida (módulos, aulas,
+    provas, progresso e resultados) por INTEIRO, de uma vez só — são só
+    5 consultas no total, não importa quantos alunos/cursos existam — e
+    fazemos as mesmas contas em memória, em Python. Resultado idêntico,
+    ordens de magnitude mais rápido.
+
+    Como um ranking não precisa estar atualizado no segundo exato,
+    continuamos cacheando o resultado inteiro por 1 minuto por cima disso.
 
     Ordena por: 1) mais cursos concluídos, 2) maior progresso médio nos
     cursos disponíveis, 3) nome (desempate estável). Só entram alunos ativos
@@ -635,16 +642,78 @@ def calcular_ranking_alunos():
     if not alunos or not cursos:
         return []
 
+    sb = get_supabase_client()
+    modulos_todos = sb.table("modulos").select("*").execute().data
+    aulas_todas = sb.table("aulas").select("*").execute().data
+    provas_todas = sb.table("provas").select("*").execute().data
+    progresso_todo = (
+        sb.table("progresso_aulas").select("aluno_id,aula_id").eq("concluida", True).execute().data
+    )
+    resultados_todos = (
+        sb.table("resultados_provas").select("aluno_id,prova_id,nota,aprovado").execute().data
+    )
+
+    modulos_por_curso: dict = {}
+    for m in modulos_todos:
+        modulos_por_curso.setdefault(m["curso_id"], []).append(m)
+
+    aulas_por_curso: dict = {}
+    aulas_por_modulo: dict = {}
+    for a in aulas_todas:
+        aulas_por_curso.setdefault(a["curso_id"], []).append(a)
+        aulas_por_modulo.setdefault(a["modulo_id"], []).append(a)
+
+    prova_por_modulo: dict = {}
+    for p in provas_todas:
+        prova_por_modulo.setdefault(p["modulo_id"], p)  # primeira encontrada, igual buscar_prova_do_modulo
+
+    aulas_concluidas_por_aluno: dict = {}
+    for linha in progresso_todo:
+        aulas_concluidas_por_aluno.setdefault(linha["aluno_id"], set()).add(linha["aula_id"])
+
+    melhor_resultado_por_par: dict = {}
+    for r in resultados_todos:
+        chave = (r["aluno_id"], r["prova_id"])
+        atual = melhor_resultado_por_par.get(chave)
+        if atual is None or r["nota"] > atual["nota"]:
+            melhor_resultado_por_par[chave] = r
+
+    def _progresso_curso(aluno_id, curso_id):
+        aulas = aulas_por_curso.get(curso_id, [])
+        if not aulas:
+            return 0.0
+        concluidas = aulas_concluidas_por_aluno.get(aluno_id, set())
+        feitas = sum(1 for a in aulas if a["id"] in concluidas)
+        return feitas / len(aulas)
+
+    def _modulo_completo(aluno_id, modulo):
+        aulas = aulas_por_modulo.get(modulo["id"], [])
+        if not aulas:
+            return False
+        concluidas = aulas_concluidas_por_aluno.get(aluno_id, set())
+        if any(a["id"] not in concluidas for a in aulas):
+            return False
+        prova = prova_por_modulo.get(modulo["id"])
+        if prova:
+            resultado = melhor_resultado_por_par.get((aluno_id, prova["id"]))
+            if not resultado or not resultado.get("aprovado"):
+                return False
+        return True
+
+    def _curso_concluido(aluno_id, curso_id):
+        modulos = modulos_por_curso.get(curso_id, [])
+        if not modulos:
+            return False
+        return all(_modulo_completo(aluno_id, m) for m in modulos)
+
     ranking = []
     for aluno in alunos:
-        progressos = [calcular_progresso_curso(aluno["id"], c["id"]) for c in cursos]
+        progressos = [_progresso_curso(aluno["id"], c["id"]) for c in cursos]
         progresso_medio = sum(progressos) / len(progressos) if progressos else 0.0
         if progresso_medio <= 0:
             continue  # não começou nenhum curso ainda: fica fora do ranking
 
-        cursos_concluidos = sum(
-            1 for c in cursos if curso_totalmente_concluido(aluno["id"], c["id"])
-        )
+        cursos_concluidos = sum(1 for c in cursos if _curso_concluido(aluno["id"], c["id"]))
         ranking.append({
             "aluno_id": aluno["id"],
             "nome_completo": aluno["nome_completo"],
