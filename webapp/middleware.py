@@ -18,8 +18,8 @@ from webapp.auth.security import validar_token_sessao
 
 # Caminhos que não exigem login. As telas obrigatórias (troca de senha,
 # foto) NÃO entram aqui de propósito — só quem já está logado pode vê-las.
-_CAMINHOS_PUBLICOS = {"/login", "/logout", "/esqueci-senha", "/healthz", "/healthz/banco", "/healthz/rotas"}
-_PREFIXOS_PUBLICOS = ("/static/", "/assets/")
+_CAMINHOS_PUBLICOS = {"/login", "/logout", "/esqueci-senha", "/healthz", "/healthz/banco", "/healthz/rotas", "/sw.js"}
+_PREFIXOS_PUBLICOS = ("/static/", "/assets/", "/app/static/")
 
 _TROCAR_SENHA = "/trocar-senha-obrigatoria"
 _DEFINIR_FOTO = "/definir-foto-obrigatoria"
