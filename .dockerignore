@@ -1,0 +1,14 @@
+.git
+__pycache__/
+*.pyc
+.pytest_cache/
+mobile-app/
+desktop-app/
+.streamlit/
+tests/
+.github/
+node_modules/
+app.py
+modules/
+!modules/__init__.py
+!modules/whatsapp.py
