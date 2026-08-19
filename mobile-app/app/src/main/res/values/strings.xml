@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">Treinamentos Telecom</string>
-    <string name="app_url">https://cursos-telecom.onrender.com/</string>
+    <string name="app_url">https://nortetel-cursos.com.br/</string>
     <string name="sem_internet">Sem conexão com a internet. Verifique sua rede e tente novamente.</string>
 </resources>
