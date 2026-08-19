@@ -28,13 +28,22 @@
 #
 # Sem este arquivo, também dá pra criar o serviço manualmente em
 # "New +" -> "Web Service", usando os mesmos comandos de build/start abaixo.
+#
+# NOTA (Fase 8, achado no corte de produção): o Start Command usa
+# "python -m uvicorn" em vez de só "uvicorn" de propósito — num serviço já
+# existente há um tempo (não recém-criado), o binário do uvicorn pode não
+# entrar no PATH do Start Command mesmo com o build passando. Se acontecer
+# de novo em outro serviço (erro "uvicorn: command not found" ou, com
+# "python -m uvicorn", "No module named uvicorn"), a correção que funcionou
+# foi: painel do serviço -> Manual Deploy -> "Clear build cache & deploy"
+# (um .venv cacheado de um deploy anterior ficava sem os pacotes novos).
 services:
   - type: web
     name: cursos-telecom
     runtime: python
     plan: free
     buildCommand: pip install -r requirements-webapp.txt
-    startCommand: uvicorn webapp.main:app --host 0.0.0.0 --port $PORT
+    startCommand: python -m uvicorn webapp.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
