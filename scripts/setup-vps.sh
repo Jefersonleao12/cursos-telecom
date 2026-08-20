@@ -12,10 +12,11 @@
 #   2) Clona/atualiza o repositório em /opt/cursos-telecom.
 #   3) Cria um venv e instala requirements.txt.
 #   4) Na primeira vez, cria /etc/cursos-telecom.env com espaço pra colar
-#      os 5 segredos (Supabase, WhatsApp) — o script PARA aqui e pede pra
-#      você editar esse arquivo antes de continuar.
+#      os segredos (Supabase, WhatsApp, e-mail) — o script PARA aqui e pede
+#      pra você editar esse arquivo antes de continuar.
 #   5) Cria/atualiza um serviço systemd (reinicia sozinho se cair).
 #   6) Configura o Caddy como proxy com HTTPS automático.
+#   7) Agenda no cron o envio diário de lembrete de curso parado.
 #
 # Como usar: salve este arquivo no servidor (ex: setup-vps.sh), depois:
 #   chmod +x setup-vps.sh
@@ -80,18 +81,22 @@ python3 -m venv venv
 if [ ! -f "$ENV_FILE" ]; then
   cat > "$ENV_FILE" <<'ENVEOF'
 # Preencha com as credenciais do Supabase (painel do projeto -> Settings
-# -> API) e, se for usar notificação por WhatsApp, do CallMeBot. Sem as
-# 3 primeiras a app recusa subir de propósito (ver webapp/config.py:validar()).
+# -> API) e, se for usar notificação por WhatsApp (CallMeBot) ou lembrete
+# de curso parado por e-mail (Gmail com senha de app), os campos daquele
+# serviço. Sem as 3 primeiras a app recusa subir de propósito (ver
+# webapp/config.py:validar()) — o resto é opcional.
 SUPABASE_URL=
 SUPABASE_SERVICE_KEY=
 SESSION_SECRET=
 WHATSAPP_PHONE=
 WHATSAPP_APIKEY=
+EMAIL_REMETENTE=
+EMAIL_SENHA_APP=
 ENVEOF
   chmod 600 "$ENV_FILE"
   echo ""
   echo "############################################################"
-  echo "  PARE AQUI: edite $ENV_FILE e preencha os 5 valores"
+  echo "  PARE AQUI: edite $ENV_FILE e preencha os valores"
   echo "  (nano $ENV_FILE), depois rode este script de novo pra"
   echo "  continuar a partir do serviço systemd."
   echo "############################################################"
@@ -142,12 +147,17 @@ if command -v ufw >/dev/null 2>&1; then
   ufw allow 443/tcp || true
 fi
 
+echo "==> Agendando o lembrete diário de curso parado (cron, 12:00 UTC = 8h em Rondônia)..."
+CRON_CMD="set -a; . ${ENV_FILE}; set +a; ${APP_DIR}/venv/bin/python ${APP_DIR}/scripts/lembretes_diarios.py >> /var/log/cursos-telecom-lembretes.log 2>&1"
+(crontab -l 2>/dev/null | grep -v 'lembretes_diarios.py'; echo "0 12 * * * ${CRON_CMD}") | crontab -
+
 echo ""
 echo "############################################################"
 echo "  Pronto! Em alguns segundos (emissão do certificado HTTPS):"
 echo "  https://${DOMINIO}"
 echo ""
-echo "  Ver logs da app:    journalctl -u ${SERVICE_NAME} -f"
-echo "  Ver logs do Caddy:  journalctl -u caddy -f"
-echo "  Status da app:      systemctl status ${SERVICE_NAME}"
+echo "  Ver logs da app:      journalctl -u ${SERVICE_NAME} -f"
+echo "  Ver logs do Caddy:    journalctl -u caddy -f"
+echo "  Status da app:        systemctl status ${SERVICE_NAME}"
+echo "  Ver logs de lembrete: tail -f /var/log/cursos-telecom-lembretes.log"
 echo "############################################################"

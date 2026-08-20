@@ -1,10 +1,8 @@
 """
-Configuração da app nova (FastAPI).
+Configuração da app (FastAPI).
 
-Lê os mesmos segredos que a app antiga, usando
-utils.helpers.obter_segredo — sem duplicar a lógica de leitura (essa
-função já sabe ler tanto de variável de ambiente quanto de st.secrets
-quando disponível, e já limpa espaço/quebra de linha "escondidos").
+Lê os segredos (Supabase, WhatsApp, e-mail) de variáveis de ambiente via
+utils.helpers.obter_segredo, que já limpa espaço/quebra de linha "escondidos".
 """
 from functools import lru_cache
 

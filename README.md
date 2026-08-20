@@ -26,6 +26,8 @@ export SUPABASE_SERVICE_KEY="..."
 export SESSION_SECRET="..."          # string aleatória qualquer, só pra assinar o cookie de sessão
 export WHATSAPP_PHONE="..."          # opcional
 export WHATSAPP_APIKEY="..."         # opcional
+export EMAIL_REMETENTE="..."         # opcional, Gmail usado pro lembrete de curso parado
+export EMAIL_SENHA_APP="..."         # opcional, senha de app do Gmail (não a senha normal)
 
 uvicorn webapp.main:app --reload
 ```
@@ -95,6 +97,29 @@ sudo systemctl restart cursos-telecom
 sudo systemctl status cursos-telecom      # status do serviço
 sudo journalctl -u cursos-telecom -f      # logs em tempo real
 sudo systemctl restart cursos-telecom     # reiniciar depois de um deploy
+```
+
+## Lembrete de curso parado (e-mail)
+
+Todo dia às 8h (horário de Rondônia), `scripts/lembretes_diarios.py` roda
+via cron e manda um e-mail para quem começou um curso e ficou 3 dias sem
+voltar (não repete o lembrete todo dia — só de novo depois de outros 3 dias
+parado). O `setup-vps.sh` já agenda isso sozinho na primeira instalação.
+
+Pra funcionar, preencha em `/etc/cursos-telecom.env`:
+
+- `EMAIL_REMETENTE` — um Gmail (ex: crie um `nortetel.treinamentos@gmail.com`)
+- `EMAIL_SENHA_APP` — uma "senha de app" gerada em
+  https://myaccount.google.com/apppasswords (exige verificação em duas
+  etapas ativada na conta; **não** é a senha normal do Gmail)
+
+Sem essas duas variáveis, o lembrete simplesmente não é enviado (fica só
+logado em `/var/log/cursos-telecom-lembretes.log`) — o resto do site
+continua funcionando normalmente.
+
+```bash
+tail -f /var/log/cursos-telecom-lembretes.log   # ver os envios de hoje
+crontab -l                                       # conferir o agendamento
 ```
 
 ## App para Android (APK) e Windows (EXE)

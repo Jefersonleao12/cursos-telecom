@@ -10,7 +10,7 @@ Sem dependência de nenhum framework de UI (FastAPI só é usado em webapp/).
 import io
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from database.cache import cache_com_ttl
 from database.supabase_client import get_supabase_client
@@ -770,6 +770,114 @@ def todos_tempos_curso() -> dict:
     sb = get_supabase_client()
     resposta = sb.table("progresso_cursos").select("*").execute()
     return {(linha["aluno_id"], linha["curso_id"]): linha for linha in resposta.data}
+
+
+# ---------------------------------------------------------------------------
+# LEMBRETE DE CURSO PARADO (aluno começou, não terminou, sumiu)
+# ---------------------------------------------------------------------------
+
+def _instante(valor: str) -> datetime:
+    return datetime.fromisoformat(valor.replace("Z", "+00:00"))
+
+
+def cursos_parados(dias: int = 3) -> list[dict]:
+    """
+    Combinações aluno × curso "paradas": o aluno começou o curso, ainda não
+    concluiu, e não teve nenhuma atividade (aula aberta ou concluída) nos
+    últimos `dias` dias. Usada por scripts/lembretes_diarios.py pra saber
+    quem lembrar por e-mail.
+
+    "Última atividade" é a aula mais recente que o aluno abriu ou concluiu
+    dentro do curso — não a data em que ele abriu o curso pela primeira vez
+    (progresso_cursos.iniciado_em), senão alguém estudando todo santo dia
+    seria marcado como "parado" só por ter começado há mais de `dias` dias.
+
+    Não repete o lembrete todo dia: pula quem já recebeu um lembrete deste
+    mesmo curso há menos de `dias` dias (ver lembretes_curso_enviados) — na
+    prática, quem continuar parado recebe um novo lembrete a cada `dias`
+    dias, não um por dia.
+
+    Cada item devolvido tem: aluno (dict completo), curso (dict completo) e
+    dias_parado (int, dias desde a última atividade).
+    """
+    sb = get_supabase_client()
+    agora = datetime.now(timezone.utc)
+    limite = agora - timedelta(days=dias)
+
+    em_andamento = (
+        sb.table("progresso_cursos").select("*").is_("finalizado_em", "null").execute().data
+    )
+    if not em_andamento:
+        return []
+
+    alunos_por_id = {a["id"]: a for a in listar_todos_alunos()}
+    cursos_por_id = {c["id"]: c for c in listar_cursos()}
+
+    aula_para_curso = {}
+    for curso_id in {p["curso_id"] for p in em_andamento}:
+        for aula in listar_aulas_do_curso(curso_id):
+            aula_para_curso[aula["id"]] = curso_id
+
+    ids_alunos = list({p["aluno_id"] for p in em_andamento})
+    progresso_aulas = (
+        sb.table("progresso_aulas")
+        .select("aluno_id, aula_id, iniciada_em, concluida_em")
+        .in_("aluno_id", ids_alunos)
+        .execute()
+        .data
+    )
+    ultima_atividade: dict = {}
+    for linha in progresso_aulas:
+        curso_id = aula_para_curso.get(linha["aula_id"])
+        if curso_id is None:
+            continue
+        chave = (linha["aluno_id"], curso_id)
+        for campo in ("concluida_em", "iniciada_em"):
+            valor = linha.get(campo)
+            if not valor:
+                continue
+            instante = _instante(valor)
+            if chave not in ultima_atividade or instante > ultima_atividade[chave]:
+                ultima_atividade[chave] = instante
+
+    lembretes_recentes = (
+        sb.table("lembretes_curso_enviados")
+        .select("aluno_id, curso_id")
+        .gte("enviado_em", limite.isoformat())
+        .execute()
+        .data
+    )
+    ja_lembrados = {(l["aluno_id"], l["curso_id"]) for l in lembretes_recentes}
+
+    parados = []
+    for p in em_andamento:
+        chave = (p["aluno_id"], p["curso_id"])
+        if chave in ja_lembrados:
+            continue
+        aluno = alunos_por_id.get(p["aluno_id"])
+        curso = cursos_por_id.get(p["curso_id"])
+        if not aluno or not curso or not aluno.get("ativo", True) or not aluno.get("email"):
+            continue
+
+        instante_atividade = ultima_atividade.get(chave) or _instante(p["iniciado_em"])
+        if instante_atividade > limite:
+            continue  # teve atividade recente, não está parado
+
+        parados.append({
+            "aluno": aluno,
+            "curso": curso,
+            "dias_parado": (agora - instante_atividade).days,
+        })
+
+    return parados
+
+
+def registrar_lembrete_enviado(aluno_id: str, curso_id: int):
+    """Registra que um lembrete de curso parado foi enviado agora, pra cursos_parados() não repetir amanhã."""
+    sb = get_supabase_client()
+    sb.table("lembretes_curso_enviados").insert(
+        {"aluno_id": aluno_id, "curso_id": curso_id}
+    ).execute()
 
 
 # ---------------------------------------------------------------------------

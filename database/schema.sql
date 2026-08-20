@@ -206,6 +206,19 @@ create table if not exists public.progresso_cursos (
 );
 
 -- ----------------------------------------------------------------------------
+-- LEMBRETES DE CURSO PARADO (histórico de e-mails já enviados, pra não
+-- lembrar o aluno todo santo dia enquanto ele continuar parado no mesmo
+-- curso — ver database/repositorio.py: cursos_parados())
+-- ----------------------------------------------------------------------------
+create table if not exists public.lembretes_curso_enviados (
+    id          bigint generated always as identity primary key,
+    aluno_id    uuid not null references public.alunos(id) on delete cascade,
+    curso_id    bigint not null references public.cursos(id) on delete cascade,
+    enviado_em  timestamptz not null default now()
+);
+create index if not exists idx_lembretes_aluno_curso on public.lembretes_curso_enviados(aluno_id, curso_id);
+
+-- ----------------------------------------------------------------------------
 -- AVISOS (comunicados gerais do admin para todos os alunos, na tela de Início)
 -- ----------------------------------------------------------------------------
 create table if not exists public.avisos (
