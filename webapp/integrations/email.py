@@ -50,3 +50,13 @@ def notificar_curso_parado(aluno: dict, curso: dict, dias_parado: int) -> bool:
         f"— Plataforma de Treinamentos Norte Tel"
     )
     return _enviar(aluno["email"], assunto, corpo)
+
+
+def enviar_email_admin(aluno: dict, assunto: str, mensagem: str) -> bool:
+    """Manda uma mensagem livre, escrita pelo admin, pro e-mail de um aluno específico (painel Alunos)."""
+    corpo = (
+        f"Olá, {aluno['nome_completo'].split()[0]}!\n\n"
+        f"{mensagem}\n\n"
+        f"— Plataforma de Treinamentos Norte Tel"
+    )
+    return _enviar(aluno["email"], assunto, corpo)

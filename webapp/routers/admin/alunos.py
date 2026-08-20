@@ -7,6 +7,7 @@ from fastapi.responses import RedirectResponse
 from database.repositorio import (
     buscar_aluno_por_cpf,
     buscar_aluno_por_email,
+    buscar_aluno_por_id,
     criar_aluno_admin,
     definir_acesso_aluno,
     definir_admin_aluno,
@@ -19,6 +20,7 @@ from database.repositorio import (
 )
 from utils.helpers import FILIAIS, cpf_valido, email_valido, formatar_cpf, somente_digitos
 from webapp.deps import exigir_admin
+from webapp.integrations.email import enviar_email_admin
 from webapp.services.admin_stats import visao_geral
 from webapp.templating import templates
 
@@ -55,7 +57,7 @@ def _progresso_dos_cursos(aluno_id: str, cursos: list, progresso_aluno: dict, te
     return linhas
 
 
-def _renderizar(request: Request, aluno: dict, q: str = "", editando_id: str = None, **extra):
+def _renderizar(request: Request, aluno: dict, q: str = "", editando_id: str = None, enviando_email_id: str = None, **extra):
     alunos = listar_todos_alunos()
 
     if q:
@@ -93,14 +95,15 @@ def _renderizar(request: Request, aluno: dict, q: str = "", editando_id: str = N
             "sem_cpf": sum(1 for a in alunos if not a.get("cpf")),
             "filiais": FILIAIS,
             "editando_id": editando_id,
+            "enviando_email_id": enviando_email_id,
             **extra,
         },
     )
 
 
 @router.get("/admin/alunos")
-def alunos(request: Request, q: str = "", editar: str = "", aluno: dict = Depends(exigir_admin)):
-    return _renderizar(request, aluno, q=q, editando_id=editar or None)
+def alunos(request: Request, q: str = "", editar: str = "", email: str = "", aluno: dict = Depends(exigir_admin)):
+    return _renderizar(request, aluno, q=q, editando_id=editar or None, enviando_email_id=email or None)
 
 
 @router.post("/admin/alunos")
@@ -190,3 +193,27 @@ def alternar_acesso(aluno_id: str, ativar: bool = Form(...), aluno: dict = Depen
 def gerar_senha(request: Request, aluno_id: str, aluno: dict = Depends(exigir_admin)):
     senha = gerar_senha_temporaria(aluno_id)
     return _renderizar(request, aluno, senha_gerada_id=aluno_id, senha_gerada_valor=senha)
+
+
+@router.post("/admin/alunos/{aluno_id}/enviar-email")
+def enviar_email(
+    request: Request,
+    aluno_id: str,
+    assunto: str = Form(...),
+    mensagem: str = Form(...),
+    aluno: dict = Depends(exigir_admin),
+):
+    destinatario = buscar_aluno_por_id(aluno_id)
+    if not destinatario or not assunto.strip() or not mensagem.strip():
+        return _renderizar(
+            request, aluno, enviando_email_id=aluno_id,
+            erro_email="Preencha o assunto e a mensagem antes de enviar.",
+        )
+
+    if enviar_email_admin(destinatario, assunto.strip(), mensagem.strip()):
+        return _renderizar(request, aluno, email_enviado_id=aluno_id)
+
+    return _renderizar(
+        request, aluno, enviando_email_id=aluno_id,
+        erro_email="Não consegui enviar o e-mail. Confira se EMAIL_REMETENTE/EMAIL_SENHA_APP estão configurados no servidor.",
+    )
