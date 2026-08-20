@@ -57,6 +57,21 @@ class MainActivity : AppCompatActivity() {
         return esquema == "http" || esquema == "https" || esquema == null
     }
 
+    /**
+     * A última URL visitada (ver "ultima_url" abaixo) só deve ser reaberta se
+     * ainda for do MESMO domínio configurado em app_url. Sem essa checagem,
+     * quem usou o app antes de uma troca de domínio/host (ex: a migração do
+     * Render pro VPS) ficava preso pra sempre numa URL antiga que não existe
+     * mais — o WebView carregava, falhava em silêncio, e a tela ficava em
+     * branco, sem nenhum jeito de voltar pro domínio certo sem desinstalar
+     * o app.
+     */
+    private fun mesmoDominioDoAppAtual(uri: Uri): Boolean {
+        val hostSalvo = uri.host?.lowercase()
+        val hostOficial = Uri.parse(getString(R.string.app_url)).host?.lowercase()
+        return hostSalvo != null && hostSalvo == hostOficial
+    }
+
     private val seletorArquivo = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { resultado ->
@@ -84,7 +99,10 @@ class MainActivity : AppCompatActivity() {
         binding.swipeRefresh.isEnabled = false
 
         val urlSalva = prefs.getString("ultima_url", null)
-        val urlInicial = if (!urlSalva.isNullOrBlank() && ficaDentroDoWebView(Uri.parse(urlSalva))) {
+        val urlInicial = if (!urlSalva.isNullOrBlank() &&
+            ficaDentroDoWebView(Uri.parse(urlSalva)) &&
+            mesmoDominioDoAppAtual(Uri.parse(urlSalva))
+        ) {
             urlSalva
         } else {
             getString(R.string.app_url)
