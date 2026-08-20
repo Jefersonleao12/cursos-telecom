@@ -1,19 +1,21 @@
 #!/usr/bin/env bash
-# Setup do staging da Plataforma de Treinamentos em Telecomunicações (webapp/,
-# FastAPI) num VPS Ubuntu/Debian limpo. Roda como root, uma vez só.
+# Setup/atualização da Plataforma de Treinamentos em Telecomunicações
+# (webapp/, FastAPI) num VPS Ubuntu/Debian. Roda como root.
+#
+# Seguro rodar de novo a qualquer momento (ex: depois de um git push) —
+# reinstala dependências que já estão OK sem problema, e reaproveita o
+# domínio já configurado (não volta pro sslip.io sozinho).
 #
 # O que faz:
 #   1) Instala Python 3 + venv + git + Caddy (servidor HTTP com HTTPS
 #      automático via Let's Encrypt).
-#   2) Clona o repositório público em /opt/cursos-telecom.
-#   3) Cria um venv e instala requirements-webapp.txt.
-#   4) Cria /etc/cursos-telecom.env com espaço pra você colar os 5 segredos
-#      (mesmos valores já usados no Render) — o script PARA aqui e pede pra
+#   2) Clona/atualiza o repositório em /opt/cursos-telecom.
+#   3) Cria um venv e instala requirements.txt.
+#   4) Na primeira vez, cria /etc/cursos-telecom.env com espaço pra colar
+#      os 5 segredos (Supabase, WhatsApp) — o script PARA aqui e pede pra
 #      você editar esse arquivo antes de continuar.
-#   5) Cria e inicia um serviço systemd (reinicia sozinho se cair).
-#   6) Configura o Caddy como proxy com HTTPS automático, usando um domínio
-#      gratuito baseado no IP público (sslip.io) — sem precisar comprar
-#      domínio nenhum.
+#   5) Cria/atualiza um serviço systemd (reinicia sozinho se cair).
+#   6) Configura o Caddy como proxy com HTTPS automático.
 #
 # Como usar: salve este arquivo no servidor (ex: setup-vps.sh), depois:
 #   chmod +x setup-vps.sh
@@ -24,20 +26,30 @@ set -euo pipefail
 REPO_URL="https://github.com/Jefersonleao12/cursos-telecom.git"
 APP_DIR="/opt/cursos-telecom"
 ENV_FILE="/etc/cursos-telecom.env"
+DOMINIO_FILE="/etc/cursos-telecom-dominio"
 SERVICE_NAME="cursos-telecom"
 APP_PORT="8000"
 
-echo "==> Detectando IP público..."
-# "-4" força IPv4 de propósito: um domínio sslip.io não aceita ":" (o
-# separador de um endereço IPv6), então pegar o IPv6 aqui geraria um
-# domínio inválido pro Caddy emitir certificado.
-IP_PUBLICO="$(curl -4 -s https://ifconfig.me || curl -4 -s https://api.ipify.org)"
-if [ -z "$IP_PUBLICO" ]; then
-  echo "Não consegui detectar o IP público automaticamente."
-  read -rp "Digite o IP público deste servidor: " IP_PUBLICO
+if [ -f "$DOMINIO_FILE" ]; then
+  DOMINIO="$(cat "$DOMINIO_FILE")"
+  echo "==> Domínio já configurado antes, mantendo: $DOMINIO"
+  echo "    (pra trocar, edite $DOMINIO_FILE e rode este script de novo)"
+else
+  echo "==> Detectando IP público..."
+  # "-4" força IPv4 de propósito: um domínio sslip.io não aceita ":" (o
+  # separador de um endereço IPv6), então pegar o IPv6 aqui geraria um
+  # domínio inválido pro Caddy emitir certificado.
+  IP_PUBLICO="$(curl -4 -s https://ifconfig.me || curl -4 -s https://api.ipify.org)"
+  if [ -z "$IP_PUBLICO" ]; then
+    echo "Não consegui detectar o IP público automaticamente."
+    read -rp "Digite o IP público deste servidor: " IP_PUBLICO
+  fi
+  DOMINIO="${IP_PUBLICO}.sslip.io"
+  echo "$DOMINIO" > "$DOMINIO_FILE"
+  echo "==> Domínio que vai ser usado (grátis, já aponta pra este servidor): $DOMINIO"
+  echo "    Se já tem domínio próprio apontando pro IP deste servidor, edite"
+  echo "    $DOMINIO_FILE com ele e rode este script de novo antes de continuar."
 fi
-DOMINIO="${IP_PUBLICO}.sslip.io"
-echo "==> Domínio que vai ser usado (grátis, já aponta pra este servidor): $DOMINIO"
 
 echo "==> Instalando pacotes básicos (Python, git, curl, Caddy)..."
 apt-get update -y
@@ -63,13 +75,13 @@ echo "==> Criando ambiente virtual e instalando dependências..."
 cd "$APP_DIR"
 python3 -m venv venv
 ./venv/bin/pip install --upgrade pip
-./venv/bin/pip install -r requirements-webapp.txt
+./venv/bin/pip install -r requirements.txt
 
 if [ ! -f "$ENV_FILE" ]; then
   cat > "$ENV_FILE" <<'ENVEOF'
-# Preencha com os MESMOS valores já usados no Render (painel do Render ->
-# cursos-telecom -> Environment). Sem essas 5 variáveis a app recusa subir
-# de propósito (ver webapp/config.py:validar()).
+# Preencha com as credenciais do Supabase (painel do projeto -> Settings
+# -> API) e, se for usar notificação por WhatsApp, do CallMeBot. Sem as
+# 3 primeiras a app recusa subir de propósito (ver webapp/config.py:validar()).
 SUPABASE_URL=
 SUPABASE_SERVICE_KEY=
 SESSION_SECRET=

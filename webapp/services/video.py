@@ -5,8 +5,8 @@ certa pra cada um.
 A partir de agora os cursos novos usam vídeos hospedados no Google Drive
 (em vez de YouTube não listado, como antes) — mas cursos antigos podem
 ainda ter links do YouTube cadastrados, então os dois formatos continuam
-suportados aqui. Diferente da app antiga (modules/youtube_tracker.py), a
-nova app NÃO tenta medir o tempo REAL de reprodução dentro do player (nem
+suportados aqui. Diferente da versão antiga do sistema, esta app NÃO
+tenta medir o tempo REAL de reprodução dentro do player (nem
 o Drive nem uma versão simplificada do YouTube oferecem esse dado sem um
 componente de JavaScript dedicado) — o controle de "assistiu o suficiente"
 virou uma responsabilidade do servidor (ver registrar_inicio_aula em

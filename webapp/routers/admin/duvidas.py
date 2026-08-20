@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import RedirectResponse
 
 from database.repositorio import listar_duvidas, marcar_duvida_respondida
-from modules.whatsapp import diagnosticar_configuracao
+from webapp.integrations.whatsapp import diagnosticar_configuracao
 from webapp.deps import exigir_admin
 from webapp.services.admin_stats import visao_geral
 from webapp.templating import templates

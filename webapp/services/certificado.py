@@ -1,10 +1,7 @@
 """
-Geração do PDF do certificado de capacitação — portado quase literalmente
-de modules/certificado.py (a função já era pura, sem nenhuma dependência
-do Streamlit; só o resto daquele módulo, que desenhava a tela, usava
-st.session_state). O PDF é sempre gerado na hora do download, nunca em
-cache, para nunca ficar desatualizado se o nome do aluno ou do curso
-mudar depois de emitido.
+Geração do PDF do certificado de capacitação. O PDF é sempre gerado na
+hora do download, nunca em cache, para nunca ficar desatualizado se o
+nome do aluno ou do curso mudar depois de emitido.
 """
 from fpdf import FPDF
 

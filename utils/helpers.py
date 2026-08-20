@@ -2,9 +2,7 @@
 Funções utilitárias usadas em várias partes do sistema.
 Mantê-las separadas facilita testar e reaproveitar o código.
 
-Sem dependência de nenhum framework de UI — compartilhado pelas duas apps
-que coexistem durante a migração (Streamlit em app.py/modules/*.py, e
-FastAPI em webapp/).
+Sem dependência de nenhum framework de UI.
 """
 import os
 import re
@@ -14,33 +12,19 @@ from datetime import datetime
 
 def obter_segredo(chave: str, default=None):
     """
-    Lê uma credencial (Supabase, WhatsApp etc.) tanto de `st.secrets`
-    (arquivo .streamlit/secrets.toml local, ou "Secrets" no painel do
-    Streamlit Community Cloud — só quando a app Streamlit ainda está no
-    ar) quanto de variável de ambiente do sistema operacional (usado no
-    Render, na nova app FastAPI, ou em qualquer outro host). O import do
-    streamlit é feito aqui dentro, de propósito: assim esta função
-    continua funcionando tanto na app antiga quanto na nova (que nem tem
-    o pacote streamlit instalado) sem precisar de nenhuma configuração
-    extra pra trocar de provedor de hospedagem.
+    Lê uma credencial (Supabase, WhatsApp etc.) de variável de ambiente do
+    sistema operacional.
 
     Também limpa espaços/quebras de linha "escondidos" que podem entrar
     sem querer ao colar um valor longo (o campo de variáveis de ambiente
-    do Render, por exemplo, quebra a linha visualmente pra exibir — o que
-    é só aparência — mas se uma quebra de linha real ficar no meio do
-    valor colado, fica impossível notar só olhando, e uma chave JWT do
-    Supabase com qualquer espaço/quebra vira "Invalid API key" na hora.
-    Nem URL nem chave de API têm espaço de verdade, então é seguro remover.
+    de um painel de hospedagem, por exemplo, quebra a linha visualmente
+    pra exibir — o que é só aparência — mas se uma quebra de linha real
+    ficar no meio do valor colado, fica impossível notar só olhando, e
+    uma chave JWT do Supabase com qualquer espaço/quebra vira "Invalid
+    API key" na hora. Nem URL nem chave de API têm espaço de verdade,
+    então é seguro remover.
     """
-    valor = None
-    try:
-        import streamlit as st
-        if chave in st.secrets:
-            valor = st.secrets[chave]
-    except Exception:
-        pass  # sem streamlit instalado, ou sem secrets.toml: cai para a variável de ambiente
-    if valor is None:
-        valor = os.environ.get(chave, default)
+    valor = os.environ.get(chave, default)
     if isinstance(valor, str):
         valor = re.sub(r"\s+", "", valor)
     return valor

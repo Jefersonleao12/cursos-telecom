@@ -14,7 +14,7 @@ from database.repositorio import (
     solicitar_redefinicao_senha,
     trocar_senha_aluno,
 )
-from modules.whatsapp import notificar_pedido_redefinicao_senha
+from webapp.integrations.whatsapp import notificar_pedido_redefinicao_senha
 from utils.helpers import somente_digitos
 from webapp.auth.cookies import definir_cookie_sessao, limpar_cookie_sessao
 from webapp.auth.security import gerar_hash_senha, gerar_token_sessao, verificar_senha

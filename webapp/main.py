@@ -1,18 +1,13 @@
 """
-Ponto de entrada da nova app (FastAPI, sem Streamlit).
-
-Roda lado a lado com a app antiga (app.py, Streamlit) enquanto dura a
-migração — ver o plano faseado combinado com o Jeferson (fases 0 a 8).
-A app antiga continua no ar, sem nenhuma alteração de comportamento,
-até a nova estar validada numa URL separada.
+Ponto de entrada da Plataforma de Treinamentos em Telecomunicações
+(FastAPI). Roda como serviço systemd no VPS — ver scripts/setup-vps.sh.
 
 Para rodar localmente:  uvicorn webapp.main:app --reload
 """
 from fastapi import FastAPI
-from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
+from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 
-from database.repositorio import listar_cursos
 from webapp.auth.routes import router as auth_router
 from webapp.middleware import AutenticacaoMiddleware
 from webapp.routers.admin.alunos import router as admin_alunos_router
@@ -33,19 +28,10 @@ from webapp.routers.materiais import router as materiais_router
 from webapp.routers.perfil import router as perfil_router
 from webapp.routers.ranking import router as ranking_router
 
-app = FastAPI(title="Treinamentos Telecom (nova versão)")
+app = FastAPI(title="Treinamentos Telecom")
 
-# Reaproveita as mesmas pastas static/ (ícones, manifest do PWA) e assets/
-# (logo) da app antiga — nenhum arquivo precisou ser duplicado.
 app.mount("/static", StaticFiles(directory="static"), name="static")
 app.mount("/assets", StaticFiles(directory="assets"), name="assets")
-
-# static/manifest.json é compartilhado com a app antiga e tem os caminhos
-# dos ícones "hardcoded" em /app/static/... (prefixo que só existe porque o
-# Streamlit não deixa servir estático na raiz). Em vez de editar o manifest
-# compartilhado — o que arriscaria os ícones do PWA da app antiga, hoje em
-# uso —, montamos o mesmo diretório static/ também sob esse prefixo aqui.
-app.mount("/app/static", StaticFiles(directory="static"), name="static_legacy")
 
 app.add_middleware(AutenticacaoMiddleware)
 
@@ -74,48 +60,14 @@ def service_worker():
     """
     Serve o service worker na raiz (não em /static/sw.js) para que o
     navegador assuma escopo "/" por padrão — igual ao "scope": "/" do
-    manifest.json. Mesmo arquivo da app antiga, sem duplicação.
+    manifest.json.
     """
     return FileResponse("static/sw.js", media_type="application/javascript")
 
 
 @app.get("/healthz", response_class=PlainTextResponse)
 def healthz():
-    """Endpoint simples pro Render (ou qualquer monitor) confirmar que o
-    processo está de pé — não depende do banco."""
+    """Confirma que o processo está de pé — usado por monitores externos
+    (ex: uptime checks). Não depende do banco de propósito, pra continuar
+    respondendo mesmo se o Supabase estiver com problema."""
     return "ok"
-
-
-@app.get("/healthz/banco")
-def healthz_banco():
-    """
-    Confirma a cadeia completa: FastAPI -> repositorio.py ->
-    supabase_client.py -> Supabase de verdade. Só existe pra validar a
-    Fase 0 da migração (ver critério "app sobe local e consulta o banco
-    real" no plano) — pode ser removido depois que o resto da app
-    estiver pronto e essa verificação ficar redundante.
-    """
-    cursos = listar_cursos()
-    return JSONResponse({"ok": True, "cursos_encontrados": len(cursos)})
-
-
-@app.get("/healthz/rotas")
-def healthz_rotas():
-    """
-    Diagnóstico temporário: lista todas as rotas realmente registradas
-    nesse processo e se o middleware de autenticação está de pé. Existe só
-    pra investigar um caso em que o Render marcava um deploy como "live"
-    mas servia rotas de uma versão anterior do código — pode ser removido
-    depois que essa dúvida for resolvida.
-    """
-    rotas = sorted(
-        f"{','.join(sorted(r.methods))} {r.path}"
-        for r in app.routes
-        if hasattr(r, "methods")
-    )
-    return JSONResponse(
-        {
-            "rotas": rotas,
-            "middlewares": [m.cls.__name__ for m in app.user_middleware],
-        }
-    )

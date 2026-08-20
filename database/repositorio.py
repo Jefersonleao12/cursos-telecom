@@ -5,8 +5,7 @@ Concentra TODAS as consultas ao Supabase em um único lugar. Isso facilita a
 manutenção: se um dia você quiser trocar de banco de dados ou entender como
 alguma tela busca suas informações, é só olhar aqui.
 
-Sem dependência de nenhum framework de UI (nem Streamlit, nem FastAPI) —
-compartilhado pelas duas apps que coexistem durante a migração.
+Sem dependência de nenhum framework de UI (FastAPI só é usado em webapp/).
 """
 import io
 import time
@@ -114,10 +113,10 @@ def desmarcar_definir_foto(aluno_id: str):
 def buscar_aluno_por_id(aluno_id: str):
     """Retorna o registro do aluno pelo id, ou None se não existir.
 
-    Usado para restaurar a sessão do aluno (a cada requisição, na app
-    nova — ver webapp/middleware.py — ou após um F5 na app antiga). TTL
-    curto (10s) porque toda escrita relevante na tabela alunos já chama
-    `.clear()` nesta função (ver ativar/desativar acesso, trocar senha
+    Usado para restaurar a sessão do aluno a cada requisição (ver
+    webapp/middleware.py). TTL curto (10s) porque toda escrita relevante
+    na tabela alunos já chama `.clear()` nesta função (ver ativar/desativar
+    acesso, trocar senha
     etc.) — o cache existe só pra evitar bater no banco a cada requisição
     HTTP, não pra esconder mudanças reais por muito tempo.
     """

@@ -1,16 +1,11 @@
 """
 Cache em memória com TTL (Time To Live).
 
-Substitui os decorators @st.cache_data / @st.cache_resource do Streamlit
-por um equivalente que não depende de nenhum framework — funciona tanto
-na app antiga (Streamlit, modules/*.py) quanto na nova (webapp/, FastAPI),
-já que as duas importam as mesmas funções de database/repositorio.py
-durante a transição entre as duas.
+Cache simples em memória, sem depender de nenhum framework externo.
 
-Diferença importante em relação ao @st.cache_data original: o FastAPI
-atende requisições em threads concorrentes (o Streamlit não tinha esse
-risco, cada sessão rodava seu próprio script), então o cache usa lock
-pra evitar corrupção se duas requisições baterem no cache ao mesmo tempo.
+O FastAPI atende requisições em threads concorrentes, então o cache usa
+lock pra evitar corrupção se duas requisições baterem no cache ao mesmo
+tempo.
 """
 import functools
 import threading

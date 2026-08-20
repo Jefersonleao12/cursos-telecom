@@ -27,7 +27,7 @@ from database.repositorio import (
     listar_cursos,
     listar_destaques_ativos,
 )
-from modules.whatsapp import notificar_nova_duvida
+from webapp.integrations.whatsapp import notificar_nova_duvida
 from webapp.deps import obter_aluno_atual
 from webapp.templating import templates
 

@@ -1,3 +1,16 @@
 __pycache__/
 *.pyc
-.streamlit/secrets.toml
+.venv/
+venv/
+.env
+
+# Node/Electron (desktop-app/)
+node_modules/
+desktop-app/dist/
+
+# Android (mobile-app/)
+mobile-app/.gradle/
+mobile-app/app/build/
+mobile-app/build/
+*.apk
+*.aab

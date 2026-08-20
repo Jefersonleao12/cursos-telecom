@@ -50,10 +50,11 @@ def _enviar_mensagem(texto: str) -> bool:
     Função interna que faz a chamada HTTP ao CallMeBot. Retorna True se
     enviou, False se não foi possível (credenciais ausentes, erro de rede
     ou recusa do CallMeBot). Nunca interrompe o fluxo do app: qualquer
-    problema é apenas logado no console (visível em 'Manage app' -> Logs
-    no Streamlit Cloud) em vez de gerar um erro na tela do aluno — quem
-    precisa investigar uma falha usa o botão "Testar notificação" no
-    painel de administração (aba Dúvidas), que chama diagnosticar_configuracao().
+    problema é apenas logado no console (visível com
+    `journalctl -u cursos-telecom -f` no servidor) em vez de gerar um
+    erro na tela do aluno — quem precisa investigar uma falha usa o
+    botão "Testar notificação" no painel de administração (aba Dúvidas),
+    que chama diagnosticar_configuracao().
     """
     sucesso, detalhe = _chamar_callmebot(texto)
     if not sucesso:
