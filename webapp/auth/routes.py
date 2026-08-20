@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, Form, Request, UploadFile
 from fastapi.responses import RedirectResponse
 
 from database.repositorio import (
+    ImagemInvalidaError,
     atualizar_foto_perfil,
     buscar_aluno_por_cpf,
     desmarcar_definir_foto,
@@ -135,6 +136,12 @@ async def definir_foto_obrigatoria(
             status_code=400,
         )
 
-    atualizar_foto_perfil(aluno["id"], conteudo)
+    try:
+        atualizar_foto_perfil(aluno["id"], conteudo)
+    except ImagemInvalidaError as erro:
+        return templates.TemplateResponse(
+            request, "auth/definir_foto.html", {"erro": str(erro)}, status_code=400,
+        )
+
     desmarcar_definir_foto(aluno["id"])
     return RedirectResponse("/", status_code=303)

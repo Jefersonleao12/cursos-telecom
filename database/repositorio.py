@@ -12,8 +12,21 @@ import time
 import uuid
 from datetime import datetime, timedelta, timezone
 
+from pillow_heif import register_heif_opener
+
 from database.cache import cache_com_ttl
 from database.supabase_client import get_supabase_client
+
+# Sem isso, o Pillow não consegue abrir fotos em HEIC/HEIF — o formato que
+# iPhones usam por padrão pra fotos da câmera. O Safari costuma converter
+# pra JPEG sozinho ao enviar por um <input type="file">, mas nem sempre
+# (ex: escolhendo direto pelo app Arquivos) — por isso o servidor também
+# precisa saber ler o formato original, não só confiar no navegador.
+register_heif_opener()
+
+
+class ImagemInvalidaError(Exception):
+    """Levantado quando o arquivo enviado não é uma imagem que o servidor consegue abrir."""
 
 
 # ---------------------------------------------------------------------------
@@ -162,12 +175,29 @@ def trocar_senha_aluno(aluno_id: str, novo_hash_senha: str):
 _BUCKET_FOTOS_PERFIL = "fotos-perfil"
 
 
+def _abrir_imagem(arquivo_bytes: bytes):
+    """
+    Abre os bytes enviados como imagem, convertendo pra RGB. Levanta
+    ImagemInvalidaError (em vez de deixar vazar o erro do Pillow) quando o
+    arquivo não é uma imagem legível — ex: PDF, foto corrompida no envio,
+    ou um formato que nem com o suporte a HEIC/HEIF dá pra abrir. Sem isso,
+    o aluno via a tela travar sem explicação (o servidor devolvia erro 500
+    puro em vez de uma mensagem que fizesse sentido pra ele).
+    """
+    from PIL import Image, UnidentifiedImageError
+
+    try:
+        return Image.open(io.BytesIO(arquivo_bytes)).convert("RGB")
+    except (UnidentifiedImageError, OSError):
+        raise ImagemInvalidaError(
+            "Não consegui abrir essa imagem. Tente outra foto (JPEG, PNG ou HEIC)."
+        )
+
+
 def _processar_foto_perfil(arquivo_bytes: bytes) -> bytes:
     """Recorta a imagem em um quadrado centralizado e redimensiona, para
     todas as fotos ficarem com a mesma proporção (400x400) na plataforma."""
-    from PIL import Image
-
-    imagem = Image.open(io.BytesIO(arquivo_bytes)).convert("RGB")
+    imagem = _abrir_imagem(arquivo_bytes)
     lado = min(imagem.size)
     esquerda = (imagem.width - lado) // 2
     topo = (imagem.height - lado) // 2
@@ -1267,9 +1297,7 @@ _BUCKET_DESTAQUES = "destaques"
 def _processar_foto_destaque(arquivo_bytes: bytes) -> bytes:
     """Recorta a imagem num formato widescreen (4:3) e redimensiona, para
     todas as fotos do carrossel ficarem com a mesma proporção."""
-    from PIL import Image
-
-    imagem = Image.open(io.BytesIO(arquivo_bytes)).convert("RGB")
+    imagem = _abrir_imagem(arquivo_bytes)
     proporcao_alvo = 4 / 3
     largura, altura = imagem.size
     proporcao_atual = largura / altura
