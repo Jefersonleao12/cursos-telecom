@@ -232,6 +232,100 @@ create table if not exists public.destaques (
     criado_em         timestamptz not null default now()
 );
 
+-- ----------------------------------------------------------------------------
+-- FUNÇÃO: progresso e conclusão de curso pra todos os alunos de uma vez
+--
+-- Usada pelo Ranking, pelo Dashboard do admin e pela lista de Alunos do
+-- admin — telas que precisam ver o progresso de TODO MUNDO ao mesmo tempo.
+-- Calcular isso trazendo os dados brutos pro servidor (uma consulta por
+-- combinação aluno×curso) virava dezenas/centenas de idas e vindas ao
+-- banco, cada uma pagando a latência de rede — visivelmente lento mesmo
+-- com bastante CPU sobrando. Rodando dentro do próprio Postgres, vira
+-- 1 única consulta, não importa quantos alunos/cursos existam.
+--
+-- Calcula pra TODOS os alunos (ativos ou não) de propósito: quem chama
+-- decide quais alunos filtrar (ex: o Ranking só usa os ativos, mas o
+-- Dashboard quer o progresso de todo mundo, incluindo quem foi desativado
+-- depois de já ter avançado nos cursos) — filtrar aqui dentro mudaria
+-- esse comportamento.
+-- ----------------------------------------------------------------------------
+create or replace function public.progresso_ranking_dados()
+returns table (
+    aluno_id uuid,
+    curso_id bigint,
+    progresso numeric,
+    concluido boolean
+)
+language sql
+stable
+as $$
+with todos_alunos as (
+    select id from public.alunos
+),
+aulas_por_curso as (
+    select curso_id, count(*) as total_aulas
+    from public.aulas
+    group by curso_id
+),
+aulas_concluidas as (
+    select a.curso_id, pa.aluno_id, count(*) as concluidas
+    from public.progresso_aulas pa
+    join public.aulas a on a.id = pa.aula_id
+    where pa.concluida = true
+    group by a.curso_id, pa.aluno_id
+),
+melhor_resultado as (
+    select distinct on (rp.aluno_id, rp.prova_id)
+        rp.aluno_id, rp.prova_id, rp.aprovado
+    from public.resultados_provas rp
+    order by rp.aluno_id, rp.prova_id, rp.nota desc, rp.id asc
+),
+modulo_status as (
+    select
+        al.id as aluno_id,
+        m.id as modulo_id,
+        m.curso_id as curso_id,
+        (
+            exists (select 1 from public.aulas au where au.modulo_id = m.id)
+            and not exists (
+                select 1 from public.aulas au
+                where au.modulo_id = m.id
+                and not exists (
+                    select 1 from public.progresso_aulas pa
+                    where pa.aula_id = au.id and pa.aluno_id = al.id and pa.concluida = true
+                )
+            )
+            and (
+                not exists (select 1 from public.provas p where p.modulo_id = m.id)
+                or exists (
+                    select 1 from public.provas p
+                    join melhor_resultado mr on mr.prova_id = p.id and mr.aluno_id = al.id
+                    where p.modulo_id = m.id and mr.aprovado = true
+                )
+            )
+        ) as completo
+    from todos_alunos al
+    cross join public.modulos m
+),
+curso_concluido as (
+    select aluno_id, curso_id,
+        bool_and(completo) as todos_completos,
+        count(*) as total_modulos
+    from modulo_status
+    group by aluno_id, curso_id
+)
+select
+    al.id as aluno_id,
+    c.id as curso_id,
+    coalesce(ac.concluidas::numeric / nullif(apc.total_aulas, 0), 0) as progresso,
+    coalesce(cc.todos_completos, false) and coalesce(cc.total_modulos, 0) > 0 as concluido
+from todos_alunos al
+cross join public.cursos c
+left join aulas_por_curso apc on apc.curso_id = c.id
+left join aulas_concluidas ac on ac.curso_id = c.id and ac.aluno_id = al.id
+left join curso_concluido cc on cc.curso_id = c.id and cc.aluno_id = al.id;
+$$;
+
 -- ============================================================================
 -- IMPORTANTE SOBRE SEGURANÇA (leia antes de ir para produção):
 --
