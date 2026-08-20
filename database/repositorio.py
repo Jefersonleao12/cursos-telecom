@@ -606,96 +606,42 @@ def curso_totalmente_concluido(aluno_id: str, curso_id: int) -> bool:
 
 def progresso_e_conclusao_em_lote(alunos: list, cursos: list) -> tuple[dict, dict]:
     """
-    Calcula o mesmo que calcular_progresso_curso/curso_totalmente_concluido
-    dariam pra CADA combinação aluno × curso, mas sem chamar essas funções
-    num loop: fazê-lo uma combinação de cada vez significa uma consulta ao
-    Supabase por combinação (e outra por módulo, pra saber se o curso foi
-    concluído) — com vários alunos e cursos isso vira dezenas ou centenas
-    de idas e vindas ao banco, cada uma pagando a latência de rede, e fica
-    visivelmente lento (vários segundos) mesmo com CPU/rede sobrando,
-    porque o gargalo é o NÚMERO de consultas, não a velocidade de cada
-    uma. É o que deixava o Ranking, o Dashboard do admin e a lista de
-    Alunos do admin lentos.
+    Progresso (0.0 a 1.0) e conclusão de curso pra CADA combinação
+    aluno × curso — usado pelo Ranking, pelo Dashboard do admin e pela
+    lista de Alunos do admin, telas que precisam ver o progresso de todo
+    mundo ao mesmo tempo.
 
-    Em vez disso, buscamos cada tabela envolvida (módulos, aulas, provas,
-    progresso e resultados) por INTEIRO, de uma vez só — são só 5
-    consultas no total, não importa quantos alunos/cursos existam — e
-    fazemos as mesmas contas em memória, em Python.
+    Chama a função progresso_ranking_dados() direto no Postgres (ver
+    database/schema.sql) em vez de calcular isso em Python: uma consulta
+    ao banco por combinação aluno×curso virava dezenas/centenas de idas e
+    vindas de rede (visivelmente lento mesmo com CPU/rede sobrando); trazer
+    as tabelas cruas inteiras pro servidor e calcular em Python já resolvia
+    isso (~5-7 consultas fixas), mas deixar o próprio banco fazer a conta
+    reduz pra 1 consulta só, não importa quantos alunos/cursos existam.
 
     Retorna dois dicts indexados por [aluno_id][curso_id]:
     - progresso: percentual (0.0 a 1.0) de aulas concluídas no curso
     - concluido: True se TODOS os módulos do curso estão completos
     """
     sb = get_supabase_client()
-    modulos_todos = sb.table("modulos").select("*").execute().data
-    aulas_todas = sb.table("aulas").select("*").execute().data
-    provas_todas = sb.table("provas").select("*").execute().data
-    progresso_todo = (
-        sb.table("progresso_aulas").select("aluno_id,aula_id").eq("concluida", True).execute().data
-    )
-    resultados_todos = (
-        sb.table("resultados_provas").select("aluno_id,prova_id,nota,aprovado").execute().data
-    )
+    linhas = sb.rpc("progresso_ranking_dados").execute().data
 
-    modulos_por_curso: dict = {}
-    for m in modulos_todos:
-        modulos_por_curso.setdefault(m["curso_id"], []).append(m)
+    progresso: dict = {a["id"]: {} for a in alunos}
+    concluido: dict = {a["id"]: {} for a in alunos}
+    for linha in linhas:
+        aluno_id = linha["aluno_id"]
+        if aluno_id not in progresso:
+            continue  # aluno fora da lista pedida (ex: já filtrado por busca/ativo)
+        progresso[aluno_id][linha["curso_id"]] = float(linha["progresso"])
+        concluido[aluno_id][linha["curso_id"]] = bool(linha["concluido"])
 
-    aulas_por_curso: dict = {}
-    aulas_por_modulo: dict = {}
-    for a in aulas_todas:
-        aulas_por_curso.setdefault(a["curso_id"], []).append(a)
-        aulas_por_modulo.setdefault(a["modulo_id"], []).append(a)
-
-    prova_por_modulo: dict = {}
-    for p in provas_todas:
-        prova_por_modulo.setdefault(p["modulo_id"], p)  # primeira encontrada, igual buscar_prova_do_modulo
-
-    aulas_concluidas_por_aluno: dict = {}
-    for linha in progresso_todo:
-        aulas_concluidas_por_aluno.setdefault(linha["aluno_id"], set()).add(linha["aula_id"])
-
-    melhor_resultado_por_par: dict = {}
-    for r in resultados_todos:
-        chave = (r["aluno_id"], r["prova_id"])
-        atual = melhor_resultado_por_par.get(chave)
-        if atual is None or r["nota"] > atual["nota"]:
-            melhor_resultado_por_par[chave] = r
-
-    def _progresso_curso(aluno_id, curso_id):
-        aulas = aulas_por_curso.get(curso_id, [])
-        if not aulas:
-            return 0.0
-        concluidas = aulas_concluidas_por_aluno.get(aluno_id, set())
-        feitas = sum(1 for a in aulas if a["id"] in concluidas)
-        return feitas / len(aulas)
-
-    def _modulo_completo(aluno_id, modulo):
-        aulas = aulas_por_modulo.get(modulo["id"], [])
-        if not aulas:
-            return False
-        concluidas = aulas_concluidas_por_aluno.get(aluno_id, set())
-        if any(a["id"] not in concluidas for a in aulas):
-            return False
-        prova = prova_por_modulo.get(modulo["id"])
-        if prova:
-            resultado = melhor_resultado_por_par.get((aluno_id, prova["id"]))
-            if not resultado or not resultado.get("aprovado"):
-                return False
-        return True
-
-    def _curso_concluido(aluno_id, curso_id):
-        modulos = modulos_por_curso.get(curso_id, [])
-        if not modulos:
-            return False
-        return all(_modulo_completo(aluno_id, m) for m in modulos)
-
-    progresso: dict = {}
-    concluido: dict = {}
+    # A função no banco cobre todo aluno × todo curso, mas por garantia
+    # (ex: curso criado depois da última consulta) preenche o que faltar.
     for aluno in alunos:
-        aluno_id = aluno["id"]
-        progresso[aluno_id] = {c["id"]: _progresso_curso(aluno_id, c["id"]) for c in cursos}
-        concluido[aluno_id] = {c["id"]: _curso_concluido(aluno_id, c["id"]) for c in cursos}
+        for curso in cursos:
+            progresso[aluno["id"]].setdefault(curso["id"], 0.0)
+            concluido[aluno["id"]].setdefault(curso["id"], False)
+
     return progresso, concluido
 
 
