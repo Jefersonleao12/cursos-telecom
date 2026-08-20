@@ -604,44 +604,28 @@ def curso_totalmente_concluido(aluno_id: str, curso_id: int) -> bool:
     return all(modulo_esta_completo(aluno_id, m["id"]) for m in modulos)
 
 
-@cache_com_ttl(ttl=60)
-def calcular_ranking_alunos():
+def progresso_e_conclusao_em_lote(alunos: list, cursos: list) -> tuple[dict, dict]:
     """
-    Ranking dos alunos por progresso nos cursos, usado na tela "Top Alunos"
-    (visível pra todo mundo, não só o admin, como incentivo).
+    Calcula o mesmo que calcular_progresso_curso/curso_totalmente_concluido
+    dariam pra CADA combinação aluno × curso, mas sem chamar essas funções
+    num loop: fazê-lo uma combinação de cada vez significa uma consulta ao
+    Supabase por combinação (e outra por módulo, pra saber se o curso foi
+    concluído) — com vários alunos e cursos isso vira dezenas ou centenas
+    de idas e vindas ao banco, cada uma pagando a latência de rede, e fica
+    visivelmente lento (vários segundos) mesmo com CPU/rede sobrando,
+    porque o gargalo é o NÚMERO de consultas, não a velocidade de cada
+    uma. É o que deixava o Ranking, o Dashboard do admin e a lista de
+    Alunos do admin lentos.
 
-    Calcula o mesmo resultado que calcular_progresso_curso/
-    curso_totalmente_concluido dariam pra cada aluno, mas SEM chamar essas
-    funções num loop: a versão antiga fazia uma consulta ao Supabase pra
-    cada combinação aluno × curso (e outra por módulo, pra saber se o
-    curso foi concluído) — com vários alunos e cursos isso vira dezenas ou
-    centenas de idas e vindas ao banco, cada uma com sua latência de rede,
-    e ficava visivelmente lento (vários segundos) mesmo com CPU sobrando,
-    porque o gargalo era rede, não processamento.
+    Em vez disso, buscamos cada tabela envolvida (módulos, aulas, provas,
+    progresso e resultados) por INTEIRO, de uma vez só — são só 5
+    consultas no total, não importa quantos alunos/cursos existam — e
+    fazemos as mesmas contas em memória, em Python.
 
-    Aqui em vez disso buscamos cada tabela envolvida (módulos, aulas,
-    provas, progresso e resultados) por INTEIRO, de uma vez só — são só
-    5 consultas no total, não importa quantos alunos/cursos existam — e
-    fazemos as mesmas contas em memória, em Python. Resultado idêntico,
-    ordens de magnitude mais rápido.
-
-    Como um ranking não precisa estar atualizado no segundo exato,
-    continuamos cacheando o resultado inteiro por 1 minuto por cima disso.
-
-    Ordena por: 1) mais cursos concluídos, 2) maior progresso médio nos
-    cursos disponíveis, 3) nome (desempate estável). Só entram alunos ativos
-    que já começaram pelo menos um curso — quem nunca abriu nada não aparece
-    no ranking (não tem "0º lugar" pra ninguém).
-
-    Retorna a lista ORDENADA COMPLETA (não só os primeiros) — quem chama
-    decide quantos exibir e também consegue achar a posição de um aluno
-    específico dentro dela.
+    Retorna dois dicts indexados por [aluno_id][curso_id]:
+    - progresso: percentual (0.0 a 1.0) de aulas concluídas no curso
+    - concluido: True se TODOS os módulos do curso estão completos
     """
-    alunos = [a for a in listar_todos_alunos() if a.get("ativo", True)]
-    cursos = listar_cursos()
-    if not alunos or not cursos:
-        return []
-
     sb = get_supabase_client()
     modulos_todos = sb.table("modulos").select("*").execute().data
     aulas_todas = sb.table("aulas").select("*").execute().data
@@ -706,16 +690,53 @@ def calcular_ranking_alunos():
             return False
         return all(_modulo_completo(aluno_id, m) for m in modulos)
 
+    progresso: dict = {}
+    concluido: dict = {}
+    for aluno in alunos:
+        aluno_id = aluno["id"]
+        progresso[aluno_id] = {c["id"]: _progresso_curso(aluno_id, c["id"]) for c in cursos}
+        concluido[aluno_id] = {c["id"]: _curso_concluido(aluno_id, c["id"]) for c in cursos}
+    return progresso, concluido
+
+
+@cache_com_ttl(ttl=60)
+def calcular_ranking_alunos():
+    """
+    Ranking dos alunos por progresso nos cursos, usado na tela "Top Alunos"
+    (visível pra todo mundo, não só o admin, como incentivo).
+
+    Usa progresso_e_conclusao_em_lote() pra evitar o padrão N+1 de
+    consultas (ver o comentário lá). Como um ranking não precisa estar
+    atualizado no segundo exato, cacheamos o resultado inteiro por 1
+    minuto por cima disso.
+
+    Ordena por: 1) mais cursos concluídos, 2) maior progresso médio nos
+    cursos disponíveis, 3) nome (desempate estável). Só entram alunos ativos
+    que já começaram pelo menos um curso — quem nunca abriu nada não aparece
+    no ranking (não tem "0º lugar" pra ninguém).
+
+    Retorna a lista ORDENADA COMPLETA (não só os primeiros) — quem chama
+    decide quantos exibir e também consegue achar a posição de um aluno
+    específico dentro dela.
+    """
+    alunos = [a for a in listar_todos_alunos() if a.get("ativo", True)]
+    cursos = listar_cursos()
+    if not alunos or not cursos:
+        return []
+
+    progresso, concluido = progresso_e_conclusao_em_lote(alunos, cursos)
+
     ranking = []
     for aluno in alunos:
-        progressos = [_progresso_curso(aluno["id"], c["id"]) for c in cursos]
+        aluno_id = aluno["id"]
+        progressos = list(progresso[aluno_id].values())
         progresso_medio = sum(progressos) / len(progressos) if progressos else 0.0
         if progresso_medio <= 0:
             continue  # não começou nenhum curso ainda: fica fora do ranking
 
-        cursos_concluidos = sum(1 for c in cursos if _curso_concluido(aluno["id"], c["id"]))
+        cursos_concluidos = sum(1 for v in concluido[aluno_id].values() if v)
         ranking.append({
-            "aluno_id": aluno["id"],
+            "aluno_id": aluno_id,
             "nome_completo": aluno["nome_completo"],
             "empresa": aluno.get("empresa"),
             "filial": aluno.get("filial"),
@@ -792,6 +813,18 @@ def obter_tempos_curso(aluno_id: str, curso_id: int):
     )
     dados = resposta.data
     return dados[0] if dados else None
+
+
+def todos_tempos_curso() -> dict:
+    """
+    Igual obter_tempos_curso, mas pra TODOS os alunos/cursos de uma vez só
+    (uma consulta), indexado por (aluno_id, curso_id) — usado em telas que
+    precisam disso pra vários alunos (ex: lista de Alunos do admin), pra
+    não fazer uma consulta por combinação.
+    """
+    sb = get_supabase_client()
+    resposta = sb.table("progresso_cursos").select("*").execute()
+    return {(linha["aluno_id"], linha["curso_id"]): linha for linha in resposta.data}
 
 
 # ---------------------------------------------------------------------------

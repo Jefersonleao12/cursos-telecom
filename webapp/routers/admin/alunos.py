@@ -7,7 +7,6 @@ from fastapi.responses import RedirectResponse
 from database.repositorio import (
     buscar_aluno_por_cpf,
     buscar_aluno_por_email,
-    calcular_progresso_curso,
     criar_aluno_admin,
     definir_acesso_aluno,
     definir_admin_aluno,
@@ -15,7 +14,8 @@ from database.repositorio import (
     gerar_senha_temporaria,
     listar_cursos,
     listar_todos_alunos,
-    obter_tempos_curso,
+    progresso_e_conclusao_em_lote,
+    todos_tempos_curso,
 )
 from utils.helpers import FILIAIS, cpf_valido, email_valido, formatar_cpf, somente_digitos
 from webapp.deps import exigir_admin
@@ -37,14 +37,14 @@ def _formatar_duracao(segundos) -> str:
     return f"{minutos}min"
 
 
-def _progresso_dos_cursos(aluno_id: str, cursos: list) -> list:
+def _progresso_dos_cursos(aluno_id: str, cursos: list, progresso_aluno: dict, tempos_todos: dict) -> list:
     linhas = []
     for curso in cursos:
-        p = calcular_progresso_curso(aluno_id, curso["id"])
+        p = progresso_aluno.get(curso["id"], 0.0)
         if p <= 0:
             continue
         texto = f"{curso['titulo']}: {int(p * 100)}%"
-        tempos = obter_tempos_curso(aluno_id, curso["id"])
+        tempos = tempos_todos.get((aluno_id, curso["id"]))
         if tempos and tempos.get("finalizado_em"):
             inicio = datetime.fromisoformat(tempos["iniciado_em"].replace("Z", "+00:00"))
             fim = datetime.fromisoformat(tempos["finalizado_em"].replace("Z", "+00:00"))
@@ -69,13 +69,15 @@ def _renderizar(request: Request, aluno: dict, q: str = "", editando_id: str = N
         ]
 
     cursos = listar_cursos()
+    progresso, _concluido = progresso_e_conclusao_em_lote(alunos, cursos)
+    tempos_todos = todos_tempos_curso()
     itens = []
     for a in alunos:
         itens.append(
             {
                 "aluno": a,
                 "cpf_formatado": formatar_cpf(a["cpf"]) if a.get("cpf") else None,
-                "progresso": _progresso_dos_cursos(a["id"], cursos),
+                "progresso": _progresso_dos_cursos(a["id"], cursos, progresso[a["id"]], tempos_todos),
             }
         )
 

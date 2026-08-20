@@ -3,12 +3,12 @@
 from fastapi import APIRouter, Depends, Request
 
 from database.repositorio import (
-    calcular_progresso_curso,
     contar_alunos_por_filial,
     listar_cursos,
     listar_todos_alunos,
     listar_todos_certificados,
     listar_todos_resultados_provas,
+    progresso_e_conclusao_em_lote,
 )
 from webapp.deps import exigir_admin
 from webapp.services.admin_stats import visao_geral
@@ -41,9 +41,11 @@ def dashboard(request: Request, aluno: dict = Depends(exigir_admin)):
     certificados_por_curso = [{"nome": n, "quantidade": q} for n, q in contagem_certificados.items()]
     maximo_certificados = max((c["quantidade"] for c in certificados_por_curso), default=0)
 
+    progresso, _concluido = progresso_e_conclusao_em_lote(alunos_todos, cursos_todos)
+
     progresso_por_curso = []
     for curso in cursos_todos:
-        progressos = [calcular_progresso_curso(a["id"], curso["id"]) for a in alunos_todos]
+        progressos = [progresso[a["id"]][curso["id"]] for a in alunos_todos]
         iniciados = [p for p in progressos if p > 0]
         if iniciados:
             media = sum(iniciados) / len(iniciados)
