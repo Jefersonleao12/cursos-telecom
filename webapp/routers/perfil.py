@@ -8,6 +8,7 @@ from database.repositorio import (
     atualizar_perfil_aluno,
     buscar_prova_do_modulo,
     calcular_progresso_curso,
+    jogo_campo_obter_progresso,
     listar_cursos,
     listar_modulos_do_curso,
     melhor_resultado,
@@ -18,6 +19,7 @@ from database.repositorio import (
 from utils.helpers import FILIAIS
 from webapp.auth.security import gerar_hash_senha, verificar_senha
 from webapp.deps import obter_aluno_atual
+from webapp.services.jogo_campo import selos_conquistados
 from webapp.templating import templates
 
 router = APIRouter()
@@ -77,10 +79,17 @@ def _historico(aluno_id: str) -> list[dict]:
 
 
 def _renderizar(request: Request, aluno: dict, **extra):
+    progresso_jogo = jogo_campo_obter_progresso(aluno["id"])
     return templates.TemplateResponse(
         request,
         "perfil.html",
-        {"aluno": aluno, "filiais": FILIAIS, "historico": _historico(aluno["id"]), **extra},
+        {
+            "aluno": aluno,
+            "filiais": FILIAIS,
+            "historico": _historico(aluno["id"]),
+            "selos_jogo": selos_conquistados(progresso_jogo["missoes_completadas"]),
+            **extra,
+        },
     )
 
 

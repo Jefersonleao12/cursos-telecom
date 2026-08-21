@@ -911,6 +911,66 @@ def registrar_lembrete_enviado(aluno_id: str, curso_id: int):
 
 
 # ---------------------------------------------------------------------------
+# SIMULADOR DE CAMPO (jogo de treinamento, ver webapp/services/jogo_campo.py)
+# ---------------------------------------------------------------------------
+
+_JOGO_CAMPO_PADRAO = {
+    "tela": "welcome",
+    "missao_index": 0,
+    "decisao_index": 0,
+    "acertos_missao": 0,
+    "missoes_completadas": 0,
+    "acertos_totais": 0,
+    "xp": 0,
+    "opcao_escolhida": None,
+}
+
+
+def jogo_campo_obter_progresso(aluno_id: str) -> dict:
+    """
+    Retorna o progresso do aluno no Simulador de Campo. Quem nunca jogou
+    não tem linha na tabela ainda — devolve o estado inicial (tela
+    "welcome") sem gravar nada no banco até a primeira ação de verdade.
+    """
+    sb = get_supabase_client()
+    resposta = sb.table("jogo_campo_progresso").select("*").eq("aluno_id", aluno_id).execute()
+    if resposta.data:
+        return resposta.data[0]
+    return {"aluno_id": aluno_id, **_JOGO_CAMPO_PADRAO}
+
+
+def jogo_campo_salvar_progresso(aluno_id: str, **campos) -> dict:
+    """Grava (cria ou atualiza) o progresso do aluno no jogo com os campos passados."""
+    sb = get_supabase_client()
+    linha = {"aluno_id": aluno_id, **campos}
+    resposta = sb.table("jogo_campo_progresso").upsert(linha, on_conflict="aluno_id").execute()
+    return resposta.data[0]
+
+
+def jogo_campo_missoes_completadas_em_lote(alunos: list) -> dict:
+    """
+    Quantas O.S. cada aluno já completou no Simulador de Campo, numa
+    consulta só — usado pra mostrar os selos conquistados no Ranking
+    (visíveis pra todo mundo) sem bater no banco uma vez por aluno.
+    Retorna {aluno_id: missoes_completadas}.
+    """
+    if not alunos:
+        return {}
+    sb = get_supabase_client()
+    ids = [a["id"] for a in alunos]
+    resposta = (
+        sb.table("jogo_campo_progresso")
+        .select("aluno_id, missoes_completadas")
+        .in_("aluno_id", ids)
+        .execute()
+    )
+    resultado = {a["id"]: 0 for a in alunos}
+    for linha in resposta.data:
+        resultado[linha["aluno_id"]] = linha["missoes_completadas"]
+    return resultado
+
+
+# ---------------------------------------------------------------------------
 # PROVAS E PERGUNTAS
 # ---------------------------------------------------------------------------
 

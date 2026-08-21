@@ -36,6 +36,14 @@
                 </button>
                 <p class="text-sm text-slate-500">Clique na foto para ver maior ou trocar</p>
 
+                {% if selos_jogo %}
+                <div class="flex flex-wrap justify-center gap-2 mt-1">
+                    {% for selo in selos_jogo %}
+                    <span title="{{ selo.nome }}" class="text-xs bg-blue-50 text-norte-azul rounded-full px-2.5 py-1">{{ selo.icone }} {{ selo.nome }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
                 <div x-show="aberto" x-cloak
                      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60"
                      @click.self="aberto = false">

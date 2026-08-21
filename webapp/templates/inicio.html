@@ -46,6 +46,26 @@
     </div>
 </div>
 
+<a href="/jogo" class="mt-6 block rounded-2xl overflow-hidden relative group" style="background: radial-gradient(circle at 85% 20%, rgba(58,168,193,0.35), transparent 55%), linear-gradient(135deg, #0F1B22, #152530 60%, #0F2E56);">
+    <div class="p-6 flex items-center justify-between gap-4">
+        <div>
+            <p class="text-[11px] font-mono tracking-widest text-cyan-300 uppercase mb-1">🎮 Novo · Simulador de Campo</p>
+            <h2 class="text-white text-xl font-bold mb-1">
+                {% if jogo.concluiu_tudo %}Você já é uma lenda de campo! 🏆
+                {% elif jogo.comecou %}Continue de onde parou — O.S. {{ jogo.missoes_completadas + 1 }}/{{ jogo.total_missoes }}
+                {% else %}Encare O.S. simuladas e vire referência técnica{% endif %}
+            </h2>
+            <p class="text-sm text-slate-300">
+                {% if jogo.quantidade_selos > 0 %}🎖️ {{ jogo.quantidade_selos }} selo(s) conquistado(s) — visíveis no Ranking.
+                {% else %}Decisões reais de campo, alternativas embaralhadas e um selo a cada 5 O.S. fechadas.{% endif %}
+            </p>
+        </div>
+        <div class="shrink-0 text-3xl bg-white/10 group-hover:bg-white/20 transition rounded-full w-14 h-14 flex items-center justify-center">
+            →
+        </div>
+    </div>
+</a>
+
 <div class="mt-8">
     <h2 class="text-base font-bold text-norte-azul flex items-center gap-2">🧭 Acesso rápido</h2>
     <p class="text-sm text-slate-500 mb-3">Vá direto para onde você precisa.</p>

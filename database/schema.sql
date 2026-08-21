@@ -219,6 +219,26 @@ create table if not exists public.lembretes_curso_enviados (
 create index if not exists idx_lembretes_aluno_curso on public.lembretes_curso_enviados(aluno_id, curso_id);
 
 -- ----------------------------------------------------------------------------
+-- SIMULADOR DE CAMPO (jogo de treinamento com Ordens de Serviço simuladas,
+-- acessado pela tela Início) — 1 linha por aluno, guarda em que ponto do
+-- jogo ele está pra continuar de onde parou. O conteúdo das O.S. (cenário,
+-- perguntas, alternativas) NÃO fica no banco — vive em
+-- webapp/data/jogo_campo_missoes.py; aqui só o progresso.
+-- ----------------------------------------------------------------------------
+create table if not exists public.jogo_campo_progresso (
+    aluno_id             uuid primary key references public.alunos(id) on delete cascade,
+    tela                 text not null default 'welcome',  -- welcome | mission-intro | decision | feedback | mission-end | game-end
+    missao_index         int not null default 0,
+    decisao_index        int not null default 0,
+    acertos_missao       int not null default 0,
+    missoes_completadas  int not null default 0,
+    acertos_totais       int not null default 0,
+    xp                   int not null default 0,
+    opcao_escolhida      int,          -- índice (na ordem embaralhada) da alternativa escolhida na última decisão
+    atualizado_em        timestamptz not null default now()
+);
+
+-- ----------------------------------------------------------------------------
 -- AVISOS (comunicados gerais do admin para todos os alunos, na tela de Início)
 -- ----------------------------------------------------------------------------
 create table if not exists public.avisos (

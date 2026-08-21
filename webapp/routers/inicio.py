@@ -23,11 +23,14 @@ from database.repositorio import (
     calcular_progresso_curso,
     curso_totalmente_concluido,
     enviar_duvida,
+    jogo_campo_obter_progresso,
     listar_avisos_ativos,
     listar_cursos,
     listar_destaques_ativos,
 )
+from webapp.data.jogo_campo_missoes import MISSOES as JOGO_MISSOES
 from webapp.integrations.whatsapp import notificar_nova_duvida
+from webapp.services.jogo_campo import selos_conquistados
 from webapp.deps import obter_aluno_atual
 from webapp.templating import templates
 
@@ -113,6 +116,18 @@ def _resumo_do_aluno(aluno_id: str) -> dict:
     return {"concluidos": concluidos, "em_andamento": em_andamento, "certificados": certificados}
 
 
+def _resumo_do_jogo(aluno_id: str) -> dict:
+    progresso = jogo_campo_obter_progresso(aluno_id)
+    total_missoes = len(JOGO_MISSOES)
+    return {
+        "comecou": progresso["tela"] != "welcome" or progresso["missoes_completadas"] > 0,
+        "concluiu_tudo": total_missoes > 0 and progresso["missoes_completadas"] >= total_missoes,
+        "missoes_completadas": progresso["missoes_completadas"],
+        "total_missoes": total_missoes,
+        "quantidade_selos": len(selos_conquistados(progresso["missoes_completadas"])),
+    }
+
+
 def _renderizar(request: Request, aluno: dict, **extra):
     saudacao, icone = _saudacao_e_icone()
     primeiro_nome = (aluno.get("nome_completo") or "").split(" ")[0]
@@ -129,6 +144,7 @@ def _renderizar(request: Request, aluno: dict, **extra):
             "avisos": listar_avisos_ativos(),
             "destaques": listar_destaques_ativos(),
             "resumo": _resumo_do_aluno(aluno["id"]),
+            "jogo": _resumo_do_jogo(aluno["id"]),
             **extra,
         },
     )

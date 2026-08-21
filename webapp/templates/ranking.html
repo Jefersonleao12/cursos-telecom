@@ -29,6 +29,11 @@
                 <p class="text-sm text-slate-500 truncate">
                     {{ [item.empresa, item.filial] | select | join(' · ') }}
                 </p>
+                {% if linha.selos_jogo %}
+                <p class="text-xs mt-1" title="Selos do Simulador de Campo">
+                    {% for selo in linha.selos_jogo %}<span title="{{ selo.nome }}">{{ selo.icone }}</span>{% endfor %}
+                </p>
+                {% endif %}
             </div>
         </div>
         <div class="sm:w-56 shrink-0">
