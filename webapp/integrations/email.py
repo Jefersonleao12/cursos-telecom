@@ -13,13 +13,22 @@ from email.message import EmailMessage
 from utils.helpers import obter_segredo
 
 
-def _enviar(destinatario: str, assunto: str, corpo_texto: str) -> bool:
+def _enviar(destinatario: str, assunto: str, corpo_texto: str) -> tuple[bool, str]:
+    """
+    Devolve (sucesso, detalhe). O detalhe distingue "não configurado" de
+    "configurado mas o Gmail recusou o login" de "erro de conexão" — sem
+    isso, qualquer falha de envio (ex: senha de app errada, ou revogada
+    pelo Google) aparecia pro admin como se as variáveis estivessem vazias,
+    o que manda quem for investigar atrás da causa errada (mesmo problema
+    que _chamar_callmebot resolve pro WhatsApp, ver webapp/integrations/whatsapp.py).
+    """
     remetente = obter_segredo("EMAIL_REMETENTE")
     senha_app = obter_segredo("EMAIL_SENHA_APP")
 
     if not remetente or not senha_app:
-        print("[email] não enviado: EMAIL_REMETENTE ou EMAIL_SENHA_APP está vazio nos Secrets do app.")
-        return False
+        detalhe = "EMAIL_REMETENTE ou EMAIL_SENHA_APP está vazio nos Secrets do app."
+        print(f"[email] não enviado: {detalhe}")
+        return False, detalhe
 
     mensagem = EmailMessage()
     mensagem["Subject"] = assunto
@@ -32,10 +41,15 @@ def _enviar(destinatario: str, assunto: str, corpo_texto: str) -> bool:
             smtp.starttls()
             smtp.login(remetente, senha_app)
             smtp.send_message(mensagem)
-        return True
+        return True, ""
+    except smtplib.SMTPAuthenticationError as erro:
+        detalhe = f"Gmail recusou o login (usuário ou senha de app incorretos): {erro}"
+        print(f"[email] falha ao enviar para {destinatario}: {detalhe}")
+        return False, detalhe
     except (smtplib.SMTPException, OSError) as erro:
-        print(f"[email] falha ao enviar para {destinatario}: {erro}")
-        return False
+        detalhe = f"Erro ao enviar: {erro}"
+        print(f"[email] falha ao enviar para {destinatario}: {detalhe}")
+        return False, detalhe
 
 
 def notificar_curso_parado(aluno: dict, curso: dict, dias_parado: int) -> bool:
@@ -49,10 +63,11 @@ def notificar_curso_parado(aluno: dict, curso: dict, dias_parado: int) -> bool:
         f"Acesse: https://nortetel-cursos.com.br/\n\n"
         f"— Plataforma de Treinamentos Norte Tel"
     )
-    return _enviar(aluno["email"], assunto, corpo)
+    sucesso, _detalhe = _enviar(aluno["email"], assunto, corpo)
+    return sucesso
 
 
-def enviar_email_admin(aluno: dict, assunto: str, mensagem: str) -> bool:
+def enviar_email_admin(aluno: dict, assunto: str, mensagem: str) -> tuple[bool, str]:
     """Manda uma mensagem livre, escrita pelo admin, pro e-mail de um aluno específico (painel Alunos)."""
     corpo = (
         f"Olá, {aluno['nome_completo'].split()[0]}!\n\n"

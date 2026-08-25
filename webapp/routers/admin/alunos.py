@@ -210,10 +210,11 @@ def enviar_email(
             erro_email="Preencha o assunto e a mensagem antes de enviar.",
         )
 
-    if enviar_email_admin(destinatario, assunto.strip(), mensagem.strip()):
+    sucesso, detalhe = enviar_email_admin(destinatario, assunto.strip(), mensagem.strip())
+    if sucesso:
         return _renderizar(request, aluno, email_enviado_id=aluno_id)
 
     return _renderizar(
         request, aluno, enviando_email_id=aluno_id,
-        erro_email="Não consegui enviar o e-mail. Confira se EMAIL_REMETENTE/EMAIL_SENHA_APP estão configurados no servidor.",
+        erro_email=f"Não consegui enviar o e-mail. {detalhe}",
     )
