@@ -1,5 +1,8 @@
 {% extends "base.html" %}
 {% block titulo %}Meu Perfil — Norte Tel{% endblock %}
+{% block cabecalho_extra %}
+<script src="/static/js/foto-perfil.js" defer></script>
+{% endblock %}
 {% block conteudo %}
 <h1 class="text-2xl font-bold text-norte-azul mb-4 text-center">👤 Meu Perfil</h1>
 
@@ -23,7 +26,9 @@
             <div class="rounded-lg bg-red-50 text-red-700 text-sm px-4 py-3 mb-4">{{ erro_dados }}</div>
             {% endif %}
 
-            <div class="flex flex-col items-center gap-2 mb-6" x-data="{ aberto: false, preview: null }">
+            <div class="flex flex-col items-center gap-2 mb-6"
+                 x-data="{ aberto: false, preview: null, enviando: false }"
+                 x-init="ligarCompressaoDeFoto($refs.inputFoto, (url) => preview = url)">
                 <button @click="aberto = true" type="button" class="relative group shrink-0 rounded-full">
                     {% if aluno.foto_url %}
                     <img src="{{ aluno.foto_url }}" alt="" class="w-20 h-20 rounded-full object-cover border border-slate-200">
@@ -66,12 +71,11 @@
                             </template>
                         </div>
 
-                        <form action="/perfil/foto" method="post" enctype="multipart/form-data" class="space-y-3">
-                            <input type="file" name="foto" accept="image/jpeg,image/png,image/heic,image/heif"
-                                   @change="preview = $event.target.files.length ? URL.createObjectURL($event.target.files[0]) : null"
+                        <form action="/perfil/foto" method="post" enctype="multipart/form-data" class="space-y-3" @submit="enviando = true">
+                            <input type="file" name="foto" x-ref="inputFoto" accept="image/jpeg,image/png,image/heic,image/heif"
                                    class="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-sm file:font-medium hover:file:bg-slate-200">
-                            <button type="submit" class="w-full bg-norte-azul hover:bg-norte-azul-escuro text-white text-sm font-semibold rounded-lg py-2.5 transition">
-                                📷 Salvar nova foto
+                            <button type="submit" :disabled="enviando" class="w-full bg-norte-azul hover:bg-norte-azul-escuro text-white text-sm font-semibold rounded-lg py-2.5 transition disabled:opacity-60 disabled:cursor-not-allowed">
+                                <span x-text="enviando ? '📷 Enviando, aguarde...' : '📷 Salvar nova foto'"></span>
                             </button>
                         </form>
                     </div>
