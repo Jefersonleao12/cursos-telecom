@@ -34,7 +34,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Bruna\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99187-8144\n"
-                "Ocorrência: Cliente contratou o plano de 300 Mega. É a primeira instalação de fibra na casa dele — antes só usava internet do celular."
+                "Ocorrência: Cliente contratou o plano de 300 Mega e solicita instalação de fibra óptica. Primeira instalação no imóvel — atualmente utiliza apenas internet móvel."
             ),
         },
         "decisoes": [
@@ -110,7 +110,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Juliana\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99113-7876\n"
-                "Ocorrência: Instalação já concluída no mês passado. Chamado aberto por 'internet caindo direto' — Dona Marlene usa um roteador próprio ligado depois da ONT."
+                "Ocorrência: Cliente relata que a internet cai com frequência. Possui roteador próprio conectado após a ONT. Solicita verificação técnica no local."
             ),
         },
         "decisoes": [
@@ -186,7 +186,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Aline\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99813-3490\n"
-                "Ocorrência: Cliente reclama: na sala funciona, mas no quarto dos fundos não pega nada — nem cabo, nem Wi-Fi."
+                "Ocorrência: Cliente informa que a internet funciona normalmente na sala, mas não há sinal (cabo ou Wi-Fi) no quarto dos fundos. Solicita verificação no local."
             ),
         },
         "decisoes": [
@@ -262,7 +262,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Mayara\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99679-7477\n"
-                "Ocorrência: Cliente sem internet desde ontem. Você já confirmou que a fibra chega até a ONT dela, mas o LED PON nem acende."
+                "Ocorrência: Cliente sem internet desde o dia anterior. Solicita atendimento técnico com urgência para verificação do sinal."
             ),
         },
         "decisoes": [
@@ -330,7 +330,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Bruna\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99442-9157\n"
-                "Ocorrência: Instalação nova, casa bem próxima da CTO. Após ligar tudo, o LED PON pisca estranho e a internet cai a cada poucos minutos."
+                "Ocorrência: Cliente contratou instalação nova de fibra óptica. Imóvel localizado próximo à CTO."
             ),
         },
         "decisoes": [
@@ -398,7 +398,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Rafael\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99120-9760\n"
-                "Ocorrência: A fibra entra no térreo, mas a sala do cliente fica no 2º andar. É preciso levar o sinal com segurança pela rota vertical do prédio."
+                "Ocorrência: Cliente contratou instalação de ponto de internet em prédio comercial de 3 andares. Escritório localizado no 2º andar."
             ),
         },
         "decisoes": [
@@ -466,7 +466,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Lucas\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99441-1193\n"
-                "Ocorrência: Uma empresa de saneamento fez uma escavação na rua e cortou o cabo de fibra que atende vários clientes, incluindo essa casa."
+                "Ocorrência: Cliente sem internet. Região reporta interrupção coletiva, possivelmente relacionada a obra na via pública."
             ),
         },
         "decisoes": [
@@ -534,7 +534,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Bruna\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99643-8029\n"
-                "Ocorrência: Cliente relata 'sumiu a internet do nada'. Ele já tentou desligar e ligar o roteador, sem sucesso."
+                "Ocorrência: Cliente relata perda total do sinal de internet. Informa já ter reiniciado o roteador, sem sucesso."
             ),
         },
         "decisoes": [
@@ -602,7 +602,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Lucas\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99341-4689\n"
-                "Ocorrência: Cliente contratou upgrade pra 500 Mega, mas o teste de velocidade não passa de 95 Mbps mesmo com o sinal óptico ótimo."
+                "Ocorrência: Cliente contratou upgrade de plano para 500 Mega e relata velocidade abaixo do contratado nos testes realizados."
             ),
         },
         "decisoes": [
@@ -670,7 +670,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Aline\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99323-9381\n"
-                "Ocorrência: Cliente relata que a internet cai por alguns segundos, várias vezes ao dia, sem padrão aparente."
+                "Ocorrência: Cliente relata quedas de internet por alguns segundos, diversas vezes ao dia, sem horário definido."
             ),
         },
         "decisoes": [
@@ -738,7 +738,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Patrícia\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99166-8141\n"
-                "Ocorrência: Estúdio com 6 pessoas que trabalham com upload constante de arquivos grandes (vídeo/design). Contrataram um plano simétrico."
+                "Ocorrência: Cliente (estúdio, 6 usuários) contratou plano simétrico de alta demanda para upload constante de arquivos grandes."
             ),
         },
         "decisoes": [
@@ -806,7 +806,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Mayara\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99901-6142\n"
-                "Ocorrência: Cliente com quedas frequentes de sinal, mesmo com potência óptica dentro da faixa. Instalação já tem 2 anos."
+                "Ocorrência: Cliente relata quedas frequentes de sinal. Instalação com 2 anos de uso, sem alteração recente reportada."
             ),
         },
         "decisoes": [
@@ -874,7 +874,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Rafael\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99197-1951\n"
-                "Ocorrência: A internet funciona bem na sala, mas o Wi-Fi praticamente não chega no quarto dos fundos, que fica longe do roteador."
+                "Ocorrência: Cliente relata que o Wi-Fi não chega no quarto dos fundos, distante do roteador. Solicita verificação e possível extensão de sinal."
             ),
         },
         "decisoes": [
@@ -942,7 +942,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Aline\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99911-8131\n"
-                "Ocorrência: Cliente reclama que a rede '5G' da internet dele 'não pega em lugar nenhum', enquanto a outra rede pega em toda a casa."
+                "Ocorrência: Cliente relata que a rede de 5GHz do roteador não alcança a maior parte da casa, diferente da rede de 2.4GHz."
             ),
         },
         "decisoes": [
@@ -1010,7 +1010,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Camila\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99955-6599\n"
-                "Ocorrência: Cliente quer limitar o tempo de internet do filho adolescente e bloquear alguns sites."
+                "Ocorrência: Cliente solicita configuração de controle parental, para limitar o tempo de acesso e bloquear determinados sites."
             ),
         },
         "decisoes": [
@@ -1078,7 +1078,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Fernanda\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99550-2753\n"
-                "Ocorrência: Cliente tem cerca de 25 dispositivos conectados (lâmpadas inteligentes, câmeras, tomadas Wi-Fi) e reclama de quedas frequentes."
+                "Ocorrência: Cliente relata quedas frequentes de conexão. Possui grande quantidade de dispositivos conectados (aproximadamente 25, entre lâmpadas, câmeras e tomadas inteligentes)."
             ),
         },
         "decisoes": [
@@ -1146,7 +1146,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Juliana\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99811-8269\n"
-                "Ocorrência: Cliente recebe muitas visitas e não gosta de passar a senha da rede principal toda vez. Quer uma rede separada só pra convidados."
+                "Ocorrência: Cliente solicita configuração de uma rede Wi-Fi separada para visitantes, sem uso da senha da rede principal."
             ),
         },
         "decisoes": [
@@ -1214,7 +1214,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Aline\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99717-8195\n"
-                "Ocorrência: Clínica com 5 pontos de rede (recepção e 4 consultórios) que precisam ser organizados num rack pequeno."
+                "Ocorrência: Cliente (clínica) solicita organização do cabeamento de rede — 5 pontos (recepção e 4 consultórios) em rack pequeno."
             ),
         },
         "decisoes": [
@@ -1282,7 +1282,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Fernanda\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99746-2932\n"
-                "Ocorrência: Cliente comprou um 'hub' usado numa loja de eletrônicos pra dividir a internet entre vários computadores, mas está achando tudo lento."
+                "Ocorrência: Cliente relata lentidão na rede após instalar, por conta própria, um equipamento comprado em loja de eletrônicos para dividir a internet entre computadores."
             ),
         },
         "decisoes": [
@@ -1350,7 +1350,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Fernanda\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99439-5713\n"
-                "Ocorrência: O dono do mercado quer instalar uma câmera de segurança na entrada, ligada por rede em vez de precisar de uma tomada de energia extra ali."
+                "Ocorrência: Cliente (mercado) solicita instalação de câmera de segurança na entrada, com alimentação via rede (POE)."
             ),
         },
         "decisoes": [
@@ -1418,7 +1418,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Bruna\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99546-3267\n"
-                "Ocorrência: A rede da escola ficou extremamente lenta do nada, quase parada. Ninguém mexeu em nada, segundo a equipe."
+                "Ocorrência: Cliente (escola) relata rede extremamente lenta, sem alteração recente identificada pela equipe local."
             ),
         },
         "decisoes": [
@@ -1486,7 +1486,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Camila\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99806-9633\n"
-                "Ocorrência: Você chega 40 minutos atrasado numa visita agendada por conta de um atendimento anterior que demorou mais que o previsto. O cliente está visivelmente irritado."
+                "Ocorrência: Cliente sem internet. Solicitou atendimento com urgência e aguarda visita técnica agendada."
             ),
         },
         "decisoes": [
@@ -1543,18 +1543,18 @@ MISSOES = [
         "os_info": {
             "id_cliente": "51950",
             "horario": "15h00",
-            "assunto": "Manutenção de App",
+            "assunto": "Realizar serviços - configurações",
             "endereco": "RUA DOS PIONEIROS, 816",
             "cidade": "Conselvan",
             "referencia": "Ao lado da oficina mecânica",
             "caixa_atendimento": "AYPO 03",
             "porta_ftth": "4",
             "descricao": (
-                "Processo: Suporte Unificado. Tarefa: Manutenção de App\n"
+                "Processo: Suporte Unificado. Tarefa: Realizar serviços - configurações\n"
                 "Descrição O.S. anterior: - Solicitante: atendente Mayara\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99876-4282\n"
-                "Ocorrência: O cliente pede pra você fazer uma alteração no plano dele 'só verbalmente', sem passar pela central, porque ele 'confia em você'."
+                "Ocorrência: Cliente solicita atendimento técnico para ajuste de configurações do plano contratado."
             ),
         },
         "decisoes": [
@@ -1622,7 +1622,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Rafael\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99918-1998\n"
-                "Ocorrência: Durante o atendimento, o cliente oferece um dinheiro 'por fora' pra você priorizar a visita dele da próxima vez que precisar de suporte."
+                "Ocorrência: Cliente solicita atendimento técnico para ajustes e configurações gerais da rede."
             ),
         },
         "decisoes": [
@@ -1690,7 +1690,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Camila\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99494-2046\n"
-                "Ocorrência: Cliente de 78 anos precisa reconectar o celular no Wi-Fi depois de uma troca de senha, mas tem bastante dificuldade com tecnologia."
+                "Ocorrência: Cliente relata dificuldade para reconectar o celular ao Wi-Fi após alteração de senha. Solicita apoio técnico presencial."
             ),
         },
         "decisoes": [
@@ -1758,7 +1758,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Bruna\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99200-3105\n"
-                "Ocorrência: Cliente reclama que 'a internet da Norte Tel' não deixa ele acessar o site do banco, mas ele também tem um plano de dados móvel de outra operadora no celular."
+                "Ocorrência: Cliente relata não conseguir acessar o site do banco pela internet fixa. Possui também plano de dados móvel de outra operadora."
             ),
         },
         "decisoes": [
@@ -1826,7 +1826,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Fernanda\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99722-8072\n"
-                "Ocorrência: Durante o atendimento técnico, a cliente pede pra você aplicar um desconto na mensalidade dela, dizendo que está com dificuldades financeiras."
+                "Ocorrência: Cliente solicita atendimento técnico para configuração do serviço de TV."
             ),
         },
         "decisoes": [
@@ -1883,18 +1883,18 @@ MISSOES = [
         "os_info": {
             "id_cliente": "56832",
             "horario": "11h00",
-            "assunto": "Manutenção de App",
+            "assunto": "Realizar serviços - configurações",
             "endereco": "RUA RIO BRANCO, 573",
             "cidade": "Alta Floresta",
             "referencia": "Ao lado da oficina mecânica",
             "caixa_atendimento": "AFT 03",
             "porta_ftth": "5",
             "descricao": (
-                "Processo: Suporte Unificado. Tarefa: Manutenção de App\n"
+                "Processo: Suporte Unificado. Tarefa: Realizar serviços - configurações\n"
                 "Descrição O.S. anterior: - Solicitante: atendente Rafael\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99409-2607\n"
-                "Ocorrência: Você resolveu um problema técnico relativamente complexo (troca de configuração da ONT), mas o cliente não entende bem o que foi feito."
+                "Ocorrência: Cliente relata instabilidade na conexão. Solicita verificação e ajuste de configuração do equipamento (ONT)."
             ),
         },
         "decisoes": [
@@ -1962,7 +1962,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Patrícia\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99858-7026\n"
-                "Ocorrência: A entrada de fibra precisa ser fixada na parte alta da fachada da casa, a uns 4 metros do chão."
+                "Ocorrência: Cliente contratou instalação de fibra óptica. Entrada deverá ser fixada na parte alta da fachada do imóvel."
             ),
         },
         "decisoes": [
@@ -2030,7 +2030,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Rafael\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99511-1027\n"
-                "Ocorrência: A rota da fibra até a casa passa perto de fiação elétrica de baixa tensão na fachada."
+                "Ocorrência: Cliente contratou instalação de fibra óptica. Rota de entrada passa próxima à fiação elétrica da fachada."
             ),
         },
         "decisoes": [
@@ -2098,7 +2098,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Aline\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99628-1387\n"
-                "Ocorrência: Você chega na casa pra um atendimento agendado, mas há um cão de porte grande solto no quintal, sem contenção visível."
+                "Ocorrência: Cliente sem internet. Solicita visita técnica para verificação do sinal."
             ),
         },
         "decisoes": [
@@ -2166,7 +2166,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Patrícia\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99743-8578\n"
-                "Ocorrência: Você está no meio de uma instalação externa quando o céu começa a fechar, com sinais claros de tempestade se aproximando."
+                "Ocorrência: Cliente contratou instalação de fibra óptica, com execução externa agendada."
             ),
         },
         "decisoes": [
@@ -2234,7 +2234,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Aline\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99345-4061\n"
-                "Ocorrência: Ao preparar a máquina de fusão pra fazer uma emenda, você percebe que ela está apresentando um comportamento estranho."
+                "Ocorrência: Cliente contratou instalação de fibra óptica, com necessidade de emenda na rede externa."
             ),
         },
         "decisoes": [
@@ -2302,7 +2302,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Lucas\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99347-9031\n"
-                "Ocorrência: Durante um atendimento de rotina, você percebe um cabo saindo de forma irregular da CTO, aparentando uma ligação não autorizada de sinal."
+                "Ocorrência: Cliente solicita atendimento técnico de rotina para verificação de sinal na região atendida pela CTO local."
             ),
         },
         "decisoes": [
@@ -2370,7 +2370,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Diego\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99405-4979\n"
-                "Ocorrência: Durante o atendimento, um vizinho aparece perguntando informações sobre o plano e o valor que a Sra. Débora paga de internet."
+                "Ocorrência: Cliente (Sra. Débora) solicita atendimento técnico para verificação de pontos de rede no imóvel."
             ),
         },
         "decisoes": [
@@ -2438,7 +2438,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Lucas\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99652-3404\n"
-                "Ocorrência: Você está com a agenda cheia e atrasada. Um colega sugere pular a etapa de teste final de sinal em cada atendimento pra 'ganhar tempo'."
+                "Ocorrência: Cliente relata lentidão na internet. Solicita verificação técnica do sinal."
             ),
         },
         "decisoes": [
@@ -2506,7 +2506,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Patrícia\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99889-8562\n"
-                "Ocorrência: Ao investigar uma reclamação de lentidão, você percebe indícios de que o cliente está compartilhando/revendendo a conexão pra vizinhos, fora dos termos do plano contratado."
+                "Ocorrência: Cliente relata lentidão na internet. Solicita verificação técnica da conexão contratada."
             ),
         },
         "decisoes": [
@@ -2574,7 +2574,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Patrícia\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99230-4392\n"
-                "Ocorrência: Duas unidades residenciais (duplex) contrataram planos separados, mas compartilham a mesma entrada de fibra até o poste."
+                "Ocorrência: Clientes (duplex, duas unidades) contrataram planos individuais de internet. Compartilham a mesma entrada de fibra até o poste."
             ),
         },
         "decisoes": [
@@ -2642,7 +2642,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Lucas\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99372-3747\n"
-                "Ocorrência: Cliente reclama que os vídeos na Smart TV ficam 'carregando' toda hora, mesmo com o Wi-Fi mostrando sinal cheio."
+                "Ocorrência: Cliente relata que vídeos na Smart TV ficam carregando com frequência, mesmo com sinal de Wi-Fi aparentemente cheio."
             ),
         },
         "decisoes": [
@@ -2710,7 +2710,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Lucas\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99744-7040\n"
-                "Ocorrência: A ONT fica na sede do sítio, mas o cliente quer internet também numa área de lazer a 150 metros de distância."
+                "Ocorrência: Cliente solicita extensão de internet para área de lazer a aproximadamente 150 metros da sede, onde está instalada a ONT."
             ),
         },
         "decisoes": [
@@ -2778,7 +2778,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Juliana\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99817-7759\n"
-                "Ocorrência: Cliente reclama de internet cabeada instável há alguns dias num ponto específico da casa, próximo ao forro."
+                "Ocorrência: Cliente relata instabilidade na internet cabeada em um ponto específico da casa, próximo ao forro."
             ),
         },
         "decisoes": [
@@ -2846,7 +2846,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Patrícia\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99981-3894\n"
-                "Ocorrência: No meio de um atendimento tranquilo, a cliente oferece um cafezinho e um pedaço de bolo, como é comum em muitas casas."
+                "Ocorrência: Cliente sem internet. Solicita visita técnica para verificação do sinal."
             ),
         },
         "decisoes": [
@@ -2903,18 +2903,18 @@ MISSOES = [
         "os_info": {
             "id_cliente": "58466",
             "horario": "14h30",
-            "assunto": "Manutenção de Pontos Adicionais",
+            "assunto": "Instalação de Novo Ponto",
             "endereco": "RUA DA PAZ, 681",
             "cidade": "Conselvan",
             "referencia": "Perto do campo de futebol",
             "caixa_atendimento": "AYPO 05",
             "porta_ftth": "1",
             "descricao": (
-                "Processo: Suporte Unificado. Tarefa: Manutenção de Pontos Adicionais\n"
+                "Processo: Suporte Unificado. Tarefa: Instalação de Novo Ponto\n"
                 "Descrição O.S. anterior: - Solicitante: atendente Lucas\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99793-8434\n"
-                "Ocorrência: A instalação contratada é de um ponto de internet na sala. No local, o cliente pede pra você já deixar mais dois pontos passados 'de brinde', sem custo, em outros cômodos."
+                "Ocorrência: Cliente contratou instalação de um ponto de internet na sala."
             ),
         },
         "decisoes": [
@@ -2971,18 +2971,18 @@ MISSOES = [
         "os_info": {
             "id_cliente": "52336",
             "horario": "15h00",
-            "assunto": "Manutenção de App",
+            "assunto": "Realizar serviços - configurações",
             "endereco": "RUA JK, 32",
             "cidade": "Aripuanã",
             "referencia": "Esquina com a rua principal",
             "caixa_atendimento": "AYP 05",
             "porta_ftth": "1",
             "descricao": (
-                "Processo: Suporte Unificado. Tarefa: Manutenção de App\n"
+                "Processo: Suporte Unificado. Tarefa: Realizar serviços - configurações\n"
                 "Descrição O.S. anterior: - Solicitante: atendente Aline\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99212-6758\n"
-                "Ocorrência: Durante um atendimento de rotina, você percebe que o roteador do cliente nunca recebeu uma atualização de firmware, algo comum quando o cliente nunca mexeu nisso."
+                "Ocorrência: Cliente solicita atendimento técnico de rotina para verificação geral do equipamento."
             ),
         },
         "decisoes": [
@@ -3050,7 +3050,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Juliana\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99172-4534\n"
-                "Ocorrência: É preciso passar um cabo pelo forro da casa, num dia de calor intenso, num telhado de fibrocimento sem isolamento."
+                "Ocorrência: Cliente contratou serviço de cabeamento com passagem de cabo pelo forro do imóvel."
             ),
         },
         "decisoes": [
@@ -3118,7 +3118,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Fernanda\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99803-1328\n"
-                "Ocorrência: Instalação de rede numa loja de autopeças, com um rack pequeno que vai abrigar switch e patch panel."
+                "Ocorrência: Cliente (loja de autopeças) contratou instalação de rede com organização de rack para switch e patch panel."
             ),
         },
         "decisoes": [
@@ -3186,7 +3186,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Aline\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99844-3208\n"
-                "Ocorrência: Você chega no horário agendado, mas ninguém atende a casa. Você liga pro cliente, que esqueceu completamente do agendamento."
+                "Ocorrência: Cliente contratou instalação de novo ponto de internet no imóvel. Atendimento agendado previamente."
             ),
         },
         "decisoes": [
@@ -3254,7 +3254,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Camila\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99399-6811\n"
-                "Ocorrência: Depois de uma tempestade forte na região, vários clientes da mesma rua reportaram instabilidade na internet."
+                "Ocorrência: Cliente relata instabilidade na internet após tempestade forte na região. Outros clientes da mesma rua reportaram o mesmo problema."
             ),
         },
         "decisoes": [
@@ -3322,7 +3322,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Rafael\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99929-5601\n"
-                "Ocorrência: O cliente pede pra você bloquear, na rede da casa, o acesso ao Wi-Fi do vizinho — ele acha que o vizinho está 'roubando' o sinal dele, sem nenhuma evidência concreta."
+                "Ocorrência: Cliente solicita bloqueio de um dispositivo não identificado que estaria utilizando sua rede Wi-Fi sem autorização."
             ),
         },
         "decisoes": [
@@ -3390,7 +3390,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Lucas\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99901-4228\n"
-                "Ocorrência: Cliente liga reclamando de internet lenta. Antes de sair pra visita, você tenta um diagnóstico remoto pelo sistema da central."
+                "Ocorrência: Cliente liga reclamando de internet lenta. Solicita verificação técnica no local."
             ),
         },
         "decisoes": [
