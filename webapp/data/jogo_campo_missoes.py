@@ -175,14 +175,14 @@ MISSOES = [
         "os_info": {
             "id_cliente": "52227",
             "horario": "14h30",
-            "assunto": "Serviços - Cabeamento",
+            "assunto": "Realizar serviços - configurações",
             "endereco": "AVENIDA MARECHAL RONDON, 700",
             "cidade": "Conselvan",
             "referencia": "Portão de madeira, casa de esquina",
             "caixa_atendimento": "AYPO 01",
             "porta_ftth": "3",
             "descricao": (
-                "Processo: Suporte Unificado. Tarefa: Serviços - Cabeamento\n"
+                "Processo: Suporte Unificado. Tarefa: Realizar serviços - configurações\n"
                 "Descrição O.S. anterior: - Solicitante: atendente Aline\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99813-3490\n"
@@ -591,14 +591,14 @@ MISSOES = [
         "os_info": {
             "id_cliente": "59243",
             "horario": "16h30",
-            "assunto": "Realizar serviços - configurações",
+            "assunto": "Internet Lenta",
             "endereco": "RUA SETE DE SETEMBRO, 756",
             "cidade": "Cujubim",
             "referencia": "Próximo à igreja",
             "caixa_atendimento": "CUJU 01",
             "porta_ftth": "5",
             "descricao": (
-                "Processo: Suporte Unificado. Tarefa: Realizar serviços - configurações\n"
+                "Processo: Suporte Unificado. Tarefa: Internet Lenta\n"
                 "Descrição O.S. anterior: - Solicitante: atendente Lucas\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99341-4689\n"
@@ -863,18 +863,18 @@ MISSOES = [
         "os_info": {
             "id_cliente": "56676",
             "horario": "13h30",
-            "assunto": "Manutenção de Pontos Adicionais",
+            "assunto": "Realizar serviços - configurações",
             "endereco": "RUA DAS FLORES, 195",
             "cidade": "Conselvan",
             "referencia": "Próximo à igreja",
             "caixa_atendimento": "AYPO 02",
             "porta_ftth": "2",
             "descricao": (
-                "Processo: Suporte Unificado. Tarefa: Manutenção de Pontos Adicionais\n"
+                "Processo: Suporte Unificado. Tarefa: Realizar serviços - configurações\n"
                 "Descrição O.S. anterior: - Solicitante: atendente Rafael\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99197-1951\n"
-                "Ocorrência: Cliente relata que o Wi-Fi não chega no quarto dos fundos, distante do roteador. Solicita verificação e possível extensão de sinal."
+                "Ocorrência: Cliente relata que o Wi-Fi não chega no quarto dos fundos, distante do roteador. Solicita verificação técnica no local."
             ),
         },
         "decisoes": [
@@ -1271,14 +1271,14 @@ MISSOES = [
         "os_info": {
             "id_cliente": "56719",
             "horario": "15h00",
-            "assunto": "Serviços - Cabeamento",
+            "assunto": "Internet Lenta",
             "endereco": "RUA SETE DE SETEMBRO, 106",
             "cidade": "Cujubim",
             "referencia": "Perto da praça central",
             "caixa_atendimento": "CUJU 02",
             "porta_ftth": "3",
             "descricao": (
-                "Processo: Suporte Unificado. Tarefa: Serviços - Cabeamento\n"
+                "Processo: Suporte Unificado. Tarefa: Internet Lenta\n"
                 "Descrição O.S. anterior: - Solicitante: atendente Fernanda\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99746-2932\n"
@@ -1747,14 +1747,14 @@ MISSOES = [
         "os_info": {
             "id_cliente": "59284",
             "horario": "11h00",
-            "assunto": "Sem Internet",
+            "assunto": "Realizar serviços - configurações",
             "endereco": "AVENIDA BRASIL, 63",
             "cidade": "Colniza",
             "referencia": "Ao lado da oficina mecânica",
             "caixa_atendimento": "CNIZ 03",
             "porta_ftth": "1",
             "descricao": (
-                "Processo: Suporte Unificado. Tarefa: Sem Internet\n"
+                "Processo: Suporte Unificado. Tarefa: Realizar serviços - configurações\n"
                 "Descrição O.S. anterior: - Solicitante: atendente Bruna\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99200-3105\n"
@@ -1894,7 +1894,7 @@ MISSOES = [
                 "Descrição O.S. anterior: - Solicitante: atendente Rafael\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99409-2607\n"
-                "Ocorrência: Cliente relata instabilidade na conexão. Solicita verificação e ajuste de configuração do equipamento (ONT)."
+                "Ocorrência: Cliente relata instabilidade na conexão. Solicita verificação técnica no local."
             ),
         },
         "decisoes": [
@@ -2291,14 +2291,14 @@ MISSOES = [
         "os_info": {
             "id_cliente": "57053",
             "horario": "16h30",
-            "assunto": "Retirada de Ponto Adicional",
+            "assunto": "Reativar Cliente na CTO",
             "endereco": "RUA JK, 942",
             "cidade": "Aripuanã",
             "referencia": "Perto do campo de futebol",
             "caixa_atendimento": "AYP 04",
             "porta_ftth": "8",
             "descricao": (
-                "Processo: Suporte Unificado. Tarefa: Retirada de Ponto Adicional\n"
+                "Processo: Suporte Unificado. Tarefa: Reativar Cliente na CTO\n"
                 "Descrição O.S. anterior: - Solicitante: atendente Lucas\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99347-9031\n"
@@ -2359,18 +2359,18 @@ MISSOES = [
         "os_info": {
             "id_cliente": "58329",
             "horario": "10h30",
-            "assunto": "Manutenção de Pontos Adicionais",
+            "assunto": "Realizar serviços - configurações",
             "endereco": "AVENIDA MARECHAL RONDON, 77",
             "cidade": "Juína",
             "referencia": "Perto da praça central",
             "caixa_atendimento": "JNA 04",
             "porta_ftth": "1",
             "descricao": (
-                "Processo: Suporte Unificado. Tarefa: Manutenção de Pontos Adicionais\n"
+                "Processo: Suporte Unificado. Tarefa: Realizar serviços - configurações\n"
                 "Descrição O.S. anterior: - Solicitante: atendente Diego\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99405-4979\n"
-                "Ocorrência: Cliente (Sra. Débora) solicita atendimento técnico para verificação de pontos de rede no imóvel."
+                "Ocorrência: Cliente (Sra. Débora) relata instabilidade na internet. Solicita verificação técnica no local."
             ),
         },
         "decisoes": [
@@ -2495,14 +2495,14 @@ MISSOES = [
         "os_info": {
             "id_cliente": "55310",
             "horario": "09h30",
-            "assunto": "Correção De Comodato",
+            "assunto": "Internet Lenta",
             "endereco": "RUA DAS FLORES, 630",
             "cidade": "Pimenta Bueno",
             "referencia": "Perto do campo de futebol",
             "caixa_atendimento": "PBW 04",
             "porta_ftth": "6",
             "descricao": (
-                "Processo: Suporte Unificado. Tarefa: Correção De Comodato\n"
+                "Processo: Suporte Unificado. Tarefa: Internet Lenta\n"
                 "Descrição O.S. anterior: - Solicitante: atendente Patrícia\n"
                 "Horário do Cliente: a combinar\n"
                 "Número de Contato: (69) 99889-8562\n"
