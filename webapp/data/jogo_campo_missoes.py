@@ -21,20 +21,20 @@ MISSOES = [
         "briefing": "Cliente contratou o plano de 300 Mega. É a primeira instalação de fibra na casa dele — antes só usava internet do celular.",
         "instrumento": "optic",
         "os_info": {
-            "id_cliente": "50231",
+            "id_cliente": "55455",
             "horario": "09h30",
             "assunto": "Instalação Fibra Optica",
-            "endereco": "RUA DAS ACÁCIAS, 412",
+            "endereco": "TRAVESSA DAS PALMEIRAS, 431",
             "cidade": "Cacoal",
-            "referencia": "Portão de madeira, casa de esquina com muro baixo pintado de branco",
-            "caixa_atendimento": "CACL 12",
-            "porta_ftth": "4",
+            "referencia": "Em frente ao posto de saúde",
+            "caixa_atendimento": "CWL 01",
+            "porta_ftth": "5",
             "descricao": (
-                "Processo: Instalação. Tarefa: Instalação Fibra Optica\n"
-                "Descrição O.S. anterior: - Solicitante: atendente Camila\n"
-                "Horário do Cliente: período da manhã\n"
-                "Número de Contato: (69) 99184-2207\n"
-                "Ocorrência: Primeira instalação de fibra no imóvel — cliente usava só internet do celular."
+                "Processo: Suporte Unificado. Tarefa: Instalação Fibra Optica\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Bruna\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99187-8144\n"
+                "Ocorrência: Cliente contratou o plano de 300 Mega. É a primeira instalação de fibra na casa dele — antes só usava internet do celular."
             ),
         },
         "decisoes": [
@@ -97,20 +97,20 @@ MISSOES = [
         "briefing": "Instalação já concluída no mês passado. Chamado aberto por 'internet caindo direto' — Dona Marlene usa um roteador próprio ligado depois da ONT.",
         "instrumento": "wifi",
         "os_info": {
-            "id_cliente": "50877",
-            "horario": "14h00",
+            "id_cliente": "56083",
+            "horario": "15h30",
             "assunto": "Realizar serviços - configurações",
-            "endereco": "AVENIDA DOS IPÊS, 218",
+            "endereco": "TRAVESSA DAS PALMEIRAS, 441",
             "cidade": "São Miguel",
-            "referencia": "Casa amarela, ao lado do mercadinho Bom Preço",
-            "caixa_atendimento": "SMGE 23",
-            "porta_ftth": "2",
+            "referencia": "Esquina com a rua principal",
+            "caixa_atendimento": "SMGE 01",
+            "porta_ftth": "8",
             "descricao": (
                 "Processo: Suporte Unificado. Tarefa: Realizar serviços - configurações\n"
-                "Descrição O.S. anterior: - Solicitante: a própria cliente, por telefone\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Juliana\n"
                 "Horário do Cliente: a combinar\n"
-                "Número de Contato: (69) 99276-5540\n"
-                "Ocorrência: Internet caindo direto. Cliente usa roteador próprio (TP-Link) depois da ONT."
+                "Número de Contato: (69) 99113-7876\n"
+                "Ocorrência: Instalação já concluída no mês passado. Chamado aberto por 'internet caindo direto' — Dona Marlene usa um roteador próprio ligado depois da ONT."
             ),
         },
         "decisoes": [
@@ -173,20 +173,20 @@ MISSOES = [
         "briefing": "Cliente reclama: na sala funciona, mas no quarto dos fundos não pega nada — nem cabo, nem Wi-Fi.",
         "instrumento": "cable",
         "os_info": {
-            "id_cliente": "51042",
-            "horario": "10h15",
+            "id_cliente": "52227",
+            "horario": "14h30",
             "assunto": "Serviços - Cabeamento",
-            "endereco": "RUA DOS METALÚRGICOS, 88",
-            "cidade": "Cacoal",
-            "referencia": "Galpão azul com portão de correr, ao lado da oficina mecânica",
-            "caixa_atendimento": "CACL 07",
-            "porta_ftth": "6",
+            "endereco": "AVENIDA MARECHAL RONDON, 700",
+            "cidade": "Conselvan",
+            "referencia": "Portão de madeira, casa de esquina",
+            "caixa_atendimento": "AYPO 01",
+            "porta_ftth": "3",
             "descricao": (
                 "Processo: Suporte Unificado. Tarefa: Serviços - Cabeamento\n"
-                "Descrição O.S. anterior: - Solicitante: atendente Juliana\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Aline\n"
                 "Horário do Cliente: a combinar\n"
-                "Número de Contato: (69) 99145-3390\n"
-                "Ocorrência: Sem sinal (cabo nem Wi-Fi) no cômodo dos fundos."
+                "Número de Contato: (69) 99813-3490\n"
+                "Ocorrência: Cliente reclama: na sala funciona, mas no quarto dos fundos não pega nada — nem cabo, nem Wi-Fi."
             ),
         },
         "decisoes": [
@@ -248,6 +248,23 @@ MISSOES = [
         "equipamento": "ONT Huawei EG8145, medidor óptico",
         "briefing": "Cliente sem internet desde ontem. Você já confirmou que a fibra chega até a ONT dela, mas o LED PON nem acende.",
         "instrumento": "optic",
+        "os_info": {
+            "id_cliente": "56506",
+            "horario": "10h00",
+            "assunto": "Sem Internet",
+            "endereco": "TRAVESSA DAS PALMEIRAS, 672",
+            "cidade": "Aripuanã",
+            "referencia": "Perto da praça central",
+            "caixa_atendimento": "AYP 01",
+            "porta_ftth": "1",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Sem Internet\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Mayara\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99679-7477\n"
+                "Ocorrência: Cliente sem internet desde ontem. Você já confirmou que a fibra chega até a ONT dela, mas o LED PON nem acende."
+            ),
+        },
         "decisoes": [
             {"cena": "A ONT está ligada na tomada (LED PWR aceso), mas o LED PON está completamente apagado — nem vermelho, nem verde.",
              "pergunta": "O que isso costuma indicar?",
@@ -299,6 +316,23 @@ MISSOES = [
         "equipamento": "ONT Huawei EG8145, medidor óptico",
         "briefing": "Instalação nova, casa bem próxima da CTO. Após ligar tudo, o LED PON pisca estranho e a internet cai a cada poucos minutos.",
         "instrumento": "optic",
+        "os_info": {
+            "id_cliente": "58613",
+            "horario": "10h30",
+            "assunto": "Instalação Fibra Optica",
+            "endereco": "RUA DAS FLORES, 368",
+            "cidade": "Juína",
+            "referencia": "Perto do campo de futebol",
+            "caixa_atendimento": "JNA 01",
+            "porta_ftth": "1",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Instalação Fibra Optica\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Bruna\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99442-9157\n"
+                "Ocorrência: Instalação nova, casa bem próxima da CTO. Após ligar tudo, o LED PON pisca estranho e a internet cai a cada poucos minutos."
+            ),
+        },
         "decisoes": [
             {"cena": "Você mede a potência óptica na ONT: o medidor mostra -3 dBm.",
              "pergunta": "O que esse valor indica?",
@@ -350,6 +384,23 @@ MISSOES = [
         "equipamento": "ONT Huawei EG8145, canaleta, protetor de fibra",
         "briefing": "A fibra entra no térreo, mas a sala do cliente fica no 2º andar. É preciso levar o sinal com segurança pela rota vertical do prédio.",
         "instrumento": "optic",
+        "os_info": {
+            "id_cliente": "52489",
+            "horario": "17h00",
+            "assunto": "Instalação de Novo Ponto",
+            "endereco": "RUA DOM PEDRO II, 702",
+            "cidade": "Colniza",
+            "referencia": "Esquina com a rua principal",
+            "caixa_atendimento": "CNIZ 01",
+            "porta_ftth": "8",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Instalação de Novo Ponto\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Rafael\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99120-9760\n"
+                "Ocorrência: A fibra entra no térreo, mas a sala do cliente fica no 2º andar. É preciso levar o sinal com segurança pela rota vertical do prédio."
+            ),
+        },
         "decisoes": [
             {"cena": "Você precisa passar a fibra por um shaft (duto vertical) compartilhado com outras instalações do prédio.",
              "pergunta": "Qual cuidado é essencial nessa rota?",
@@ -401,6 +452,23 @@ MISSOES = [
         "equipamento": "Fibra drop, kit de fusão",
         "briefing": "Uma empresa de saneamento fez uma escavação na rua e cortou o cabo de fibra que atende vários clientes, incluindo essa casa.",
         "instrumento": "optic",
+        "os_info": {
+            "id_cliente": "53776",
+            "horario": "17h00",
+            "assunto": "Sem Internet",
+            "endereco": "TRAVESSA DAS PALMEIRAS, 193",
+            "cidade": "Pimenta Bueno",
+            "referencia": "Ao lado da oficina mecânica",
+            "caixa_atendimento": "PBW 01",
+            "porta_ftth": "1",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Sem Internet\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Lucas\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99441-1193\n"
+                "Ocorrência: Uma empresa de saneamento fez uma escavação na rua e cortou o cabo de fibra que atende vários clientes, incluindo essa casa."
+            ),
+        },
         "decisoes": [
             {"cena": "Você chega no local e confirma visualmente que o cabo de fibra está rompido, com a escavação ainda aberta.",
              "pergunta": "Qual é o primeiro passo correto?",
@@ -452,6 +520,23 @@ MISSOES = [
         "equipamento": "ONT Huawei EG8145",
         "briefing": "Cliente relata 'sumiu a internet do nada'. Ele já tentou desligar e ligar o roteador, sem sucesso.",
         "instrumento": "optic",
+        "os_info": {
+            "id_cliente": "55366",
+            "horario": "09h00",
+            "assunto": "Sem Internet",
+            "endereco": "TRAVESSA DAS PALMEIRAS, 781",
+            "cidade": "Alta Floresta",
+            "referencia": "Casa de dois andares, grade preta",
+            "caixa_atendimento": "AFT 01",
+            "porta_ftth": "2",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Sem Internet\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Bruna\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99643-8029\n"
+                "Ocorrência: Cliente relata 'sumiu a internet do nada'. Ele já tentou desligar e ligar o roteador, sem sucesso."
+            ),
+        },
         "decisoes": [
             {"cena": "Ao chegar, você percebe que a ONT está completamente apagada — nenhum LED aceso, nem o de energia.",
              "pergunta": "Qual é o primeiro ponto a verificar?",
@@ -503,6 +588,23 @@ MISSOES = [
         "equipamento": "ONT antiga (modelo com portas 100 Mbps), medidor óptico",
         "briefing": "Cliente contratou upgrade pra 500 Mega, mas o teste de velocidade não passa de 95 Mbps mesmo com o sinal óptico ótimo.",
         "instrumento": "optic",
+        "os_info": {
+            "id_cliente": "59243",
+            "horario": "16h30",
+            "assunto": "Realizar serviços - configurações",
+            "endereco": "RUA SETE DE SETEMBRO, 756",
+            "cidade": "Cujubim",
+            "referencia": "Próximo à igreja",
+            "caixa_atendimento": "CUJU 01",
+            "porta_ftth": "5",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Realizar serviços - configurações\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Lucas\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99341-4689\n"
+                "Ocorrência: Cliente contratou upgrade pra 500 Mega, mas o teste de velocidade não passa de 95 Mbps mesmo com o sinal óptico ótimo."
+            ),
+        },
         "decisoes": [
             {"cena": "O sinal óptico está excelente (-17 dBm), mas a velocidade continua travada perto de 95 Mbps.",
              "pergunta": "Qual é a causa mais provável, já que o sinal óptico está ótimo?",
@@ -555,20 +657,20 @@ MISSOES = [
         "briefing": "Cliente relata que a internet cai por alguns segundos, várias vezes ao dia, sem padrão aparente.",
         "instrumento": "optic",
         "os_info": {
-            "id_cliente": "51309",
-            "horario": "16h45",
+            "id_cliente": "55216",
+            "horario": "14h00",
             "assunto": "Internet Lenta",
-            "endereco": "RUA CAIARI, 305",
-            "cidade": "Cacoal",
-            "referencia": "Casa de dois andares, grade preta, perto da praça central",
-            "caixa_atendimento": "CACL 19",
-            "porta_ftth": "3",
+            "endereco": "RUA RIO BRANCO, 243",
+            "cidade": "Alto Alegre",
+            "referencia": "Perto do campo de futebol",
+            "caixa_atendimento": "AAPC 01",
+            "porta_ftth": "7",
             "descricao": (
                 "Processo: Suporte Unificado. Tarefa: Internet Lenta\n"
-                "Descrição O.S. anterior: - Solicitante: a própria cliente\n"
-                "Horário do Cliente: fim de tarde\n"
-                "Número de Contato: (69) 99231-7784\n"
-                "Ocorrência: Internet cai por alguns segundos, várias vezes ao dia, sem padrão aparente."
+                "Descrição O.S. anterior: - Solicitante: atendente Aline\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99323-9381\n"
+                "Ocorrência: Cliente relata que a internet cai por alguns segundos, várias vezes ao dia, sem padrão aparente."
             ),
         },
         "decisoes": [
@@ -622,6 +724,23 @@ MISSOES = [
         "equipamento": "ONT Huawei EG8145, roteador profissional",
         "briefing": "Estúdio com 6 pessoas que trabalham com upload constante de arquivos grandes (vídeo/design). Contrataram um plano simétrico.",
         "instrumento": "optic",
+        "os_info": {
+            "id_cliente": "53230",
+            "horario": "13h30",
+            "assunto": "Instalação Fibra Optica",
+            "endereco": "AVENIDA BRASIL, 429",
+            "cidade": "Cacoal",
+            "referencia": "Ponto branco com azul, casa nos fundos",
+            "caixa_atendimento": "CWL 02",
+            "porta_ftth": "4",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Instalação Fibra Optica\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Patrícia\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99166-8141\n"
+                "Ocorrência: Estúdio com 6 pessoas que trabalham com upload constante de arquivos grandes (vídeo/design). Contrataram um plano simétrico."
+            ),
+        },
         "decisoes": [
             {"cena": "O cliente pergunta por que contratou 'plano simétrico' e o que isso quer dizer na prática pro trabalho dele.",
              "pergunta": "Como você explica de forma simples?",
@@ -673,6 +792,23 @@ MISSOES = [
         "equipamento": "ONT Huawei EG8145, medidor óptico",
         "briefing": "Cliente com quedas frequentes de sinal, mesmo com potência óptica dentro da faixa. Instalação já tem 2 anos.",
         "instrumento": "optic",
+        "os_info": {
+            "id_cliente": "51137",
+            "horario": "15h00",
+            "assunto": "Internet Lenta",
+            "endereco": "RUA SETE DE SETEMBRO, 369",
+            "cidade": "São Miguel",
+            "referencia": "Ao lado da oficina mecânica",
+            "caixa_atendimento": "SMGE 02",
+            "porta_ftth": "1",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Internet Lenta\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Mayara\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99901-6142\n"
+                "Ocorrência: Cliente com quedas frequentes de sinal, mesmo com potência óptica dentro da faixa. Instalação já tem 2 anos."
+            ),
+        },
         "decisoes": [
             {"cena": "A potência óptica medida está em -18 dBm (dentro da faixa ideal), mas mesmo assim há quedas frequentes de conexão.",
              "pergunta": "Já que a potência está boa, o que mais pode causar instabilidade num sinal óptico?",
@@ -724,6 +860,23 @@ MISSOES = [
         "equipamento": "ONT com Wi-Fi integrado",
         "briefing": "A internet funciona bem na sala, mas o Wi-Fi praticamente não chega no quarto dos fundos, que fica longe do roteador.",
         "instrumento": "wifi",
+        "os_info": {
+            "id_cliente": "56676",
+            "horario": "13h30",
+            "assunto": "Manutenção de Pontos Adicionais",
+            "endereco": "RUA DAS FLORES, 195",
+            "cidade": "Conselvan",
+            "referencia": "Próximo à igreja",
+            "caixa_atendimento": "AYPO 02",
+            "porta_ftth": "2",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Manutenção de Pontos Adicionais\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Rafael\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99197-1951\n"
+                "Ocorrência: A internet funciona bem na sala, mas o Wi-Fi praticamente não chega no quarto dos fundos, que fica longe do roteador."
+            ),
+        },
         "decisoes": [
             {"cena": "Você mede o sinal Wi-Fi no quarto dos fundos: está muito fraco, quase inutilizável.",
              "pergunta": "Qual é a melhor solução técnica pra esse cenário, considerando que é uma casa grande?",
@@ -775,6 +928,23 @@ MISSOES = [
         "equipamento": "Roteador dual-band",
         "briefing": "Cliente reclama que a rede '5G' da internet dele 'não pega em lugar nenhum', enquanto a outra rede pega em toda a casa.",
         "instrumento": "wifi",
+        "os_info": {
+            "id_cliente": "51686",
+            "horario": "15h30",
+            "assunto": "Realizar serviços - configurações",
+            "endereco": "AVENIDA BRASIL, 477",
+            "cidade": "Aripuanã",
+            "referencia": "Ponto branco com azul, casa nos fundos",
+            "caixa_atendimento": "AYP 02",
+            "porta_ftth": "3",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Realizar serviços - configurações\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Aline\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99911-8131\n"
+                "Ocorrência: Cliente reclama que a rede '5G' da internet dele 'não pega em lugar nenhum', enquanto a outra rede pega em toda a casa."
+            ),
+        },
         "decisoes": [
             {"cena": "Você percebe que o cliente confundiu o nome '5GHz' (frequência de Wi-Fi) com '5G' (tecnologia de internet móvel de celular).",
              "pergunta": "Qual é a explicação mais clara pra desfazer essa confusão?",
@@ -826,6 +996,23 @@ MISSOES = [
         "equipamento": "Roteador com app de gerenciamento",
         "briefing": "Cliente quer limitar o tempo de internet do filho adolescente e bloquear alguns sites.",
         "instrumento": "wifi",
+        "os_info": {
+            "id_cliente": "54947",
+            "horario": "10h00",
+            "assunto": "Realizar serviços - configurações",
+            "endereco": "AVENIDA MARECHAL RONDON, 670",
+            "cidade": "Juína",
+            "referencia": "Esquina com a rua principal",
+            "caixa_atendimento": "JNA 02",
+            "porta_ftth": "1",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Realizar serviços - configurações\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Camila\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99955-6599\n"
+                "Ocorrência: Cliente quer limitar o tempo de internet do filho adolescente e bloquear alguns sites."
+            ),
+        },
         "decisoes": [
             {"cena": "A Sra. Valquíria pergunta se isso é algo que só um técnico consegue configurar, ou se ela mesma pode fazer depois.",
              "pergunta": "Como você orienta ela da melhor forma?",
@@ -877,6 +1064,23 @@ MISSOES = [
         "equipamento": "Roteador doméstico comum",
         "briefing": "Cliente tem cerca de 25 dispositivos conectados (lâmpadas inteligentes, câmeras, tomadas Wi-Fi) e reclama de quedas frequentes.",
         "instrumento": "wifi",
+        "os_info": {
+            "id_cliente": "50615",
+            "horario": "15h30",
+            "assunto": "Internet Lenta",
+            "endereco": "RUA DOS IPÊS, 260",
+            "cidade": "Colniza",
+            "referencia": "Ponto branco com azul, casa nos fundos",
+            "caixa_atendimento": "CNIZ 02",
+            "porta_ftth": "7",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Internet Lenta\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Fernanda\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99550-2753\n"
+                "Ocorrência: Cliente tem cerca de 25 dispositivos conectados (lâmpadas inteligentes, câmeras, tomadas Wi-Fi) e reclama de quedas frequentes."
+            ),
+        },
         "decisoes": [
             {"cena": "Você confere no painel do roteador: são realmente muitos dispositivos IoT conectados na mesma rede usada pelos celulares e notebooks da família.",
              "pergunta": "Por que isso pode causar instabilidade?",
@@ -928,6 +1132,23 @@ MISSOES = [
         "equipamento": "Roteador doméstico",
         "briefing": "Cliente recebe muitas visitas e não gosta de passar a senha da rede principal toda vez. Quer uma rede separada só pra convidados.",
         "instrumento": "wifi",
+        "os_info": {
+            "id_cliente": "50338",
+            "horario": "09h30",
+            "assunto": "Realizar serviços - configurações",
+            "endereco": "AVENIDA CASTELO BRANCO, 189",
+            "cidade": "Pimenta Bueno",
+            "referencia": "Perto do campo de futebol",
+            "caixa_atendimento": "PBW 02",
+            "porta_ftth": "5",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Realizar serviços - configurações\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Juliana\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99811-8269\n"
+                "Ocorrência: Cliente recebe muitas visitas e não gosta de passar a senha da rede principal toda vez. Quer uma rede separada só pra convidados."
+            ),
+        },
         "decisoes": [
             {"cena": "O Sr. Osmar pergunta se dá pra criar essa 'rede de visitas' sem comprar nenhum equipamento novo.",
              "pergunta": "Qual é a resposta tecnicamente correta?",
@@ -979,6 +1200,23 @@ MISSOES = [
         "equipamento": "Patch panel, switch, cabos Cat6, etiquetas",
         "briefing": "Clínica com 5 pontos de rede (recepção e 4 consultórios) que precisam ser organizados num rack pequeno.",
         "instrumento": "cable",
+        "os_info": {
+            "id_cliente": "55775",
+            "horario": "14h30",
+            "assunto": "Serviços - Cabeamento",
+            "endereco": "RUA SETE DE SETEMBRO, 295",
+            "cidade": "Alta Floresta",
+            "referencia": "Ao lado da oficina mecânica",
+            "caixa_atendimento": "AFT 02",
+            "porta_ftth": "3",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Serviços - Cabeamento\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Aline\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99717-8195\n"
+                "Ocorrência: Clínica com 5 pontos de rede (recepção e 4 consultórios) que precisam ser organizados num rack pequeno."
+            ),
+        },
         "decisoes": [
             {"cena": "Você termina de crimpar os 5 cabos no patch panel, todos funcionando conforme testado no testador de cabo.",
              "pergunta": "Antes de fechar o rack, o que é essencial fazer nos pontos do patch panel?",
@@ -1030,6 +1268,23 @@ MISSOES = [
         "equipamento": "Switch de 8 portas",
         "briefing": "Cliente comprou um 'hub' usado numa loja de eletrônicos pra dividir a internet entre vários computadores, mas está achando tudo lento.",
         "instrumento": "cable",
+        "os_info": {
+            "id_cliente": "56719",
+            "horario": "15h00",
+            "assunto": "Serviços - Cabeamento",
+            "endereco": "RUA SETE DE SETEMBRO, 106",
+            "cidade": "Cujubim",
+            "referencia": "Perto da praça central",
+            "caixa_atendimento": "CUJU 02",
+            "porta_ftth": "3",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Serviços - Cabeamento\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Fernanda\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99746-2932\n"
+                "Ocorrência: Cliente comprou um 'hub' usado numa loja de eletrônicos pra dividir a internet entre vários computadores, mas está achando tudo lento."
+            ),
+        },
         "decisoes": [
             {"cena": "Você examina o equipamento que ele comprou: é de fato um hub antigo, não um switch — um equipamento bem mais simples e ultrapassado.",
              "pergunta": "Qual é a diferença prática mais importante entre hub e switch, que explica a lentidão?",
@@ -1081,6 +1336,23 @@ MISSOES = [
         "equipamento": "Câmera IP, injetor POE, cabo Cat6",
         "briefing": "O dono do mercado quer instalar uma câmera de segurança na entrada, ligada por rede em vez de precisar de uma tomada de energia extra ali.",
         "instrumento": "cable",
+        "os_info": {
+            "id_cliente": "55497",
+            "horario": "15h30",
+            "assunto": "Serviços - Cabeamento",
+            "endereco": "AVENIDA CASTELO BRANCO, 56",
+            "cidade": "Alto Alegre",
+            "referencia": "Portão de madeira, casa de esquina",
+            "caixa_atendimento": "AAPC 02",
+            "porta_ftth": "7",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Serviços - Cabeamento\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Fernanda\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99439-5713\n"
+                "Ocorrência: O dono do mercado quer instalar uma câmera de segurança na entrada, ligada por rede em vez de precisar de uma tomada de energia extra ali."
+            ),
+        },
         "decisoes": [
             {"cena": "O cliente pergunta como a câmera vai funcionar sem um cabo de energia próprio na entrada, já que lá não tem tomada.",
              "pergunta": "Como você explica a tecnologia que resolve isso?",
@@ -1132,6 +1404,23 @@ MISSOES = [
         "equipamento": "Switch, cabos de rede",
         "briefing": "A rede da escola ficou extremamente lenta do nada, quase parada. Ninguém mexeu em nada, segundo a equipe.",
         "instrumento": "cable",
+        "os_info": {
+            "id_cliente": "58141",
+            "horario": "14h30",
+            "assunto": "Internet Lenta",
+            "endereco": "TRAVESSA DAS PALMEIRAS, 927",
+            "cidade": "Cacoal",
+            "referencia": "Portão de madeira, casa de esquina",
+            "caixa_atendimento": "CWL 03",
+            "porta_ftth": "6",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Internet Lenta\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Bruna\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99546-3267\n"
+                "Ocorrência: A rede da escola ficou extremamente lenta do nada, quase parada. Ninguém mexeu em nada, segundo a equipe."
+            ),
+        },
         "decisoes": [
             {"cena": "Você percebe que as luzes do switch estão piscando freneticamente em várias portas ao mesmo tempo, sem nenhum tráfego de uso normal acontecendo.",
              "pergunta": "O que esse comportamento sugere?",
@@ -1183,6 +1472,23 @@ MISSOES = [
         "equipamento": "Nenhum equipamento — atendimento é sobre comunicação",
         "briefing": "Você chega 40 minutos atrasado numa visita agendada por conta de um atendimento anterior que demorou mais que o previsto. O cliente está visivelmente irritado.",
         "instrumento": "wifi",
+        "os_info": {
+            "id_cliente": "50933",
+            "horario": "09h00",
+            "assunto": "Sem Internet",
+            "endereco": "RUA BOA VISTA, 660",
+            "cidade": "São Miguel",
+            "referencia": "Ao lado da oficina mecânica",
+            "caixa_atendimento": "SMGE 03",
+            "porta_ftth": "3",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Sem Internet\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Camila\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99806-9633\n"
+                "Ocorrência: Você chega 40 minutos atrasado numa visita agendada por conta de um atendimento anterior que demorou mais que o previsto. O cliente está visivelmente irritado."
+            ),
+        },
         "decisoes": [
             {"cena": "Assim que você chega, o Sr. Cristóvão já começa reclamando alto, dizendo que perdeu a manhã de trabalho esperando.",
              "pergunta": "Qual é a primeira atitude correta?",
@@ -1234,6 +1540,23 @@ MISSOES = [
         "equipamento": "Nenhum — situação de atendimento",
         "briefing": "O cliente pede pra você fazer uma alteração no plano dele 'só verbalmente', sem passar pela central, porque ele 'confia em você'.",
         "instrumento": "cable",
+        "os_info": {
+            "id_cliente": "51950",
+            "horario": "15h00",
+            "assunto": "Manutenção de App",
+            "endereco": "RUA DOS PIONEIROS, 816",
+            "cidade": "Conselvan",
+            "referencia": "Ao lado da oficina mecânica",
+            "caixa_atendimento": "AYPO 03",
+            "porta_ftth": "4",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Manutenção de App\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Mayara\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99876-4282\n"
+                "Ocorrência: O cliente pede pra você fazer uma alteração no plano dele 'só verbalmente', sem passar pela central, porque ele 'confia em você'."
+            ),
+        },
         "decisoes": [
             {"cena": "O Sr. Fabrício pede pra você mudar o plano dele agora mesmo, direto com você, sem precisar ligar pra central ou assinar nada.",
              "pergunta": "Qual é a resposta correta?",
@@ -1285,6 +1608,23 @@ MISSOES = [
         "equipamento": "Nenhum — situação de atendimento",
         "briefing": "Durante o atendimento, o cliente oferece um dinheiro 'por fora' pra você priorizar a visita dele da próxima vez que precisar de suporte.",
         "instrumento": "wifi",
+        "os_info": {
+            "id_cliente": "55305",
+            "horario": "08h30",
+            "assunto": "Realizar serviços - configurações",
+            "endereco": "AVENIDA BRASIL, 809",
+            "cidade": "Aripuanã",
+            "referencia": "Em frente ao posto de saúde",
+            "caixa_atendimento": "AYP 03",
+            "porta_ftth": "6",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Realizar serviços - configurações\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Rafael\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99918-1998\n"
+                "Ocorrência: Durante o atendimento, o cliente oferece um dinheiro 'por fora' pra você priorizar a visita dele da próxima vez que precisar de suporte."
+            ),
+        },
         "decisoes": [
             {"cena": "O Sr. Osiel te oferece uma quantia em dinheiro, dizendo que é 'só um agrado' pra você sempre priorizar ele nas próximas vezes.",
              "pergunta": "Qual é a atitude correta?",
@@ -1336,6 +1676,23 @@ MISSOES = [
         "equipamento": "ONT com Wi-Fi, celular do cliente",
         "briefing": "Cliente de 78 anos precisa reconectar o celular no Wi-Fi depois de uma troca de senha, mas tem bastante dificuldade com tecnologia.",
         "instrumento": "wifi",
+        "os_info": {
+            "id_cliente": "54749",
+            "horario": "14h30",
+            "assunto": "Realizar serviços - configurações",
+            "endereco": "RUA TIRADENTES, 778",
+            "cidade": "Juína",
+            "referencia": "Ao lado da oficina mecânica",
+            "caixa_atendimento": "JNA 03",
+            "porta_ftth": "2",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Realizar serviços - configurações\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Camila\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99494-2046\n"
+                "Ocorrência: Cliente de 78 anos precisa reconectar o celular no Wi-Fi depois de uma troca de senha, mas tem bastante dificuldade com tecnologia."
+            ),
+        },
         "decisoes": [
             {"cena": "Você troca a senha do Wi-Fi (a pedido da própria cliente, por segurança) e agora precisa reconectar o celular dela na rede.",
              "pergunta": "Qual é a abordagem mais adequada pra esse cliente específico?",
@@ -1387,6 +1744,23 @@ MISSOES = [
         "equipamento": "ONT Huawei EG8145",
         "briefing": "Cliente reclama que 'a internet da Norte Tel' não deixa ele acessar o site do banco, mas ele também tem um plano de dados móvel de outra operadora no celular.",
         "instrumento": "wifi",
+        "os_info": {
+            "id_cliente": "59284",
+            "horario": "11h00",
+            "assunto": "Sem Internet",
+            "endereco": "AVENIDA BRASIL, 63",
+            "cidade": "Colniza",
+            "referencia": "Ao lado da oficina mecânica",
+            "caixa_atendimento": "CNIZ 03",
+            "porta_ftth": "1",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Sem Internet\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Bruna\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99200-3105\n"
+                "Ocorrência: Cliente reclama que 'a internet da Norte Tel' não deixa ele acessar o site do banco, mas ele também tem um plano de dados móvel de outra operadora no celular."
+            ),
+        },
         "decisoes": [
             {"cena": "Você testa a internet da casa (Wi-Fi da Norte Tel) num notebook: o site do banco abre perfeitamente. No celular dele, usando dados móveis de outra operadora, o site não abre.",
              "pergunta": "O que esse teste indica?",
@@ -1438,6 +1812,23 @@ MISSOES = [
         "equipamento": "Nenhum — situação de atendimento",
         "briefing": "Durante o atendimento técnico, a cliente pede pra você aplicar um desconto na mensalidade dela, dizendo que está com dificuldades financeiras.",
         "instrumento": "cable",
+        "os_info": {
+            "id_cliente": "54766",
+            "horario": "17h00",
+            "assunto": "TV - configurações",
+            "endereco": "RUA BOA VISTA, 446",
+            "cidade": "Pimenta Bueno",
+            "referencia": "Em frente ao posto de saúde",
+            "caixa_atendimento": "PBW 03",
+            "porta_ftth": "2",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: TV - configurações\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Fernanda\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99722-8072\n"
+                "Ocorrência: Durante o atendimento técnico, a cliente pede pra você aplicar um desconto na mensalidade dela, dizendo que está com dificuldades financeiras."
+            ),
+        },
         "decisoes": [
             {"cena": "Dona Marisa pede, de forma emotiva, que você aplique um desconto na conta dela agora mesmo, já que ela está passando por um momento difícil.",
              "pergunta": "Como você responde com empatia mas dentro do seu papel?",
@@ -1489,6 +1880,23 @@ MISSOES = [
         "equipamento": "ONT Huawei EG8145, roteador",
         "briefing": "Você resolveu um problema técnico relativamente complexo (troca de configuração da ONT), mas o cliente não entende bem o que foi feito.",
         "instrumento": "wifi",
+        "os_info": {
+            "id_cliente": "56832",
+            "horario": "11h00",
+            "assunto": "Manutenção de App",
+            "endereco": "RUA RIO BRANCO, 573",
+            "cidade": "Alta Floresta",
+            "referencia": "Ao lado da oficina mecânica",
+            "caixa_atendimento": "AFT 03",
+            "porta_ftth": "5",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Manutenção de App\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Rafael\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99409-2607\n"
+                "Ocorrência: Você resolveu um problema técnico relativamente complexo (troca de configuração da ONT), mas o cliente não entende bem o que foi feito."
+            ),
+        },
         "decisoes": [
             {"cena": "O serviço foi tecnicamente bem resolvido, mas o Sr. Tadeu pergunta, um pouco perdido: 'Mas o que exatamente você fez aí?'",
              "pergunta": "Qual é a melhor forma de responder?",
@@ -1540,6 +1948,23 @@ MISSOES = [
         "equipamento": "Escada, cinto de segurança, fibra drop",
         "briefing": "A entrada de fibra precisa ser fixada na parte alta da fachada da casa, a uns 4 metros do chão.",
         "instrumento": "optic",
+        "os_info": {
+            "id_cliente": "53379",
+            "horario": "15h00",
+            "assunto": "Ancoragem Drop/Fibra",
+            "endereco": "TRAVESSA DAS PALMEIRAS, 880",
+            "cidade": "Cujubim",
+            "referencia": "Ao lado da oficina mecânica",
+            "caixa_atendimento": "CUJU 03",
+            "porta_ftth": "5",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Ancoragem Drop/Fibra\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Patrícia\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99858-7026\n"
+                "Ocorrência: A entrada de fibra precisa ser fixada na parte alta da fachada da casa, a uns 4 metros do chão."
+            ),
+        },
         "decisoes": [
             {"cena": "Você posiciona a escada numa superfície de terra irregular, um pouco inclinada, perto do local onde precisa trabalhar.",
              "pergunta": "O que fazer antes de subir?",
@@ -1591,6 +2016,23 @@ MISSOES = [
         "equipamento": "Fibra drop, EPI",
         "briefing": "A rota da fibra até a casa passa perto de fiação elétrica de baixa tensão na fachada.",
         "instrumento": "optic",
+        "os_info": {
+            "id_cliente": "59415",
+            "horario": "09h00",
+            "assunto": "Ancoragem Drop/Fibra",
+            "endereco": "AVENIDA MARECHAL RONDON, 708",
+            "cidade": "Alto Alegre",
+            "referencia": "Casa de dois andares, grade preta",
+            "caixa_atendimento": "AAPC 03",
+            "porta_ftth": "1",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Ancoragem Drop/Fibra\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Rafael\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99511-1027\n"
+                "Ocorrência: A rota da fibra até a casa passa perto de fiação elétrica de baixa tensão na fachada."
+            ),
+        },
         "decisoes": [
             {"cena": "Você percebe que o ponto onde precisa fixar o suporte da fibra fica bem próximo de um fio elétrico exposto.",
              "pergunta": "Qual é a atitude correta antes de continuar o trabalho?",
@@ -1642,6 +2084,23 @@ MISSOES = [
         "equipamento": "Nenhum — situação de segurança",
         "briefing": "Você chega na casa pra um atendimento agendado, mas há um cão de porte grande solto no quintal, sem contenção visível.",
         "instrumento": "wifi",
+        "os_info": {
+            "id_cliente": "57754",
+            "horario": "08h30",
+            "assunto": "Sem Internet",
+            "endereco": "RUA RIO BRANCO, 764",
+            "cidade": "Cacoal",
+            "referencia": "Portão de madeira, casa de esquina",
+            "caixa_atendimento": "CWL 04",
+            "porta_ftth": "7",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Sem Internet\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Aline\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99628-1387\n"
+                "Ocorrência: Você chega na casa pra um atendimento agendado, mas há um cão de porte grande solto no quintal, sem contenção visível."
+            ),
+        },
         "decisoes": [
             {"cena": "Ao chegar no portão, você vê o cachorro se aproximando, latindo, sem ninguém por perto pra contê-lo.",
              "pergunta": "Qual é a atitude correta?",
@@ -1693,6 +2152,23 @@ MISSOES = [
         "equipamento": "Fibra drop, ferramentas de instalação externa",
         "briefing": "Você está no meio de uma instalação externa quando o céu começa a fechar, com sinais claros de tempestade se aproximando.",
         "instrumento": "optic",
+        "os_info": {
+            "id_cliente": "58788",
+            "horario": "17h00",
+            "assunto": "Instalação Fibra Optica",
+            "endereco": "RUA RIO BRANCO, 37",
+            "cidade": "São Miguel",
+            "referencia": "Perto do campo de futebol",
+            "caixa_atendimento": "SMGE 04",
+            "porta_ftth": "5",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Instalação Fibra Optica\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Patrícia\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99743-8578\n"
+                "Ocorrência: Você está no meio de uma instalação externa quando o céu começa a fechar, com sinais claros de tempestade se aproximando."
+            ),
+        },
         "decisoes": [
             {"cena": "O vento começa a aumentar e você ouve trovões distantes enquanto ainda está em cima da escada, trabalhando na fachada externa.",
              "pergunta": "Qual é a atitude correta diante desse cenário?",
@@ -1744,6 +2220,23 @@ MISSOES = [
         "equipamento": "Máquina de fusão óptica",
         "briefing": "Ao preparar a máquina de fusão pra fazer uma emenda, você percebe que ela está apresentando um comportamento estranho.",
         "instrumento": "optic",
+        "os_info": {
+            "id_cliente": "55874",
+            "horario": "16h00",
+            "assunto": "Instalação Fibra Optica",
+            "endereco": "RUA DOS PIONEIROS, 362",
+            "cidade": "Conselvan",
+            "referencia": "Ao lado da oficina mecânica",
+            "caixa_atendimento": "AYPO 04",
+            "porta_ftth": "3",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Instalação Fibra Optica\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Aline\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99345-4061\n"
+                "Ocorrência: Ao preparar a máquina de fusão pra fazer uma emenda, você percebe que ela está apresentando um comportamento estranho."
+            ),
+        },
         "decisoes": [
             {"cena": "A máquina de fusão está emitindo um som diferente do normal e um alerta de erro intermitente na tela, mesmo depois de reiniciada.",
              "pergunta": "Qual é a atitude correta?",
@@ -1795,6 +2288,23 @@ MISSOES = [
         "equipamento": "Cabo de rede, CTO",
         "briefing": "Durante um atendimento de rotina, você percebe um cabo saindo de forma irregular da CTO, aparentando uma ligação não autorizada de sinal.",
         "instrumento": "cable",
+        "os_info": {
+            "id_cliente": "57053",
+            "horario": "16h30",
+            "assunto": "Retirada de Ponto Adicional",
+            "endereco": "RUA JK, 942",
+            "cidade": "Aripuanã",
+            "referencia": "Perto do campo de futebol",
+            "caixa_atendimento": "AYP 04",
+            "porta_ftth": "8",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Retirada de Ponto Adicional\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Lucas\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99347-9031\n"
+                "Ocorrência: Durante um atendimento de rotina, você percebe um cabo saindo de forma irregular da CTO, aparentando uma ligação não autorizada de sinal."
+            ),
+        },
         "decisoes": [
             {"cena": "Você identifica um cabo conectado numa porta da CTO que não corresponde a nenhum cliente cadastrado naquele ponto.",
              "pergunta": "Qual é a atitude correta?",
@@ -1846,6 +2356,23 @@ MISSOES = [
         "equipamento": "Nenhum — situação de atendimento",
         "briefing": "Durante o atendimento, um vizinho aparece perguntando informações sobre o plano e o valor que a Sra. Débora paga de internet.",
         "instrumento": "wifi",
+        "os_info": {
+            "id_cliente": "58329",
+            "horario": "10h30",
+            "assunto": "Manutenção de Pontos Adicionais",
+            "endereco": "AVENIDA MARECHAL RONDON, 77",
+            "cidade": "Juína",
+            "referencia": "Perto da praça central",
+            "caixa_atendimento": "JNA 04",
+            "porta_ftth": "1",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Manutenção de Pontos Adicionais\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Diego\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99405-4979\n"
+                "Ocorrência: Durante o atendimento, um vizinho aparece perguntando informações sobre o plano e o valor que a Sra. Débora paga de internet."
+            ),
+        },
         "decisoes": [
             {"cena": "O vizinho pergunta diretamente pra você quanto a Sra. Débora paga de mensalidade e qual é o plano dela, dizendo que também quer contratar.",
              "pergunta": "Qual é a resposta correta?",
@@ -1897,6 +2424,23 @@ MISSOES = [
         "equipamento": "Diversos",
         "briefing": "Você está com a agenda cheia e atrasada. Um colega sugere pular a etapa de teste final de sinal em cada atendimento pra 'ganhar tempo'.",
         "instrumento": "cable",
+        "os_info": {
+            "id_cliente": "58104",
+            "horario": "17h00",
+            "assunto": "Internet Lenta",
+            "endereco": "RUA DOS PIONEIROS, 402",
+            "cidade": "Colniza",
+            "referencia": "Perto da praça central",
+            "caixa_atendimento": "CNIZ 04",
+            "porta_ftth": "6",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Internet Lenta\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Lucas\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99652-3404\n"
+                "Ocorrência: Você está com a agenda cheia e atrasada. Um colega sugere pular a etapa de teste final de sinal em cada atendimento pra 'ganhar tempo'."
+            ),
+        },
         "decisoes": [
             {"cena": "O colega argumenta que, na maioria das vezes, o sinal já está bom de qualquer jeito, então testar formalmente seria 'perda de tempo' num dia corrido.",
              "pergunta": "Qual é a atitude correta diante dessa sugestão?",
@@ -1948,6 +2492,23 @@ MISSOES = [
         "equipamento": "Roteador, switch adicional não identificado",
         "briefing": "Ao investigar uma reclamação de lentidão, você percebe indícios de que o cliente está compartilhando/revendendo a conexão pra vizinhos, fora dos termos do plano contratado.",
         "instrumento": "wifi",
+        "os_info": {
+            "id_cliente": "55310",
+            "horario": "09h30",
+            "assunto": "Correção De Comodato",
+            "endereco": "RUA DAS FLORES, 630",
+            "cidade": "Pimenta Bueno",
+            "referencia": "Perto do campo de futebol",
+            "caixa_atendimento": "PBW 04",
+            "porta_ftth": "6",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Correção De Comodato\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Patrícia\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99889-8562\n"
+                "Ocorrência: Ao investigar uma reclamação de lentidão, você percebe indícios de que o cliente está compartilhando/revendendo a conexão pra vizinhos, fora dos termos do plano contratado."
+            ),
+        },
         "decisoes": [
             {"cena": "Você percebe um switch adicional não identificado conectado ao roteador, com cabos saindo em direção a casas vizinhas visíveis pela janela.",
              "pergunta": "Qual é a atitude correta nessa descoberta?",
@@ -1999,6 +2560,23 @@ MISSOES = [
         "equipamento": "2x ONT Huawei EG8145, splitter",
         "briefing": "Duas unidades residenciais (duplex) contrataram planos separados, mas compartilham a mesma entrada de fibra até o poste.",
         "instrumento": "optic",
+        "os_info": {
+            "id_cliente": "53032",
+            "horario": "16h00",
+            "assunto": "Instalação de Novo Ponto",
+            "endereco": "RUA RIO BRANCO, 926",
+            "cidade": "Alta Floresta",
+            "referencia": "Ao lado do mercadinho do bairro",
+            "caixa_atendimento": "AFT 04",
+            "porta_ftth": "2",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Instalação de Novo Ponto\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Patrícia\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99230-4392\n"
+                "Ocorrência: Duas unidades residenciais (duplex) contrataram planos separados, mas compartilham a mesma entrada de fibra até o poste."
+            ),
+        },
         "decisoes": [
             {"cena": "Você percebe que só existe uma entrada de fibra até a área comum do duplex, mas são dois contratos distintos, um pra cada unidade.",
              "pergunta": "Qual é a solução técnica adequada?",
@@ -2050,6 +2628,23 @@ MISSOES = [
         "equipamento": "ONT com Wi-Fi, Smart TV",
         "briefing": "Cliente reclama que os vídeos na Smart TV ficam 'carregando' toda hora, mesmo com o Wi-Fi mostrando sinal cheio.",
         "instrumento": "wifi",
+        "os_info": {
+            "id_cliente": "59371",
+            "horario": "14h00",
+            "assunto": "Internet Lenta",
+            "endereco": "RUA DOS IPÊS, 711",
+            "cidade": "Cujubim",
+            "referencia": "Portão de madeira, casa de esquina",
+            "caixa_atendimento": "CUJU 04",
+            "porta_ftth": "8",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Internet Lenta\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Lucas\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99372-3747\n"
+                "Ocorrência: Cliente reclama que os vídeos na Smart TV ficam 'carregando' toda hora, mesmo com o Wi-Fi mostrando sinal cheio."
+            ),
+        },
         "decisoes": [
             {"cena": "Você testa a velocidade de internet na TV: o resultado mostra uma velocidade boa, compatível com o plano contratado.",
              "pergunta": "Se a velocidade está boa, o que mais pode estar causando o travamento nos vídeos?",
@@ -2101,6 +2696,23 @@ MISSOES = [
         "equipamento": "Cabo de rede, switch, ONT",
         "briefing": "A ONT fica na sede do sítio, mas o cliente quer internet também numa área de lazer a 150 metros de distância.",
         "instrumento": "cable",
+        "os_info": {
+            "id_cliente": "53292",
+            "horario": "16h30",
+            "assunto": "Serviços - Cabeamento",
+            "endereco": "AVENIDA PRINCIPAL, 323",
+            "cidade": "Alto Alegre",
+            "referencia": "Esquina com a rua principal",
+            "caixa_atendimento": "AAPC 04",
+            "porta_ftth": "1",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Serviços - Cabeamento\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Lucas\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99744-7040\n"
+                "Ocorrência: A ONT fica na sede do sítio, mas o cliente quer internet também numa área de lazer a 150 metros de distância."
+            ),
+        },
         "decisoes": [
             {"cena": "O cliente pergunta se é só passar um cabo de rede comum até a área de lazer, já que ele mesmo tem um rolo de cabo em casa.",
              "pergunta": "Qual é a resposta tecnicamente correta?",
@@ -2152,6 +2764,23 @@ MISSOES = [
         "equipamento": "Cabo de rede, testador de cabo",
         "briefing": "Cliente reclama de internet cabeada instável há alguns dias num ponto específico da casa, próximo ao forro.",
         "instrumento": "cable",
+        "os_info": {
+            "id_cliente": "53738",
+            "horario": "09h00",
+            "assunto": "Serviços - Cabeamento",
+            "endereco": "RUA JK, 863",
+            "cidade": "Cacoal",
+            "referencia": "Casa de dois andares, grade preta",
+            "caixa_atendimento": "CWL 05",
+            "porta_ftth": "5",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Serviços - Cabeamento\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Juliana\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99817-7759\n"
+                "Ocorrência: Cliente reclama de internet cabeada instável há alguns dias num ponto específico da casa, próximo ao forro."
+            ),
+        },
         "decisoes": [
             {"cena": "Ao inspecionar o trecho do cabo que passa pelo forro, você percebe marcas de mordida e a capa do cabo parcialmente rompida.",
              "pergunta": "O que isso indica, e qual é a atitude correta?",
@@ -2203,6 +2832,23 @@ MISSOES = [
         "equipamento": "ONT Huawei EG8145",
         "briefing": "No meio de um atendimento tranquilo, a cliente oferece um cafezinho e um pedaço de bolo, como é comum em muitas casas.",
         "instrumento": "optic",
+        "os_info": {
+            "id_cliente": "50566",
+            "horario": "08h30",
+            "assunto": "Sem Internet",
+            "endereco": "RUA TIRADENTES, 790",
+            "cidade": "São Miguel",
+            "referencia": "Esquina com a rua principal",
+            "caixa_atendimento": "SMGE 05",
+            "porta_ftth": "5",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Sem Internet\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Patrícia\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99981-3894\n"
+                "Ocorrência: No meio de um atendimento tranquilo, a cliente oferece um cafezinho e um pedaço de bolo, como é comum em muitas casas."
+            ),
+        },
         "decisoes": [
             {"cena": "Dona Aparecida oferece com carinho um café e um pedaço de bolo enquanto você termina o serviço.",
              "pergunta": "Isso é diferente de uma situação de suborno, como um pagamento extra pra priorizar atendimento?",
@@ -2254,6 +2900,23 @@ MISSOES = [
         "equipamento": "Cabo de rede, ONT",
         "briefing": "A instalação contratada é de um ponto de internet na sala. No local, o cliente pede pra você já deixar mais dois pontos passados 'de brinde', sem custo, em outros cômodos.",
         "instrumento": "cable",
+        "os_info": {
+            "id_cliente": "58466",
+            "horario": "14h30",
+            "assunto": "Manutenção de Pontos Adicionais",
+            "endereco": "RUA DA PAZ, 681",
+            "cidade": "Conselvan",
+            "referencia": "Perto do campo de futebol",
+            "caixa_atendimento": "AYPO 05",
+            "porta_ftth": "1",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Manutenção de Pontos Adicionais\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Lucas\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99793-8434\n"
+                "Ocorrência: A instalação contratada é de um ponto de internet na sala. No local, o cliente pede pra você já deixar mais dois pontos passados 'de brinde', sem custo, em outros cômodos."
+            ),
+        },
         "decisoes": [
             {"cena": "O Sr. Anacleto pede, com bastante insistência simpática, pra você aproveitar que já está ali e passar mais dois pontos de rede, 'já que não ia custar nada a mais pra você'.",
              "pergunta": "Qual é a resposta correta?",
@@ -2305,6 +2968,23 @@ MISSOES = [
         "equipamento": "Roteador doméstico com anos de uso",
         "briefing": "Durante um atendimento de rotina, você percebe que o roteador do cliente nunca recebeu uma atualização de firmware, algo comum quando o cliente nunca mexeu nisso.",
         "instrumento": "wifi",
+        "os_info": {
+            "id_cliente": "52336",
+            "horario": "15h00",
+            "assunto": "Manutenção de App",
+            "endereco": "RUA JK, 32",
+            "cidade": "Aripuanã",
+            "referencia": "Esquina com a rua principal",
+            "caixa_atendimento": "AYP 05",
+            "porta_ftth": "1",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Manutenção de App\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Aline\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99212-6758\n"
+                "Ocorrência: Durante um atendimento de rotina, você percebe que o roteador do cliente nunca recebeu uma atualização de firmware, algo comum quando o cliente nunca mexeu nisso."
+            ),
+        },
         "decisoes": [
             {"cena": "Você verifica no painel do roteador: a versão do firmware é de vários anos atrás, bem desatualizada.",
              "pergunta": "Por que isso é relevante, além de possíveis melhorias de desempenho?",
@@ -2356,6 +3036,23 @@ MISSOES = [
         "equipamento": "Cabo de rede, ferramentas de instalação",
         "briefing": "É preciso passar um cabo pelo forro da casa, num dia de calor intenso, num telhado de fibrocimento sem isolamento.",
         "instrumento": "cable",
+        "os_info": {
+            "id_cliente": "52019",
+            "horario": "08h00",
+            "assunto": "Serviços - Cabeamento",
+            "endereco": "RUA DOS IPÊS, 244",
+            "cidade": "Juína",
+            "referencia": "Ao lado da oficina mecânica",
+            "caixa_atendimento": "JNA 05",
+            "porta_ftth": "6",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Serviços - Cabeamento\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Juliana\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99172-4534\n"
+                "Ocorrência: É preciso passar um cabo pelo forro da casa, num dia de calor intenso, num telhado de fibrocimento sem isolamento."
+            ),
+        },
         "decisoes": [
             {"cena": "Ao subir no forro pra verificar a rota do cabo, você percebe que a temperatura ali dentro está extremamente elevada, bem mais quente que o resto da casa.",
              "pergunta": "Qual é a atitude correta diante dessa condição?",
@@ -2407,6 +3104,23 @@ MISSOES = [
         "equipamento": "Rack, switch, patch panel, velcros e abraçadeiras",
         "briefing": "Instalação de rede numa loja de autopeças, com um rack pequeno que vai abrigar switch e patch panel.",
         "instrumento": "cable",
+        "os_info": {
+            "id_cliente": "54091",
+            "horario": "09h00",
+            "assunto": "Serviços - Cabeamento",
+            "endereco": "RUA RIO BRANCO, 845",
+            "cidade": "Colniza",
+            "referencia": "Esquina com a rua principal",
+            "caixa_atendimento": "CNIZ 05",
+            "porta_ftth": "3",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Serviços - Cabeamento\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Fernanda\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99803-1328\n"
+                "Ocorrência: Instalação de rede numa loja de autopeças, com um rack pequeno que vai abrigar switch e patch panel."
+            ),
+        },
         "decisoes": [
             {"cena": "Você está organizando os cabos dentro do rack e tem à disposição tanto velcro reutilizável quanto abraçadeiras plásticas descartáveis.",
              "pergunta": "Qual é a prática mais recomendada pra organizar os cabos dentro do rack?",
@@ -2458,6 +3172,23 @@ MISSOES = [
         "equipamento": "Nenhum — situação de atendimento",
         "briefing": "Você chega no horário agendado, mas ninguém atende a casa. Você liga pro cliente, que esqueceu completamente do agendamento.",
         "instrumento": "wifi",
+        "os_info": {
+            "id_cliente": "55143",
+            "horario": "09h00",
+            "assunto": "Instalação de Novo Ponto",
+            "endereco": "RUA DAS FLORES, 377",
+            "cidade": "Pimenta Bueno",
+            "referencia": "Portão de madeira, casa de esquina",
+            "caixa_atendimento": "PBW 05",
+            "porta_ftth": "7",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Instalação de Novo Ponto\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Aline\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99844-3208\n"
+                "Ocorrência: Você chega no horário agendado, mas ninguém atende a casa. Você liga pro cliente, que esqueceu completamente do agendamento."
+            ),
+        },
         "decisoes": [
             {"cena": "Depois de tocar a campainha algumas vezes sem resposta, você liga pro celular do Sr. Otacílio, que atende meio sonolento, claramente tendo esquecido do horário.",
              "pergunta": "Qual é a atitude profissional correta?",
@@ -2509,6 +3240,23 @@ MISSOES = [
         "equipamento": "Medidor óptico, kit de limpeza de fibra",
         "briefing": "Depois de uma tempestade forte na região, vários clientes da mesma rua reportaram instabilidade na internet.",
         "instrumento": "optic",
+        "os_info": {
+            "id_cliente": "51649",
+            "horario": "13h30",
+            "assunto": "Sem Internet",
+            "endereco": "RUA TIRADENTES, 402",
+            "cidade": "Alta Floresta",
+            "referencia": "Ponto branco com azul, casa nos fundos",
+            "caixa_atendimento": "AFT 05",
+            "porta_ftth": "4",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Sem Internet\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Camila\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99399-6811\n"
+                "Ocorrência: Depois de uma tempestade forte na região, vários clientes da mesma rua reportaram instabilidade na internet."
+            ),
+        },
         "decisoes": [
             {"cena": "Você chega na CTO que atende essa rua e percebe água acumulada dentro da caixa, provavelmente entrada por uma vedação danificada.",
              "pergunta": "Qual é o primeiro cuidado a tomar?",
@@ -2560,6 +3308,23 @@ MISSOES = [
         "equipamento": "Roteador doméstico",
         "briefing": "O cliente pede pra você bloquear, na rede da casa, o acesso ao Wi-Fi do vizinho — ele acha que o vizinho está 'roubando' o sinal dele, sem nenhuma evidência concreta.",
         "instrumento": "wifi",
+        "os_info": {
+            "id_cliente": "53403",
+            "horario": "13h30",
+            "assunto": "Realizar serviços - configurações",
+            "endereco": "AVENIDA MARECHAL RONDON, 847",
+            "cidade": "Cujubim",
+            "referencia": "Perto do campo de futebol",
+            "caixa_atendimento": "CUJU 05",
+            "porta_ftth": "5",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Realizar serviços - configurações\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Rafael\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99929-5601\n"
+                "Ocorrência: O cliente pede pra você bloquear, na rede da casa, o acesso ao Wi-Fi do vizinho — ele acha que o vizinho está 'roubando' o sinal dele, sem nenhuma evidência concreta."
+            ),
+        },
         "decisoes": [
             {"cena": "O Sr. Rogério pede pra você configurar algo que impeça 'o vizinho de usar o Wi-Fi dele', mas ao perguntar, você percebe que ele só está desconfiado, sem nenhuma prova real de acesso indevido.",
              "pergunta": "Qual é a primeira coisa a fazer antes de qualquer ação?",
@@ -2611,6 +3376,23 @@ MISSOES = [
         "equipamento": "Telefone, acesso remoto ao sistema da ONT",
         "briefing": "Cliente liga reclamando de internet lenta. Antes de sair pra visita, você tenta um diagnóstico remoto pelo sistema da central.",
         "instrumento": "wifi",
+        "os_info": {
+            "id_cliente": "50197",
+            "horario": "13h30",
+            "assunto": "Internet Lenta",
+            "endereco": "AVENIDA PRINCIPAL, 908",
+            "cidade": "Alto Alegre",
+            "referencia": "Perto da praça central",
+            "caixa_atendimento": "AAPC 05",
+            "porta_ftth": "7",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Internet Lenta\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Lucas\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99901-4228\n"
+                "Ocorrência: Cliente liga reclamando de internet lenta. Antes de sair pra visita, você tenta um diagnóstico remoto pelo sistema da central."
+            ),
+        },
         "decisoes": [
             {"cena": "Pelo sistema remoto, você consegue ver que a ONT da Sra. Terezinha está reportando sinal óptico normal e sem erros.",
              "pergunta": "O que isso sugere sobre a necessidade de uma visita presencial?",
