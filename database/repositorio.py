@@ -923,6 +923,12 @@ _JOGO_CAMPO_PADRAO = {
     "acertos_totais": 0,
     "xp": 0,
     "opcao_escolhida": None,
+    "fila_missoes": None,
+    "ligou_cliente": False,
+    "evento_cliente_ativo": False,
+    "evento_cliente_visto": False,
+    "ultima_acao_resultado": None,
+    "desfecho_missao": "normal",
 }
 
 

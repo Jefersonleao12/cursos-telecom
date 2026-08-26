@@ -107,6 +107,57 @@
   }
   .simulador-campo .cta-wrap{margin-top:20px;}
 
+  /* --- Cartão de O.S. detalhado (layout do sistema real) --- */
+  .simulador-campo .os-card{
+    background:var(--ticket); color:var(--ticket-text); border-radius:12px; padding:20px 20px 18px;
+    position:relative; border-left:5px solid var(--amber);
+  }
+  .simulador-campo .os-card-top{display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;}
+  .simulador-campo .os-eyebrow{font-family:var(--font-mono); font-size:12.5px; font-weight:600; color:var(--amber-dim);}
+  .simulador-campo .os-status{font-family:var(--font-mono); font-size:10.5px; letter-spacing:0.08em; background:#E6DFCB; color:#5C4A1F; padding:3px 9px; border-radius:20px;}
+  .simulador-campo .os-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px 14px; margin-bottom:10px;}
+  .simulador-campo .os-row{margin-bottom:10px;}
+  .simulador-campo .os-label{display:block; font-family:var(--font-mono); font-size:10px; letter-spacing:0.06em; text-transform:uppercase; color:#7A8A90; margin-bottom:2px;}
+  .simulador-campo .os-value{display:block; font-size:14px; line-height:1.35; color:var(--ticket-text);}
+  .simulador-campo .os-assunto{font-weight:700;}
+  .simulador-campo .os-divider{border-top:1px dashed #C7BEA9; margin:12px 0;}
+  .simulador-campo .os-descricao p{font-size:13.5px; line-height:1.55; color:#3A4A50; white-space:pre-line; margin:2px 0 0;}
+
+  /* --- Ações da O.S.: localização / ligar / reagendar / encaminhar --- */
+  .simulador-campo .os-actions{margin-top:14px;}
+  .simulador-campo .flash-banner{
+    background:rgba(58,168,193,0.12); border:1px solid rgba(58,168,193,0.35); color:var(--teal-bright);
+    border-radius:9px; padding:10px 12px; font-size:13.5px; line-height:1.5; margin-bottom:12px;
+  }
+  .simulador-campo .event-banner{
+    background:rgba(242,169,59,0.1); border:1px solid rgba(242,169,59,0.35); border-radius:10px;
+    padding:12px 14px; margin-bottom:12px;
+  }
+  .simulador-campo .event-banner.resolved{background:var(--success-dim); border-color:rgba(95,190,134,0.4); color:var(--success); font-size:13.5px;}
+  .simulador-campo .event-title{font-family:var(--font-display); font-weight:700; font-size:15px; color:var(--amber); margin-bottom:6px;}
+  .simulador-campo .event-banner p{font-size:13.5px; line-height:1.5; color:#E3EAEB; margin:0 0 10px; font-style:italic;}
+  .simulador-campo .event-respostas{display:flex; flex-direction:column; gap:8px;}
+  .simulador-campo .secondary-actions{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:6px;}
+  .simulador-campo .btn.small{font-size:13px; padding:9px 10px;}
+  .simulador-campo .btn.ghost:disabled{opacity:0.55; cursor:default;}
+  .simulador-campo .call-result{font-family:var(--font-mono); font-size:12px; color:#8FA3AB; margin:2px 0 0; grid-column:1 / -1;}
+
+  .simulador-campo .map-modal{
+    position:fixed; inset:0; z-index:60; background:rgba(6,12,15,0.75);
+    display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  .simulador-campo .map-card{background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:18px; max-width:340px; width:100%; text-align:center;}
+  .simulador-campo .map-fake{
+    height:150px; border-radius:10px; margin-bottom:12px;
+    background-image:
+      linear-gradient(rgba(111,214,234,0.14) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(111,214,234,0.14) 1px, transparent 1px);
+    background-size:18px 18px; background-color:#0C1A20;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .simulador-campo .map-pin{font-size:30px; filter:drop-shadow(0 4px 6px rgba(0,0,0,0.5));}
+  .simulador-campo .map-endereco{font-size:13px; color:#C7D3D6; margin:0 0 14px;}
+
   .simulador-campo .progress-line{font-family:var(--font-mono); font-size:11.5px; color:var(--teal-bright); letter-spacing:0.08em; margin-bottom:10px;}
   .simulador-campo .scene-panel{background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:18px 18px 6px; margin-bottom:16px;}
   .simulador-campo .scene-panel p{font-size:15px; line-height:1.6; color:#D3DCDE; margin:0 0 16px;}
@@ -209,6 +260,32 @@
   {% endif %}
 
   {% if tela == "mission-intro" %}
+  {% if missao.os_info %}
+  <div class="os-card">
+    <div class="os-card-top">
+      <div class="os-eyebrow">O.S. {{ missao.id }}</div>
+      <div class="os-status">EM EXECUÇÃO</div>
+    </div>
+    <div class="os-grid">
+      <div><span class="os-label">ID Cliente</span><span class="os-value">{{ missao.os_info.id_cliente }}</span></div>
+      <div><span class="os-label">Horário</span><span class="os-value">{{ missao.os_info.horario }}</span></div>
+    </div>
+    <div class="os-row"><span class="os-label">Cliente</span><span class="os-value">{{ missao.cliente }}</span></div>
+    <div class="os-row"><span class="os-label">Assunto</span><span class="os-value os-assunto">{{ missao.os_info.assunto }}</span></div>
+    <div class="os-row"><span class="os-label">Endereço</span><span class="os-value">{{ missao.os_info.endereco }}</span></div>
+    <div class="os-grid">
+      <div><span class="os-label">Bairro</span><span class="os-value">{{ missao.bairro }}</span></div>
+      <div><span class="os-label">Cidade</span><span class="os-value">{{ missao.os_info.cidade }}</span></div>
+    </div>
+    <div class="os-row"><span class="os-label">Referência</span><span class="os-value">{{ missao.os_info.referencia }}</span></div>
+    <div class="os-grid">
+      <div><span class="os-label">Caixa de atendimento</span><span class="os-value">{{ missao.os_info.caixa_atendimento }}</span></div>
+      <div><span class="os-label">Porta FTTH</span><span class="os-value">{{ missao.os_info.porta_ftth }}</span></div>
+    </div>
+    <div class="os-divider"></div>
+    <div class="os-descricao"><span class="os-label">Descrição</span><p>{{ missao.os_info.descricao }}</p></div>
+  </div>
+  {% else %}
   <div class="ticket">
     <div class="ticket-top">
       <div class="ticket-eyebrow">Ordem de Serviço</div>
@@ -220,9 +297,58 @@
     <div class="ticket-briefing">"{{ missao.briefing }}"</div>
     <div class="ticket-tag">{{ missao.equipamento }}</div>
   </div>
+  {% endif %}
+
+  <div class="os-actions" x-data="{ mapaAberto: false }">
+    {% if ultima_acao_resultado %}
+    <div class="flash-banner">{{ ultima_acao_resultado }}</div>
+    {% endif %}
+
+    {% if evento_cliente_ativo and not evento_cliente_visto %}
+    <div class="event-banner">
+      <div class="event-title">📱 Mensagem do cliente</div>
+      <p>"Preciso sair, você vai ter que voltar outra hora — tem como você vir depois? Não consigo te atender no momento."</p>
+      <div class="event-respostas">
+        {% for resposta in respostas_evento_cliente %}
+        <form action="/jogo/responder-cliente" method="post">
+          <input type="hidden" name="resposta" value="{{ loop.index0 }}">
+          <button class="btn ghost small" type="submit">{{ resposta.texto }}</button>
+        </form>
+        {% endfor %}
+      </div>
+    </div>
+    {% elif evento_cliente_ativo and evento_cliente_visto %}
+    <div class="event-banner resolved">✅ O cliente avisou que precisava sair — resposta já registrada. Encaminhar agora não desconta pontos.</div>
+    {% endif %}
+
+    <div class="secondary-actions">
+      <button type="button" class="btn ghost small" @click="mapaAberto = true">📍 Mostrar localização</button>
+      <form action="/jogo/chamar-cliente" method="post">
+        <button type="submit" class="btn ghost small" {{ "disabled" if ligou_cliente else "" }}>📞 Chamar cliente</button>
+      </form>
+      {% if ligou_cliente %}
+      <p class="call-result">☎️ Ligando... Pelo visto o cliente não quis atender.</p>
+      {% endif %}
+      <form action="/jogo/reagendar" method="post" onsubmit="return confirm('Reagendar essa O.S.? Ela volta a aparecer mais adiante no plantão.');">
+        <button type="submit" class="btn ghost small">🗓️ Reagendar</button>
+      </form>
+      <form action="/jogo/encaminhar" method="post" onsubmit="return confirm('Encaminhar essa O.S. pra outro técnico?');">
+        <button type="submit" class="btn ghost small">↗️ Encaminhar</button>
+      </form>
+    </div>
+
+    <div class="map-modal" x-show="mapaAberto" x-cloak @click.self="mapaAberto = false">
+      <div class="map-card">
+        <div class="map-fake"><span class="map-pin">📍</span></div>
+        <p class="map-endereco">{% if missao.os_info %}{{ missao.os_info.endereco }} — {{ missao.os_info.cidade }}{% else %}{{ missao.bairro }}{% endif %}</p>
+        <button type="button" class="btn ghost small" @click="mapaAberto = false">Fechar</button>
+      </div>
+    </div>
+  </div>
+
   <div class="cta-wrap">
     <form action="/jogo/iniciar-missao" method="post">
-      <button class="btn" type="submit">Iniciar atendimento →</button>
+      <button class="btn" type="submit">Continuar execução →</button>
     </form>
   </div>
   {% endif %}
@@ -258,6 +384,15 @@
 
   {% if tela == "mission-end" %}
   <div class="end-card">
+    {% if desfecho == "encaminhada" %}
+    <div class="end-eyebrow">{{ missao.id }} · O.S. ENCAMINHADA</div>
+    <h2>{{ missao.bairro }}</h2>
+    <div class="flavor">{{ resultado_encaminhamento }}</div>
+    <p class="flavor">Essa O.S. foi repassada pra outro técnico e não volta a aparecer pra você.</p>
+    {% if selo_novo %}
+    <div class="badge-line"><span class="icon">{{ selo_novo.icone }}</span> Selo conquistado: <b>{{ selo_novo.nome }}</b></div>
+    {% endif %}
+    {% else %}
     <div class="end-eyebrow">{{ missao.id }} · O.S. FECHADA</div>
     <h2>{{ missao.bairro }}</h2>
     <div class="score-row">{{ acertos_missao }} de {{ total_decisoes }} decisões corretas</div>
@@ -298,6 +433,7 @@
 
     {% if selo_novo %}
     <div class="badge-line"><span class="icon">{{ selo_novo.icone }}</span> Selo conquistado: <b>{{ selo_novo.nome }}</b></div>
+    {% endif %}
     {% endif %}
   </div>
   <div class="cta-wrap">

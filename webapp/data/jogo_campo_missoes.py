@@ -20,6 +20,23 @@ MISSOES = [
         "equipamento": "ONT Huawei EG8145",
         "briefing": "Cliente contratou o plano de 300 Mega. É a primeira instalação de fibra na casa dele — antes só usava internet do celular.",
         "instrumento": "optic",
+        "os_info": {
+            "id_cliente": "50231",
+            "horario": "09h30",
+            "assunto": "Instalação Fibra Optica",
+            "endereco": "RUA DAS ACÁCIAS, 412",
+            "cidade": "Cacoal",
+            "referencia": "Portão de madeira, casa de esquina com muro baixo pintado de branco",
+            "caixa_atendimento": "CACL 12",
+            "porta_ftth": "4",
+            "descricao": (
+                "Processo: Instalação. Tarefa: Instalação Fibra Optica\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Camila\n"
+                "Horário do Cliente: período da manhã\n"
+                "Número de Contato: (69) 99184-2207\n"
+                "Ocorrência: Primeira instalação de fibra no imóvel — cliente usava só internet do celular."
+            ),
+        },
         "decisoes": [
             {
                 "cena": "Você chega com o cordão de fibra (pigtail) pronto para conectar na ONT Huawei EG8145. Na parte de trás do equipamento você vê uma entrada óptica com trava SC/APC (verde), quatro portas LAN (amarelas), entrada de energia e botão WPS.",
@@ -79,6 +96,23 @@ MISSOES = [
         "equipamento": "ONT Huawei EG8145 + roteador do cliente",
         "briefing": "Instalação já concluída no mês passado. Chamado aberto por 'internet caindo direto' — Dona Marlene usa um roteador próprio ligado depois da ONT.",
         "instrumento": "wifi",
+        "os_info": {
+            "id_cliente": "50877",
+            "horario": "14h00",
+            "assunto": "Realizar serviços - configurações",
+            "endereco": "AVENIDA DOS IPÊS, 218",
+            "cidade": "São Miguel",
+            "referencia": "Casa amarela, ao lado do mercadinho Bom Preço",
+            "caixa_atendimento": "SMGE 23",
+            "porta_ftth": "2",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Realizar serviços - configurações\n"
+                "Descrição O.S. anterior: - Solicitante: a própria cliente, por telefone\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99276-5540\n"
+                "Ocorrência: Internet caindo direto. Cliente usa roteador próprio (TP-Link) depois da ONT."
+            ),
+        },
         "decisoes": [
             {
                 "cena": "Dona Marlene pede: 'Bota uma senha fácil, tipo o meu nome mesmo, pra eu não esquecer.'",
@@ -138,6 +172,23 @@ MISSOES = [
         "equipamento": "Cabeamento Ethernet, testador de cabo",
         "briefing": "Cliente reclama: na sala funciona, mas no quarto dos fundos não pega nada — nem cabo, nem Wi-Fi.",
         "instrumento": "cable",
+        "os_info": {
+            "id_cliente": "51042",
+            "horario": "10h15",
+            "assunto": "Serviços - Cabeamento",
+            "endereco": "RUA DOS METALÚRGICOS, 88",
+            "cidade": "Cacoal",
+            "referencia": "Galpão azul com portão de correr, ao lado da oficina mecânica",
+            "caixa_atendimento": "CACL 07",
+            "porta_ftth": "6",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Serviços - Cabeamento\n"
+                "Descrição O.S. anterior: - Solicitante: atendente Juliana\n"
+                "Horário do Cliente: a combinar\n"
+                "Número de Contato: (69) 99145-3390\n"
+                "Ocorrência: Sem sinal (cabo nem Wi-Fi) no cômodo dos fundos."
+            ),
+        },
         "decisoes": [
             {
                 "cena": "O Sr. Roberto reclama: 'Na sala funciona, mas no quarto dos fundos não pega nada, nem cabo nem Wi-Fi.'",
@@ -503,6 +554,23 @@ MISSOES = [
         "equipamento": "ONT Huawei EG8145, medidor óptico",
         "briefing": "Cliente relata que a internet cai por alguns segundos, várias vezes ao dia, sem padrão aparente.",
         "instrumento": "optic",
+        "os_info": {
+            "id_cliente": "51309",
+            "horario": "16h45",
+            "assunto": "Internet Lenta",
+            "endereco": "RUA CAIARI, 305",
+            "cidade": "Cacoal",
+            "referencia": "Casa de dois andares, grade preta, perto da praça central",
+            "caixa_atendimento": "CACL 19",
+            "porta_ftth": "3",
+            "descricao": (
+                "Processo: Suporte Unificado. Tarefa: Internet Lenta\n"
+                "Descrição O.S. anterior: - Solicitante: a própria cliente\n"
+                "Horário do Cliente: fim de tarde\n"
+                "Número de Contato: (69) 99231-7784\n"
+                "Ocorrência: Internet cai por alguns segundos, várias vezes ao dia, sem padrão aparente."
+            ),
+        },
         "decisoes": [
             {"cena": "No momento da visita, tudo parece normal: sinal bom, LEDs certos. Você não consegue reproduzir o problema na hora.",
              "pergunta": "O que fazer diante de um problema intermitente que não se repete na sua frente?",

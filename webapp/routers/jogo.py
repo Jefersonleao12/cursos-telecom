@@ -10,13 +10,17 @@ from fastapi.responses import RedirectResponse
 
 from webapp.deps import obter_aluno_atual
 from webapp.services.jogo_campo import (
+    chamar_cliente,
     continuar,
+    encaminhar,
     iniciar_jogo,
     iniciar_missao,
     obter_tela,
     proxima_missao,
+    reagendar,
     reiniciar,
     responder,
+    responder_evento_cliente,
 )
 from webapp.templating import templates
 
@@ -38,6 +42,30 @@ def jogo_iniciar(aluno: dict = Depends(obter_aluno_atual)):
 @router.post("/jogo/iniciar-missao")
 def jogo_iniciar_missao(aluno: dict = Depends(obter_aluno_atual)):
     iniciar_missao(aluno["id"])
+    return RedirectResponse("/jogo", status_code=303)
+
+
+@router.post("/jogo/chamar-cliente")
+def jogo_chamar_cliente(aluno: dict = Depends(obter_aluno_atual)):
+    chamar_cliente(aluno["id"])
+    return RedirectResponse("/jogo", status_code=303)
+
+
+@router.post("/jogo/responder-cliente")
+def jogo_responder_cliente(resposta: int = Form(...), aluno: dict = Depends(obter_aluno_atual)):
+    responder_evento_cliente(aluno["id"], resposta)
+    return RedirectResponse("/jogo", status_code=303)
+
+
+@router.post("/jogo/reagendar")
+def jogo_reagendar(aluno: dict = Depends(obter_aluno_atual)):
+    reagendar(aluno["id"])
+    return RedirectResponse("/jogo", status_code=303)
+
+
+@router.post("/jogo/encaminhar")
+def jogo_encaminhar(aluno: dict = Depends(obter_aluno_atual)):
+    encaminhar(aluno["id"])
     return RedirectResponse("/jogo", status_code=303)
 
 

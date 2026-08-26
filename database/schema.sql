@@ -235,6 +235,12 @@ create table if not exists public.jogo_campo_progresso (
     acertos_totais       int not null default 0,
     xp                   int not null default 0,
     opcao_escolhida      int,          -- índice (na ordem embaralhada) da alternativa escolhida na última decisão
+    fila_missoes         jsonb,        -- ordem das O.S. (índices em MISSOES); null = ordem padrão 0..N-1. Reagendar reordena aqui.
+    ligou_cliente        boolean not null default false,  -- ligou pro cliente antes de reagendar a O.S. atual?
+    evento_cliente_ativo boolean not null default false,  -- sorteado (30%) ao abrir a O.S.: cliente pediu pra sair?
+    evento_cliente_visto boolean not null default false,  -- já respondeu à mensagem do cliente nesta O.S.?
+    ultima_acao_resultado text,        -- mensagem sobre a última ação (reagendar/encaminhar) pra mostrar na próxima tela
+    desfecho_missao      text not null default 'normal',  -- normal | encaminhada — como a última O.S. concluída terminou
     atualizado_em        timestamptz not null default now()
 );
 
