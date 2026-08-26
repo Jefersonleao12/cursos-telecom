@@ -283,6 +283,12 @@ MISSOES = [
                 "Ocorrência: Cliente sem internet desde o dia anterior. Solicita atendimento técnico com urgência para verificação do sinal."
             ),
         },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Manutenção casa do cliente (internet lenta, sem internet, configuração)",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
+        },
         "decisoes": [
             {"cena": "A ONT está ligada na tomada (LED PWR aceso), mas o LED PON está completamente apagado — nem vermelho, nem verde.",
              "pergunta": "O que isso costuma indicar?",
@@ -350,6 +356,12 @@ MISSOES = [
                 "Número de Contato: (69) 99442-9157\n"
                 "Ocorrência: Cliente contratou instalação nova de fibra óptica. Imóvel localizado próximo à CTO."
             ),
+        },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Instalação, manutenção ou retirada de rede Fibra Optica",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
         },
         "decisoes": [
             {"cena": "Você mede a potência óptica na ONT: o medidor mostra -3 dBm.",
@@ -419,6 +431,12 @@ MISSOES = [
                 "Ocorrência: Cliente contratou instalação de ponto de internet em prédio comercial de 3 andares. Escritório localizado no 2º andar."
             ),
         },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Instalação, manutenção ou retirada de rede Fibra Optica",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
+        },
         "decisoes": [
             {"cena": "Você precisa passar a fibra por um shaft (duto vertical) compartilhado com outras instalações do prédio.",
              "pergunta": "Qual cuidado é essencial nessa rota?",
@@ -486,6 +504,12 @@ MISSOES = [
                 "Número de Contato: (69) 99441-1193\n"
                 "Ocorrência: Cliente sem internet. Região reporta interrupção coletiva, possivelmente relacionada a obra na via pública."
             ),
+        },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Infraestrutura de Fibra",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
         },
         "decisoes": [
             {"cena": "Você chega no local e confirma visualmente que o cabo de fibra está rompido, com a escavação ainda aberta.",
@@ -555,6 +579,12 @@ MISSOES = [
                 "Ocorrência: Cliente relata perda total do sinal de internet. Informa já ter reiniciado o roteador, sem sucesso."
             ),
         },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Manutenção casa do cliente (internet lenta, sem internet, configuração)",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
+        },
         "decisoes": [
             {"cena": "Ao chegar, você percebe que a ONT está completamente apagada — nenhum LED aceso, nem o de energia.",
              "pergunta": "Qual é o primeiro ponto a verificar?",
@@ -622,6 +652,12 @@ MISSOES = [
                 "Número de Contato: (69) 99341-4689\n"
                 "Ocorrência: Cliente contratou upgrade de plano para 500 Mega e relata velocidade abaixo do contratado nos testes realizados."
             ),
+        },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Manutenção casa do cliente (internet lenta, sem internet, configuração)",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
         },
         "decisoes": [
             {"cena": "O sinal óptico está excelente (-17 dBm), mas a velocidade continua travada perto de 95 Mbps.",
@@ -765,6 +801,12 @@ MISSOES = [
                 "Ocorrência: Cliente (estúdio, 6 usuários) contratou plano simétrico de alta demanda para upload constante de arquivos grandes."
             ),
         },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Instalação, manutenção ou retirada de rede Fibra Optica",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
+        },
         "decisoes": [
             {"cena": "O cliente pergunta por que contratou 'plano simétrico' e o que isso quer dizer na prática pro trabalho dele.",
              "pergunta": "Como você explica de forma simples?",
@@ -832,6 +874,12 @@ MISSOES = [
                 "Número de Contato: (69) 99901-6142\n"
                 "Ocorrência: Cliente relata quedas frequentes de sinal. Instalação com 2 anos de uso, sem alteração recente reportada."
             ),
+        },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Manutenção casa do cliente (internet lenta, sem internet, configuração)",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
         },
         "decisoes": [
             {"cena": "A potência óptica medida está em -18 dBm (dentro da faixa ideal), mas mesmo assim há quedas frequentes de conexão.",
@@ -901,6 +949,12 @@ MISSOES = [
                 "Ocorrência: Cliente relata que o Wi-Fi não chega no quarto dos fundos, distante do roteador. Solicita verificação técnica no local."
             ),
         },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Manutenção casa do cliente (internet lenta, sem internet, configuração)",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
+        },
         "decisoes": [
             {"cena": "Você mede o sinal Wi-Fi no quarto dos fundos: está muito fraco, quase inutilizável.",
              "pergunta": "Qual é a melhor solução técnica pra esse cenário, considerando que é uma casa grande?",
@@ -968,6 +1022,12 @@ MISSOES = [
                 "Número de Contato: (69) 99911-8131\n"
                 "Ocorrência: Cliente relata que a rede de 5GHz do roteador não alcança a maior parte da casa, diferente da rede de 2.4GHz."
             ),
+        },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Manutenção casa do cliente (internet lenta, sem internet, configuração)",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
         },
         "decisoes": [
             {"cena": "Você percebe que o cliente confundiu o nome '5GHz' (frequência de Wi-Fi) com '5G' (tecnologia de internet móvel de celular).",
@@ -1037,6 +1097,12 @@ MISSOES = [
                 "Ocorrência: Cliente solicita configuração de controle parental, para limitar o tempo de acesso e bloquear determinados sites."
             ),
         },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Manutenção casa do cliente (internet lenta, sem internet, configuração)",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
+        },
         "decisoes": [
             {"cena": "A Sra. Valquíria pergunta se isso é algo que só um técnico consegue configurar, ou se ela mesma pode fazer depois.",
              "pergunta": "Como você orienta ela da melhor forma?",
@@ -1104,6 +1170,12 @@ MISSOES = [
                 "Número de Contato: (69) 99550-2753\n"
                 "Ocorrência: Cliente relata quedas frequentes de conexão. Possui grande quantidade de dispositivos conectados (aproximadamente 25, entre lâmpadas, câmeras e tomadas inteligentes)."
             ),
+        },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Manutenção casa do cliente (internet lenta, sem internet, configuração)",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
         },
         "decisoes": [
             {"cena": "Você confere no painel do roteador: são realmente muitos dispositivos IoT conectados na mesma rede usada pelos celulares e notebooks da família.",
@@ -1173,6 +1245,12 @@ MISSOES = [
                 "Ocorrência: Cliente solicita configuração de uma rede Wi-Fi separada para visitantes, sem uso da senha da rede principal."
             ),
         },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Manutenção casa do cliente (internet lenta, sem internet, configuração)",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
+        },
         "decisoes": [
             {"cena": "O Sr. Osmar pergunta se dá pra criar essa 'rede de visitas' sem comprar nenhum equipamento novo.",
              "pergunta": "Qual é a resposta tecnicamente correta?",
@@ -1240,6 +1318,12 @@ MISSOES = [
                 "Número de Contato: (69) 99717-8195\n"
                 "Ocorrência: Cliente (clínica) solicita organização do cabeamento de rede — 5 pontos (recepção e 4 consultórios) em rack pequeno."
             ),
+        },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Manutenção de cabo drop",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
         },
         "decisoes": [
             {"cena": "Você termina de crimpar os 5 cabos no patch panel, todos funcionando conforme testado no testador de cabo.",
@@ -1309,6 +1393,12 @@ MISSOES = [
                 "Ocorrência: Cliente relata lentidão na rede após instalar, por conta própria, um equipamento comprado em loja de eletrônicos para dividir a internet entre computadores."
             ),
         },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Manutenção casa do cliente (internet lenta, sem internet, configuração)",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
+        },
         "decisoes": [
             {"cena": "Você examina o equipamento que ele comprou: é de fato um hub antigo, não um switch — um equipamento bem mais simples e ultrapassado.",
              "pergunta": "Qual é a diferença prática mais importante entre hub e switch, que explica a lentidão?",
@@ -1376,6 +1466,12 @@ MISSOES = [
                 "Número de Contato: (69) 99439-5713\n"
                 "Ocorrência: Cliente (mercado) solicita instalação de câmera de segurança na entrada, com alimentação via rede (POE)."
             ),
+        },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Manutenção de cabo drop",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
         },
         "decisoes": [
             {"cena": "O cliente pergunta como a câmera vai funcionar sem um cabo de energia próprio na entrada, já que lá não tem tomada.",
@@ -1445,6 +1541,12 @@ MISSOES = [
                 "Ocorrência: Cliente (escola) relata rede extremamente lenta, sem alteração recente identificada pela equipe local."
             ),
         },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Manutenção casa do cliente (internet lenta, sem internet, configuração)",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
+        },
         "decisoes": [
             {"cena": "Você percebe que as luzes do switch estão piscando freneticamente em várias portas ao mesmo tempo, sem nenhum tráfego de uso normal acontecendo.",
              "pergunta": "O que esse comportamento sugere?",
@@ -1512,6 +1614,12 @@ MISSOES = [
                 "Número de Contato: (69) 99806-9633\n"
                 "Ocorrência: Cliente sem internet. Solicitou atendimento com urgência e aguarda visita técnica agendada."
             ),
+        },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Manutenção casa do cliente (internet lenta, sem internet, configuração)",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
         },
         "decisoes": [
             {"cena": "Assim que você chega, o Sr. Cristóvão já começa reclamando alto, dizendo que perdeu a manhã de trabalho esperando.",
@@ -1581,6 +1689,12 @@ MISSOES = [
                 "Ocorrência: Cliente solicita atendimento técnico para ajuste de configurações do plano contratado."
             ),
         },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Manutenção casa do cliente (internet lenta, sem internet, configuração)",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
+        },
         "decisoes": [
             {"cena": "O Sr. Fabrício pede pra você mudar o plano dele agora mesmo, direto com você, sem precisar ligar pra central ou assinar nada.",
              "pergunta": "Qual é a resposta correta?",
@@ -1648,6 +1762,12 @@ MISSOES = [
                 "Número de Contato: (69) 99918-1998\n"
                 "Ocorrência: Cliente solicita atendimento técnico para ajustes e configurações gerais da rede."
             ),
+        },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Manutenção casa do cliente (internet lenta, sem internet, configuração)",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
         },
         "decisoes": [
             {"cena": "O Sr. Osiel te oferece uma quantia em dinheiro, dizendo que é 'só um agrado' pra você sempre priorizar ele nas próximas vezes.",
@@ -1717,6 +1837,12 @@ MISSOES = [
                 "Ocorrência: Cliente relata dificuldade para reconectar o celular ao Wi-Fi após alteração de senha. Solicita apoio técnico presencial."
             ),
         },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Manutenção casa do cliente (internet lenta, sem internet, configuração)",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
+        },
         "decisoes": [
             {"cena": "Você troca a senha do Wi-Fi (a pedido da própria cliente, por segurança) e agora precisa reconectar o celular dela na rede.",
              "pergunta": "Qual é a abordagem mais adequada pra esse cliente específico?",
@@ -1784,6 +1910,12 @@ MISSOES = [
                 "Número de Contato: (69) 99200-3105\n"
                 "Ocorrência: Cliente relata não conseguir acessar o site do banco pela internet fixa. Possui também plano de dados móvel de outra operadora."
             ),
+        },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Manutenção casa do cliente (internet lenta, sem internet, configuração)",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
         },
         "decisoes": [
             {"cena": "Você testa a internet da casa (Wi-Fi da Norte Tel) num notebook: o site do banco abre perfeitamente. No celular dele, usando dados móveis de outra operadora, o site não abre.",
@@ -1853,6 +1985,12 @@ MISSOES = [
                 "Ocorrência: Cliente solicita atendimento técnico para configuração do serviço de TV."
             ),
         },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Manutenção casa do cliente (internet lenta, sem internet, configuração)",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
+        },
         "decisoes": [
             {"cena": "Dona Marisa pede, de forma emotiva, que você aplique um desconto na conta dela agora mesmo, já que ela está passando por um momento difícil.",
              "pergunta": "Como você responde com empatia mas dentro do seu papel?",
@@ -1920,6 +2058,12 @@ MISSOES = [
                 "Número de Contato: (69) 99409-2607\n"
                 "Ocorrência: Cliente relata instabilidade na conexão. Solicita verificação técnica no local."
             ),
+        },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Manutenção casa do cliente (internet lenta, sem internet, configuração)",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
         },
         "decisoes": [
             {"cena": "O serviço foi tecnicamente bem resolvido, mas o Sr. Tadeu pergunta, um pouco perdido: 'Mas o que exatamente você fez aí?'",
@@ -1989,6 +2133,14 @@ MISSOES = [
                 "Ocorrência: Cliente contratou instalação de fibra óptica. Entrada deverá ser fixada na parte alta da fachada do imóvel."
             ),
         },
+        "apr_gabarito": {
+            "subiu_poste": True,
+            "atividade_esperada": "Infraestrutura de Fibra",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [
+                "Cinto tipo paraquedas com ancoragem dorsal, torácica, ponto de ancoragem para posicionamento e suspensão",
+            ],
+        },
         "decisoes": [
             {"cena": "Você posiciona a escada numa superfície de terra irregular, um pouco inclinada, perto do local onde precisa trabalhar.",
              "pergunta": "O que fazer antes de subir?",
@@ -2056,6 +2208,16 @@ MISSOES = [
                 "Número de Contato: (69) 99511-1027\n"
                 "Ocorrência: Cliente contratou instalação de fibra óptica. Rota de entrada passa próxima à fiação elétrica da fachada."
             ),
+        },
+        "apr_gabarito": {
+            "subiu_poste": True,
+            "atividade_esperada": "Infraestrutura de Fibra",
+            "riscos_obrigatorios": [
+                "Fiação exposta ou cabos soltos, Cruzetas ou Roldanas danificadas",
+            ],
+            "epis_obrigatorios": [
+                "Luva isolante elétrica",
+            ],
         },
         "decisoes": [
             {"cena": "Você percebe que o ponto onde precisa fixar o suporte da fibra fica bem próximo de um fio elétrico exposto.",
@@ -2125,6 +2287,12 @@ MISSOES = [
                 "Ocorrência: Cliente sem internet. Solicita visita técnica para verificação do sinal."
             ),
         },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Manutenção casa do cliente (internet lenta, sem internet, configuração)",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
+        },
         "decisoes": [
             {"cena": "Ao chegar no portão, você vê o cachorro se aproximando, latindo, sem ninguém por perto pra contê-lo.",
              "pergunta": "Qual é a atitude correta?",
@@ -2192,6 +2360,12 @@ MISSOES = [
                 "Número de Contato: (69) 99743-8578\n"
                 "Ocorrência: Cliente contratou instalação de fibra óptica, com execução externa agendada."
             ),
+        },
+        "apr_gabarito": {
+            "subiu_poste": True,
+            "atividade_esperada": "Instalação, manutenção ou retirada de rede Fibra Optica",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
         },
         "decisoes": [
             {"cena": "O vento começa a aumentar e você ouve trovões distantes enquanto ainda está em cima da escada, trabalhando na fachada externa.",
@@ -2261,6 +2435,12 @@ MISSOES = [
                 "Ocorrência: Cliente contratou instalação de fibra óptica, com necessidade de emenda na rede externa."
             ),
         },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Instalação, manutenção ou retirada de rede Fibra Optica",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
+        },
         "decisoes": [
             {"cena": "A máquina de fusão está emitindo um som diferente do normal e um alerta de erro intermitente na tela, mesmo depois de reiniciada.",
              "pergunta": "Qual é a atitude correta?",
@@ -2328,6 +2508,12 @@ MISSOES = [
                 "Número de Contato: (69) 99347-9031\n"
                 "Ocorrência: Cliente solicita atendimento técnico de rotina para verificação de sinal na região atendida pela CTO local."
             ),
+        },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Ampliação ou manutenção CTO",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
         },
         "decisoes": [
             {"cena": "Você identifica um cabo conectado numa porta da CTO que não corresponde a nenhum cliente cadastrado naquele ponto.",
@@ -2397,6 +2583,12 @@ MISSOES = [
                 "Ocorrência: Cliente (Sra. Débora) relata instabilidade na internet. Solicita verificação técnica no local."
             ),
         },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Manutenção casa do cliente (internet lenta, sem internet, configuração)",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
+        },
         "decisoes": [
             {"cena": "O vizinho pergunta diretamente pra você quanto a Sra. Débora paga de mensalidade e qual é o plano dela, dizendo que também quer contratar.",
              "pergunta": "Qual é a resposta correta?",
@@ -2464,6 +2656,12 @@ MISSOES = [
                 "Número de Contato: (69) 99652-3404\n"
                 "Ocorrência: Cliente relata lentidão na internet. Solicita verificação técnica do sinal."
             ),
+        },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Manutenção casa do cliente (internet lenta, sem internet, configuração)",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
         },
         "decisoes": [
             {"cena": "O colega argumenta que, na maioria das vezes, o sinal já está bom de qualquer jeito, então testar formalmente seria 'perda de tempo' num dia corrido.",
@@ -2533,6 +2731,12 @@ MISSOES = [
                 "Ocorrência: Cliente relata lentidão na internet. Solicita verificação técnica da conexão contratada."
             ),
         },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Manutenção casa do cliente (internet lenta, sem internet, configuração)",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
+        },
         "decisoes": [
             {"cena": "Você percebe um switch adicional não identificado conectado ao roteador, com cabos saindo em direção a casas vizinhas visíveis pela janela.",
              "pergunta": "Qual é a atitude correta nessa descoberta?",
@@ -2600,6 +2804,12 @@ MISSOES = [
                 "Número de Contato: (69) 99230-4392\n"
                 "Ocorrência: Clientes (duplex, duas unidades) contrataram planos individuais de internet. Compartilham a mesma entrada de fibra até o poste."
             ),
+        },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Instalação, manutenção ou retirada de rede Fibra Optica",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
         },
         "decisoes": [
             {"cena": "Você percebe que só existe uma entrada de fibra até a área comum do duplex, mas são dois contratos distintos, um pra cada unidade.",
@@ -2669,6 +2879,12 @@ MISSOES = [
                 "Ocorrência: Cliente relata que vídeos na Smart TV ficam carregando com frequência, mesmo com sinal de Wi-Fi aparentemente cheio."
             ),
         },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Manutenção casa do cliente (internet lenta, sem internet, configuração)",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
+        },
         "decisoes": [
             {"cena": "Você testa a velocidade de internet na TV: o resultado mostra uma velocidade boa, compatível com o plano contratado.",
              "pergunta": "Se a velocidade está boa, o que mais pode estar causando o travamento nos vídeos?",
@@ -2736,6 +2952,12 @@ MISSOES = [
                 "Número de Contato: (69) 99744-7040\n"
                 "Ocorrência: Cliente solicita extensão de internet para área de lazer a aproximadamente 150 metros da sede, onde está instalada a ONT."
             ),
+        },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Manutenção de cabo drop",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
         },
         "decisoes": [
             {"cena": "O cliente pergunta se é só passar um cabo de rede comum até a área de lazer, já que ele mesmo tem um rolo de cabo em casa.",
@@ -2805,6 +3027,12 @@ MISSOES = [
                 "Ocorrência: Cliente relata instabilidade na internet cabeada em um ponto específico da casa, próximo ao forro."
             ),
         },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Manutenção de cabo drop",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
+        },
         "decisoes": [
             {"cena": "Ao inspecionar o trecho do cabo que passa pelo forro, você percebe marcas de mordida e a capa do cabo parcialmente rompida.",
              "pergunta": "O que isso indica, e qual é a atitude correta?",
@@ -2872,6 +3100,12 @@ MISSOES = [
                 "Número de Contato: (69) 99981-3894\n"
                 "Ocorrência: Cliente sem internet. Solicita visita técnica para verificação do sinal."
             ),
+        },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Manutenção casa do cliente (internet lenta, sem internet, configuração)",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
         },
         "decisoes": [
             {"cena": "Dona Aparecida oferece com carinho um café e um pedaço de bolo enquanto você termina o serviço.",
@@ -2941,6 +3175,12 @@ MISSOES = [
                 "Ocorrência: Cliente contratou instalação de um ponto de internet na sala."
             ),
         },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Instalação, manutenção ou retirada de rede Fibra Optica",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
+        },
         "decisoes": [
             {"cena": "O Sr. Anacleto pede, com bastante insistência simpática, pra você aproveitar que já está ali e passar mais dois pontos de rede, 'já que não ia custar nada a mais pra você'.",
              "pergunta": "Qual é a resposta correta?",
@@ -3008,6 +3248,12 @@ MISSOES = [
                 "Número de Contato: (69) 99212-6758\n"
                 "Ocorrência: Cliente solicita atendimento técnico de rotina para verificação geral do equipamento."
             ),
+        },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Manutenção casa do cliente (internet lenta, sem internet, configuração)",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
         },
         "decisoes": [
             {"cena": "Você verifica no painel do roteador: a versão do firmware é de vários anos atrás, bem desatualizada.",
@@ -3077,6 +3323,12 @@ MISSOES = [
                 "Ocorrência: Cliente contratou serviço de cabeamento com passagem de cabo pelo forro do imóvel."
             ),
         },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Manutenção de cabo drop",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
+        },
         "decisoes": [
             {"cena": "Ao subir no forro pra verificar a rota do cabo, você percebe que a temperatura ali dentro está extremamente elevada, bem mais quente que o resto da casa.",
              "pergunta": "Qual é a atitude correta diante dessa condição?",
@@ -3144,6 +3396,12 @@ MISSOES = [
                 "Número de Contato: (69) 99803-1328\n"
                 "Ocorrência: Cliente (loja de autopeças) contratou instalação de rede com organização de rack para switch e patch panel."
             ),
+        },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Manutenção de cabo drop",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
         },
         "decisoes": [
             {"cena": "Você está organizando os cabos dentro do rack e tem à disposição tanto velcro reutilizável quanto abraçadeiras plásticas descartáveis.",
@@ -3213,6 +3471,12 @@ MISSOES = [
                 "Ocorrência: Cliente contratou instalação de novo ponto de internet no imóvel. Atendimento agendado previamente."
             ),
         },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Instalação, manutenção ou retirada de rede Fibra Optica",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
+        },
         "decisoes": [
             {"cena": "Depois de tocar a campainha algumas vezes sem resposta, você liga pro celular do Sr. Otacílio, que atende meio sonolento, claramente tendo esquecido do horário.",
              "pergunta": "Qual é a atitude profissional correta?",
@@ -3280,6 +3544,12 @@ MISSOES = [
                 "Número de Contato: (69) 99399-6811\n"
                 "Ocorrência: Cliente relata instabilidade na internet após tempestade forte na região. Outros clientes da mesma rua reportaram o mesmo problema."
             ),
+        },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Ampliação ou manutenção CTO",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
         },
         "decisoes": [
             {"cena": "Você chega na CTO que atende essa rua e percebe água acumulada dentro da caixa, provavelmente entrada por uma vedação danificada.",
@@ -3349,6 +3619,12 @@ MISSOES = [
                 "Ocorrência: Cliente solicita bloqueio de um dispositivo não identificado que estaria utilizando sua rede Wi-Fi sem autorização."
             ),
         },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Manutenção casa do cliente (internet lenta, sem internet, configuração)",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
+        },
         "decisoes": [
             {"cena": "O Sr. Rogério pede pra você configurar algo que impeça 'o vizinho de usar o Wi-Fi dele', mas ao perguntar, você percebe que ele só está desconfiado, sem nenhuma prova real de acesso indevido.",
              "pergunta": "Qual é a primeira coisa a fazer antes de qualquer ação?",
@@ -3416,6 +3692,12 @@ MISSOES = [
                 "Número de Contato: (69) 99901-4228\n"
                 "Ocorrência: Cliente liga reclamando de internet lenta. Solicita verificação técnica no local."
             ),
+        },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Manutenção casa do cliente (internet lenta, sem internet, configuração)",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
         },
         "decisoes": [
             {"cena": "Pelo sistema remoto, você consegue ver que a ONT da Sra. Terezinha está reportando sinal óptico normal e sem erros.",
