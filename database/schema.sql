@@ -241,6 +241,9 @@ create table if not exists public.jogo_campo_progresso (
     evento_cliente_visto boolean not null default false,  -- já respondeu à mensagem do cliente nesta O.S.?
     ultima_acao_resultado text,        -- mensagem sobre a última ação (reagendar/encaminhar) pra mostrar na próxima tela
     desfecho_missao      text not null default 'normal',  -- normal | encaminhada — como a última O.S. concluída terminou
+    apr_respostas         jsonb,        -- formulário de APR em preenchimento/enviado pra O.S. atual (null até abrir)
+    apr_resultado         jsonb,        -- resultado da validação da APR contra o gabarito da O.S. (null até calcular)
+    motivo_nao_realizado  text,         -- justificativa informada ao reagendar/encaminhar (via APR)
     atualizado_em        timestamptz not null default now()
 );
 

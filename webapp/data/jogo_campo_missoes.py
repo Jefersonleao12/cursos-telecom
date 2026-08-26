@@ -37,6 +37,12 @@ MISSOES = [
                 "Ocorrência: Cliente contratou o plano de 300 Mega e solicita instalação de fibra óptica. Primeira instalação no imóvel — atualmente utiliza apenas internet móvel."
             ),
         },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Instalação, manutenção ou retirada de rede Fibra Optica",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
+        },
         "decisoes": [
             {
                 "cena": "Você chega com o cordão de fibra (pigtail) pronto para conectar na ONT Huawei EG8145. Na parte de trás do equipamento você vê uma entrada óptica com trava SC/APC (verde), quatro portas LAN (amarelas), entrada de energia e botão WPS.",
@@ -113,6 +119,12 @@ MISSOES = [
                 "Ocorrência: Cliente relata que a internet cai com frequência. Possui roteador próprio conectado após a ONT. Solicita verificação técnica no local."
             ),
         },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Manutenção casa do cliente (internet lenta, sem internet, configuração)",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
+        },
         "decisoes": [
             {
                 "cena": "Dona Marlene pede: 'Bota uma senha fácil, tipo o meu nome mesmo, pra eu não esquecer.'",
@@ -188,6 +200,12 @@ MISSOES = [
                 "Número de Contato: (69) 99813-3490\n"
                 "Ocorrência: Cliente informa que a internet funciona normalmente na sala, mas não há sinal (cabo ou Wi-Fi) no quarto dos fundos. Solicita verificação no local."
             ),
+        },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Manutenção casa do cliente (internet lenta, sem internet, configuração)",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
         },
         "decisoes": [
             {
@@ -672,6 +690,12 @@ MISSOES = [
                 "Número de Contato: (69) 99323-9381\n"
                 "Ocorrência: Cliente relata quedas de internet por alguns segundos, diversas vezes ao dia, sem horário definido."
             ),
+        },
+        "apr_gabarito": {
+            "subiu_poste": False,
+            "atividade_esperada": "Manutenção casa do cliente (internet lenta, sem internet, configuração)",
+            "riscos_obrigatorios": [],
+            "epis_obrigatorios": [],
         },
         "decisoes": [
             {"cena": "No momento da visita, tudo parece normal: sinal bom, LEDs certos. Você não consegue reproduzir o problema na hora.",

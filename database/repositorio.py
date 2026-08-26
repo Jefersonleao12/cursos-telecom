@@ -929,6 +929,9 @@ _JOGO_CAMPO_PADRAO = {
     "evento_cliente_visto": False,
     "ultima_acao_resultado": None,
     "desfecho_missao": "normal",
+    "apr_respostas": None,
+    "apr_resultado": None,
+    "motivo_nao_realizado": None,
 }
 
 

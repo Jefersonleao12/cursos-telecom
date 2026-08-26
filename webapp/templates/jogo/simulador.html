@@ -129,6 +129,7 @@
     background:rgba(58,168,193,0.12); border:1px solid rgba(58,168,193,0.35); color:var(--teal-bright);
     border-radius:9px; padding:10px 12px; font-size:13.5px; line-height:1.5; margin-bottom:12px;
   }
+  .simulador-campo .flash-banner.erro{background:var(--danger-dim); border-color:rgba(226,87,76,0.4); color:#F0A199;}
   .simulador-campo .event-banner{
     background:rgba(242,169,59,0.1); border:1px solid rgba(242,169,59,0.35); border-radius:10px;
     padding:12px 14px; margin-bottom:12px;
@@ -157,6 +158,31 @@
   }
   .simulador-campo .map-pin{font-size:30px; filter:drop-shadow(0 4px 6px rgba(0,0,0,0.5));}
   .simulador-campo .map-endereco{font-size:13px; color:#C7D3D6; margin:0 0 14px;}
+
+  /* --- APR (Análise Preliminar de Risco) --- */
+  .simulador-campo .apr-card{background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:22px 20px;}
+  .simulador-campo .apr-header{margin-bottom:16px;}
+  .simulador-campo .apr-eyebrow{font-family:var(--font-mono); font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:#8FA3AB; margin-bottom:6px;}
+  .simulador-campo .apr-card h2{font-size:22px; color:#fff;}
+  .simulador-campo .apr-intro{font-size:14px; line-height:1.55; color:#C7D3D6; margin:0 0 18px;}
+  .simulador-campo .apr-form{display:flex; flex-direction:column; gap:18px;}
+  .simulador-campo .apr-secao{background:var(--panel-light); border:1px solid var(--border); border-radius:10px; padding:14px 16px; transition:opacity 150ms ease;}
+  .simulador-campo .apr-secao.apr-secao-inativa{opacity:0.55;}
+  .simulador-campo .apr-secao-titulo{font-family:var(--font-display); font-weight:700; font-size:15px; color:var(--teal-bright); margin-bottom:10px;}
+  .simulador-campo .apr-inaplicavel{font-family:var(--font-mono); font-size:12px; color:#7C8B92; margin:0;}
+  .simulador-campo .apr-check{display:flex; align-items:flex-start; gap:9px; font-size:13.5px; line-height:1.4; color:#DCE5E7; padding:6px 0; cursor:pointer;}
+  .simulador-campo .apr-check input{margin-top:3px; accent-color:var(--teal-bright); width:16px; height:16px; flex-shrink:0;}
+  .simulador-campo .apr-radio{display:inline-flex; align-items:center; gap:7px; font-size:14px; color:#DCE5E7; margin-right:22px; cursor:pointer;}
+  .simulador-campo .apr-radio input{accent-color:var(--amber); width:16px; height:16px;}
+  .simulador-campo .apr-label{display:block; font-family:var(--font-mono); font-size:11.5px; color:#8FA3AB; margin-bottom:6px;}
+  .simulador-campo .apr-justificativa{margin-top:12px;}
+  .simulador-campo .obrigatorio{color:var(--danger);}
+  .simulador-campo .apr-form textarea{
+    width:100%; background:var(--bg-deep); border:1px solid var(--border); border-radius:8px; color:#E8EEF0;
+    font-family:var(--font-body); font-size:13.5px; padding:10px 12px; resize:vertical;
+  }
+  .simulador-campo .apr-erros{margin:0; padding-left:18px; color:#E3EAEB; font-size:14px; line-height:1.6;}
+  .simulador-campo .apr-erros li{margin-bottom:6px;}
 
   .simulador-campo .progress-line{font-family:var(--font-mono); font-size:11.5px; color:var(--teal-bright); letter-spacing:0.08em; margin-bottom:10px;}
   .simulador-campo .scene-panel{background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:18px 18px 6px; margin-bottom:16px;}
@@ -329,10 +355,12 @@
       {% if ligou_cliente %}
       <p class="call-result">☎️ Ligando... Pelo visto o cliente não quis atender.</p>
       {% endif %}
-      <form action="/jogo/reagendar" method="post" onsubmit="return confirm('Reagendar essa O.S.? Ela volta a aparecer mais adiante no plantão.');">
+      <form action="/jogo/abrir-apr" method="post">
+        <input type="hidden" name="origem" value="reagendar">
         <button type="submit" class="btn ghost small">🗓️ Reagendar</button>
       </form>
-      <form action="/jogo/encaminhar" method="post" onsubmit="return confirm('Encaminhar essa O.S. pra outro técnico?');">
+      <form action="/jogo/abrir-apr" method="post">
+        <input type="hidden" name="origem" value="encaminhar">
         <button type="submit" class="btn ghost small">↗️ Encaminhar</button>
       </form>
     </div>
@@ -347,8 +375,135 @@
   </div>
 
   <div class="cta-wrap">
+    <form action="/jogo/abrir-apr" method="post">
+      <input type="hidden" name="origem" value="iniciar">
+      <button class="btn" type="submit">Preencher APR e iniciar atendimento →</button>
+    </form>
+  </div>
+  {% endif %}
+
+  {% if tela == "apr" %}
+  {% if apr_origem in ("reagendar", "encaminhar") %}
+  <div class="apr-card">
+    <div class="apr-header">
+      <div class="apr-eyebrow">Análise Preliminar de Risco</div>
+      <h2>{{ "Reagendar" if apr_origem == "reagendar" else "Encaminhar" }} O.S. {{ missao.id }}</h2>
+    </div>
+    <p class="apr-intro">Antes de {{ "reagendar" if apr_origem == "reagendar" else "encaminhar" }} essa O.S., explique por que não foi possível realizar o atendimento agora.</p>
+    {% if apr_erro %}
+    <div class="flash-banner erro">{{ apr_erro }}</div>
+    {% endif %}
+    <form action="/jogo/enviar-apr" method="post" class="apr-form">
+      <label class="apr-label" for="justificativa">Justificativa <span class="obrigatorio">*</span></label>
+      <textarea id="justificativa" name="justificativa" required minlength="10" rows="4" placeholder="Descreva o motivo..."></textarea>
+      <button class="btn" type="submit">{{ "Confirmar reagendamento →" if apr_origem == "reagendar" else "Confirmar encaminhamento →" }}</button>
+    </form>
+  </div>
+  {% else %}
+  <div class="apr-card" x-data="{ subiuPoste: null, realizar: null }">
+    <div class="apr-header">
+      <div class="apr-eyebrow">Análise Preliminar de Risco — O.S. {{ missao.id }}</div>
+      <h2>Antes de iniciar o atendimento</h2>
+    </div>
+    {% if apr_erro %}
+    <div class="flash-banner erro">{{ apr_erro }}</div>
+    {% endif %}
+
+    <form action="/jogo/enviar-apr" method="post" class="apr-form">
+      <div class="apr-secao">
+        <div class="apr-secao-titulo">Descrição das Atividades <span class="obrigatorio">*</span></div>
+        {% for item in apr_atividades %}
+        <label class="apr-check"><input type="checkbox" name="atividades" value="{{ item }}"> {{ item }}</label>
+        {% endfor %}
+      </div>
+
+      <div class="apr-secao apr-gate">
+        <div class="apr-secao-titulo">Foi necessário subir em poste, torre ou estrutura elevada? <span class="obrigatorio">*</span></div>
+        <label class="apr-radio"><input type="radio" name="subiu_poste" value="sim" x-model="subiuPoste" required> Sim</label>
+        <label class="apr-radio"><input type="radio" name="subiu_poste" value="nao" x-model="subiuPoste"> Não</label>
+      </div>
+
+      <div class="apr-secao" :class="subiuPoste !== 'sim' ? 'apr-secao-inativa' : ''">
+        <div class="apr-secao-titulo">Trabalho proximidade da rede elétrica</div>
+        <template x-if="subiuPoste !== 'sim'">
+          <p class="apr-inaplicavel">Não aplicável — nenhum trabalho em estrutura elevada foi informado.</p>
+        </template>
+        <template x-if="subiuPoste === 'sim'">
+          <div>
+            {% for item in apr_riscos %}
+            <label class="apr-check"><input type="checkbox" name="riscos" value="{{ item }}"> {{ item }}</label>
+            {% endfor %}
+            <label class="apr-check"><input type="checkbox" name="riscos" value="{{ apr_risco_nenhum }}"> {{ apr_risco_nenhum }}</label>
+          </div>
+        </template>
+      </div>
+
+      <div class="apr-secao" :class="subiuPoste !== 'sim' ? 'apr-secao-inativa' : ''">
+        <div class="apr-secao-titulo">Equipamentos de Proteção Individual ou coletiva Necessários</div>
+        <template x-if="subiuPoste !== 'sim'">
+          <p class="apr-inaplicavel">Não aplicável — nenhum trabalho em estrutura elevada foi informado.</p>
+        </template>
+        <template x-if="subiuPoste === 'sim'">
+          <div>
+            {% for item in apr_epis %}
+            <label class="apr-check"><input type="checkbox" name="epis" value="{{ item }}"> {{ item }}</label>
+            {% endfor %}
+            <label class="apr-check"><input type="checkbox" name="epis" value="{{ apr_epi_nenhum }}"> {{ apr_epi_nenhum }}</label>
+          </div>
+        </template>
+      </div>
+
+      <div class="apr-secao">
+        <div class="apr-secao-titulo">Irá realizar atividade? <span class="obrigatorio">*</span></div>
+        <label class="apr-radio"><input type="radio" name="realizar" value="sim" x-model="realizar" required> Sim</label>
+        <label class="apr-radio"><input type="radio" name="realizar" value="nao" x-model="realizar"> Não</label>
+        <template x-if="realizar === 'nao'">
+          <div class="apr-justificativa">
+            <label class="apr-label" for="justificativa">Em caso de não realizar atividade, justifique: <span class="obrigatorio">*</span></label>
+            <textarea id="justificativa" name="justificativa" rows="3" placeholder="Descreva o motivo..." :required="realizar === 'nao'"></textarea>
+          </div>
+        </template>
+      </div>
+
+      <button class="btn" type="submit">Enviar APR →</button>
+    </form>
+  </div>
+  {% endif %}
+  {% endif %}
+
+  {% if tela == "apr-feedback" %}
+  <div class="apr-card">
+    <div class="apr-header">
+      <div class="apr-eyebrow">Resultado da APR — O.S. {{ missao.id }}</div>
+      <h2>{{ "APR sem pendências" if not apr_resultado.aplicavel or apr_resultado.correta else "APR com pendências" }}</h2>
+    </div>
+
+    {% if apr_resultado.aplicavel %}
+      {% if apr_resultado.correta %}
+      <div class="feedback-card correct">
+        <div class="feedback-tag">✅ Avaliação de risco correta</div>
+        <p>Você identificou certo se era necessário trabalho em altura/estrutura elevada nessa O.S., e marcou as atividades e EPIs esperados.</p>
+      </div>
+      {% else %}
+      <div class="feedback-card wrong">
+        <div class="feedback-tag">⚠️ Revise antes do próximo atendimento</div>
+        <ul class="apr-erros">
+          {% for erro in apr_resultado.erros %}
+          <li>{{ erro }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+    {% else %}
+    <div class="feedback-card correct">
+      <div class="feedback-tag">📋 APR registrada</div>
+      <p>Essa O.S. ainda não tem um gabarito de risco cadastrado — sua APR foi salva, mas sem avaliação automática por enquanto.</p>
+    </div>
+    {% endif %}
+  </div>
+  <div class="cta-wrap">
     <form action="/jogo/iniciar-missao" method="post">
-      <button class="btn" type="submit">Continuar execução →</button>
+      <button class="btn" type="submit">Continuar →</button>
     </form>
   </div>
   {% endif %}

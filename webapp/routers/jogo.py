@@ -10,14 +10,14 @@ from fastapi.responses import RedirectResponse
 
 from webapp.deps import obter_aluno_atual
 from webapp.services.jogo_campo import (
+    abrir_apr,
     chamar_cliente,
     continuar,
-    encaminhar,
+    enviar_apr,
     iniciar_jogo,
     iniciar_missao,
     obter_tela,
     proxima_missao,
-    reagendar,
     reiniciar,
     responder,
     responder_evento_cliente,
@@ -57,15 +57,31 @@ def jogo_responder_cliente(resposta: int = Form(...), aluno: dict = Depends(obte
     return RedirectResponse("/jogo", status_code=303)
 
 
-@router.post("/jogo/reagendar")
-def jogo_reagendar(aluno: dict = Depends(obter_aluno_atual)):
-    reagendar(aluno["id"])
+@router.post("/jogo/abrir-apr")
+def jogo_abrir_apr(origem: str = Form(...), aluno: dict = Depends(obter_aluno_atual)):
+    abrir_apr(aluno["id"], origem)
     return RedirectResponse("/jogo", status_code=303)
 
 
-@router.post("/jogo/encaminhar")
-def jogo_encaminhar(aluno: dict = Depends(obter_aluno_atual)):
-    encaminhar(aluno["id"])
+@router.post("/jogo/enviar-apr")
+def jogo_enviar_apr(
+    atividades: list[str] = Form([]),
+    subiu_poste: str = Form(None),
+    riscos: list[str] = Form([]),
+    epis: list[str] = Form([]),
+    realizar: str = Form(None),
+    justificativa: str = Form(""),
+    aluno: dict = Depends(obter_aluno_atual),
+):
+    enviar_apr(
+        aluno["id"],
+        atividades=atividades,
+        subiu_poste=subiu_poste,
+        riscos=riscos,
+        epis=epis,
+        realizar=realizar,
+        justificativa=justificativa,
+    )
     return RedirectResponse("/jogo", status_code=303)
 
 

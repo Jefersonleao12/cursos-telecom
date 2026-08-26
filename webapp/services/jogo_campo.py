@@ -16,6 +16,7 @@ adicionar mais O.S. no futuro é só crescer aquela lista, sem mexer aqui.
 import random
 
 from database.repositorio import jogo_campo_obter_progresso, jogo_campo_salvar_progresso
+from webapp.data import apr_opcoes
 from webapp.data.jogo_campo_missoes import MISSOES
 
 _DECISOES_POR_MISSAO = 4  # todas as O.S. do lote atual têm 4 decisões
@@ -23,6 +24,8 @@ _SELOS_A_CADA = 5
 _PENALIDADE_ACAO_INJUSTIFICADA = 30  # pontos perdidos ao reagendar/encaminhar sem a situação que justifica
 _BONUS_RESPOSTA_BOA_AO_CLIENTE = 5
 _CHANCE_EVENTO_CLIENTE = 0.30  # chance, a cada O.S., do cliente avisar que precisa sair
+_XP_APR_CORRETA = 20   # APR sem nenhum erro contra o gabarito da O.S.
+_XP_APR_COM_ERROS = 5  # APR enviada, mas com algo divergente do gabarito
 
 _NOMES_SELOS = [
     "Selo Aprendiz de Campo",
@@ -132,7 +135,7 @@ def obter_tela(aluno_id: str) -> dict:
         "total_decisoes": _DECISOES_POR_MISSAO,
     }
 
-    if tela in ("mission-intro", "decision", "feedback", "mission-end"):
+    if tela in ("mission-intro", "decision", "feedback", "mission-end", "apr", "apr-feedback"):
         contexto["missao"] = _missao_atual(progresso)
 
     if tela == "mission-intro":
@@ -141,6 +144,19 @@ def obter_tela(aluno_id: str) -> dict:
         contexto["evento_cliente_visto"] = progresso.get("evento_cliente_visto", False)
         contexto["respostas_evento_cliente"] = _RESPOSTAS_EVENTO_CLIENTE
         contexto["ultima_acao_resultado"] = progresso.get("ultima_acao_resultado")
+
+    if tela == "apr":
+        contexto["apr_origem"] = (progresso.get("apr_respostas") or {}).get("origem", "iniciar")
+        contexto["apr_erro"] = (progresso.get("apr_resultado") or {}).get("erro")
+        contexto["apr_atividades"] = apr_opcoes.ATIVIDADES
+        contexto["apr_riscos"] = apr_opcoes.RISCOS
+        contexto["apr_risco_nenhum"] = apr_opcoes.RISCO_NENHUM
+        contexto["apr_epis"] = apr_opcoes.EPIS
+        contexto["apr_epi_nenhum"] = apr_opcoes.EPI_NENHUM
+
+    if tela == "apr-feedback":
+        contexto["apr_respostas"] = progresso.get("apr_respostas") or {}
+        contexto["apr_resultado"] = progresso.get("apr_resultado") or {}
 
     if tela == "decision":
         missao = contexto["missao"]
@@ -217,6 +233,8 @@ def _entrar_em_missao(aluno_id: str, missao_index: int, fila: list = None, resul
         "evento_cliente_ativo": random.random() < _CHANCE_EVENTO_CLIENTE,
         "evento_cliente_visto": False,
         "ultima_acao_resultado": resultado,
+        "apr_respostas": None,
+        "apr_resultado": None,
     }
     if fila is not None:
         campos["fila_missoes"] = fila
@@ -266,7 +284,9 @@ def reagendar(aluno_id: str):
     Adia a O.S. atual: ela sai da posição atual da fila e volta a
     aparecer mais adiante (não desaparece, não conta como concluída).
     Descontar pontos só se o aluno NÃO tentou ligar pro cliente antes
-    (ver chamar_cliente()) — ligar isenta a penalidade.
+    (ver chamar_cliente()) — ligar isenta a penalidade. Sempre chamada
+    depois de gravar motivo_nao_realizado (ver enviar_apr) — nunca
+    direto de uma rota HTTP.
     """
     progresso = jogo_campo_obter_progresso(aluno_id)
     fila = _fila_atual(progresso)
@@ -277,14 +297,17 @@ def reagendar(aluno_id: str):
     nova_posicao = min(len(resto), posicao + random.randint(3, 8))
     nova_fila = resto[:nova_posicao] + [real_index] + resto[nova_posicao:]
 
+    motivo = (progresso.get("motivo_nao_realizado") or "").strip()
+    sufixo_motivo = f' Motivo informado na APR: "{motivo}"' if motivo else ""
+
     if progresso.get("ligou_cliente"):
-        resultado = "↩️ A O.S. anterior foi reagendada sem perda de pontos — você já tinha tentado contato com o cliente."
+        resultado = f"↩️ A O.S. anterior foi reagendada sem perda de pontos — você já tinha tentado contato com o cliente.{sufixo_motivo}"
     else:
         novo_xp = max(0, progresso["xp"] - _PENALIDADE_ACAO_INJUSTIFICADA)
         jogo_campo_salvar_progresso(aluno_id, xp=novo_xp)
         resultado = (
             f"↩️ A O.S. anterior foi reagendada. -{_PENALIDADE_ACAO_INJUSTIFICADA} pontos "
-            "por reagendar sem tentar contato com o cliente antes."
+            f"por reagendar sem tentar contato com o cliente antes.{sufixo_motivo}"
         )
 
     _entrar_em_missao(aluno_id, missao_index=posicao, fila=nova_fila, resultado=resultado)
@@ -294,19 +317,22 @@ def encaminhar(aluno_id: str):
     """
     Encerra a O.S. atual encaminhando pra outro técnico (não volta a
     aparecer pra esse aluno). Só é penalizado se o cliente não tiver
-    avisado que precisava sair (evento sorteado + já respondido).
+    avisado que precisava sair (evento sorteado + já respondido). Sempre
+    chamada depois de gravar motivo_nao_realizado (ver enviar_apr).
     """
     progresso = jogo_campo_obter_progresso(aluno_id)
     justificado = bool(progresso.get("evento_cliente_ativo")) and bool(progresso.get("evento_cliente_visto"))
+    motivo = (progresso.get("motivo_nao_realizado") or "").strip()
+    sufixo_motivo = f' Motivo informado na APR: "{motivo}"' if motivo else ""
 
     if justificado:
-        resultado = "📨 O.S. encaminhada sem perda de pontos — o cliente avisou que não podia atender agora."
+        resultado = f"📨 O.S. encaminhada sem perda de pontos — o cliente avisou que não podia atender agora.{sufixo_motivo}"
     else:
         novo_xp = max(0, progresso["xp"] - _PENALIDADE_ACAO_INJUSTIFICADA)
         jogo_campo_salvar_progresso(aluno_id, xp=novo_xp)
         resultado = (
             f"📨 O.S. encaminhada sem uma razão registrada do cliente. "
-            f"-{_PENALIDADE_ACAO_INJUSTIFICADA} pontos."
+            f"-{_PENALIDADE_ACAO_INJUSTIFICADA} pontos.{sufixo_motivo}"
         )
 
     jogo_campo_salvar_progresso(
@@ -316,6 +342,106 @@ def encaminhar(aluno_id: str):
         missoes_completadas=progresso["missoes_completadas"] + 1,
         ultima_acao_resultado=resultado,
     )
+
+
+def _validar_apr(missao: dict, respostas: dict) -> dict:
+    """
+    Compara as respostas da APR com o gabarito da O.S. (apr_gabarito, em
+    webapp/data/jogo_campo_missoes.py). Missões que ainda não têm
+    gabarito (a maioria, por enquanto) não são avaliadas.
+    """
+    gabarito = missao.get("apr_gabarito")
+    if not gabarito:
+        return {"aplicavel": False, "correta": True, "erros": []}
+
+    erros = []
+    subiu_poste_ok = respostas["subiu_poste"] == gabarito["subiu_poste"]
+    if not subiu_poste_ok:
+        if gabarito["subiu_poste"]:
+            erros.append("Essa O.S. envolvia trabalho em altura/estrutura elevada, e isso não foi identificado na APR.")
+        else:
+            erros.append("Essa O.S. não envolvia trabalho em altura/estrutura elevada — marcar \"sim\" aqui não bate com a situação real.")
+
+    if gabarito["atividade_esperada"] not in respostas.get("atividades", []):
+        erros.append(f'A atividade esperada pra essa O.S. era "{gabarito["atividade_esperada"]}", e ela não foi marcada.')
+
+    if subiu_poste_ok and gabarito["subiu_poste"]:
+        faltando_riscos = [r for r in gabarito["riscos_obrigatorios"] if r not in respostas.get("riscos", [])]
+        if faltando_riscos:
+            erros.append("Risco(s) elétrico(s) esperado(s) e não marcado(s): " + "; ".join(faltando_riscos))
+        faltando_epis = [e for e in gabarito["epis_obrigatorios"] if e not in respostas.get("epis", [])]
+        if faltando_epis:
+            erros.append("EPI(s) esperado(s) e não marcado(s): " + "; ".join(faltando_epis))
+
+    return {"aplicavel": True, "correta": not erros, "erros": erros}
+
+
+def abrir_apr(aluno_id: str, origem: str):
+    """
+    Abre a tela de APR a partir da intro da O.S. `origem` indica de onde
+    veio o clique: "iniciar" mostra o formulário completo (validado
+    contra o gabarito da O.S.); "reagendar"/"encaminhar" mostram só o
+    campo de justificativa, já que o atendimento não vai ser feito agora.
+    """
+    if origem not in ("iniciar", "reagendar", "encaminhar"):
+        return
+    jogo_campo_salvar_progresso(aluno_id, tela="apr", apr_respostas={"origem": origem}, apr_resultado=None)
+
+
+def enviar_apr(
+    aluno_id: str,
+    atividades: list[str] = None,
+    subiu_poste: str = None,
+    riscos: list[str] = None,
+    epis: list[str] = None,
+    realizar: str = None,
+    justificativa: str = "",
+):
+    """
+    Processa o envio da APR. Se veio de Reagendar/Encaminhar (origem
+    gravada em abrir_apr), só grava a justificativa e delega pra
+    reagendar()/encaminhar() — a lógica de pontos delas não muda em nada.
+    Se veio de "iniciar" e o aluno decidiu (na própria APR) não realizar
+    o atendimento, trata como um reagendamento. Senão, valida contra o
+    gabarito da O.S. e segue pra tela de feedback da APR.
+    """
+    progresso = jogo_campo_obter_progresso(aluno_id)
+    origem = (progresso.get("apr_respostas") or {}).get("origem", "iniciar")
+    justificativa = (justificativa or "").strip()
+    justificativa_curta = len(justificativa) < 5
+
+    if origem in ("reagendar", "encaminhar"):
+        if justificativa_curta:
+            jogo_campo_salvar_progresso(aluno_id, apr_resultado={"erro": "Escreva uma justificativa antes de continuar."})
+            return
+        jogo_campo_salvar_progresso(aluno_id, motivo_nao_realizado=justificativa, apr_resultado=None)
+        (reagendar if origem == "reagendar" else encaminhar)(aluno_id)
+        return
+
+    respostas = {
+        "origem": origem,
+        "atividades": atividades or [],
+        "subiu_poste": subiu_poste == "sim",
+        "riscos": riscos or [],
+        "epis": epis or [],
+        "realizar": realizar == "sim",
+        "justificativa": justificativa,
+    }
+
+    if not respostas["realizar"]:
+        if justificativa_curta:
+            jogo_campo_salvar_progresso(aluno_id, apr_resultado={"erro": "Escreva uma justificativa antes de continuar."})
+            return
+        jogo_campo_salvar_progresso(aluno_id, apr_respostas=respostas, motivo_nao_realizado=justificativa)
+        reagendar(aluno_id)
+        return
+
+    missao = _missao_atual(progresso)
+    resultado = _validar_apr(missao, respostas)
+    campos = {"apr_respostas": respostas, "apr_resultado": resultado, "tela": "apr-feedback"}
+    if resultado["aplicavel"]:
+        campos["xp"] = progresso["xp"] + (_XP_APR_CORRETA if resultado["correta"] else _XP_APR_COM_ERROS)
+    jogo_campo_salvar_progresso(aluno_id, **campos)
 
 
 def responder(aluno_id: str, opcao_index: int):
@@ -380,4 +506,5 @@ def reiniciar(aluno_id: str):
         acertos_totais=0, xp=0, opcao_escolhida=None,
         fila_missoes=None, ligou_cliente=False, evento_cliente_ativo=False,
         evento_cliente_visto=False, ultima_acao_resultado=None, desfecho_missao="normal",
+        apr_respostas=None, apr_resultado=None, motivo_nao_realizado=None,
     )
