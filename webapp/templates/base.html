@@ -7,7 +7,7 @@
     <link rel="manifest" href="/static/manifest.json">
     <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
     <link rel="icon" href="/static/icon-192.png">
-    <meta name="theme-color" content="#143C6E">
+    <meta name="theme-color" content="#020617">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="Norte Tel">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -34,37 +34,40 @@
     </script>
     {% block cabecalho_extra %}{% endblock %}
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-800">
+<body class="min-h-screen bg-slate-950 text-slate-100">
     {% if aluno %}
-    <header class="bg-gradient-to-r from-norte-azul-escuro via-norte-azul to-norte-azul-claro text-white">
+    <header class="sticky top-0 z-40 bg-slate-950/90 backdrop-blur-md border-b border-white/10">
         <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
-            <a href="/" class="flex items-center gap-2 font-semibold">
-                <img src="/assets/icone.png" alt="" class="w-8 h-8 rounded">
+            <a href="/" class="flex items-center gap-2.5 font-bold text-white tracking-tight">
+                <img src="/assets/icone.png" alt="" class="w-8 h-8 rounded-lg">
                 <span>Norte Tel</span>
             </a>
             <nav class="hidden md:flex items-center gap-1 text-sm">
                 {% for href, rotulo in [("/", "Início"), ("/cursos", "Cursos"), ("/materiais", "Materiais"), ("/ranking", "Ranking"), ("/certificados", "Certificados")] %}
                 <a href="{{ href }}"
-                   class="px-3 py-1.5 rounded-lg transition {{ 'bg-white/15 font-semibold' if request.url.path == href else 'hover:bg-white/10' }}">
+                   class="px-3.5 py-2 rounded-lg transition font-medium {{ 'bg-white/10 text-white' if request.url.path == href else 'text-slate-400 hover:text-white hover:bg-white/5' }}">
                     {{ rotulo }}
                 </a>
                 {% endfor %}
                 {% if aluno.is_admin %}
                 <a href="/admin"
-                   class="px-3 py-1.5 rounded-lg transition {{ 'bg-white/15 font-semibold' if request.url.path.startswith('/admin') else 'hover:bg-white/10' }}">
+                   class="px-3.5 py-2 rounded-lg transition font-medium {{ 'bg-white/10 text-white' if request.url.path.startswith('/admin') else 'text-slate-400 hover:text-white hover:bg-white/5' }}">
                     ⚙️ Admin
                 </a>
                 {% endif %}
             </nav>
             <div class="flex items-center gap-3">
-                <a href="/perfil" class="flex items-center gap-2 hover:opacity-80 transition">
-                    <span class="text-sm opacity-90 hidden sm:inline">{{ aluno.nome_completo }}</span>
+                <a href="/perfil" class="flex items-center gap-2.5 hover:opacity-80 transition">
+                    <span class="text-sm text-slate-300 hidden sm:inline">{{ aluno.nome_completo }}</span>
                     {% if aluno.foto_url %}
-                    <img src="{{ aluno.foto_url }}" alt="" class="w-8 h-8 rounded-full object-cover border border-white/40">
+                    <span class="relative inline-flex shrink-0">
+                        <img src="{{ aluno.foto_url }}" alt="" class="w-9 h-9 rounded-full object-cover ring-2 ring-white/15">
+                        <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-400 rounded-full ring-2 ring-slate-950"></span>
+                    </span>
                     {% endif %}
                 </a>
                 <form action="/logout" method="post">
-                    <button type="submit" class="text-sm bg-white/10 hover:bg-white/20 rounded px-3 py-1.5 transition">
+                    <button type="submit" class="text-sm bg-white/5 hover:bg-white/10 border border-white/10 text-slate-200 rounded-lg px-3.5 py-2 transition">
                         Sair
                     </button>
                 </form>
@@ -73,13 +76,13 @@
         <nav class="md:hidden flex items-center gap-1 text-sm px-4 pb-3 overflow-x-auto">
             {% for href, rotulo in [("/", "Início"), ("/cursos", "Cursos"), ("/materiais", "Materiais"), ("/ranking", "Ranking"), ("/certificados", "Certificados")] %}
             <a href="{{ href }}"
-               class="px-3 py-1.5 rounded-lg whitespace-nowrap transition {{ 'bg-white/15 font-semibold' if request.url.path == href else 'hover:bg-white/10' }}">
+               class="px-3 py-1.5 rounded-lg whitespace-nowrap transition font-medium {{ 'bg-white/10 text-white' if request.url.path == href else 'text-slate-400 hover:text-white hover:bg-white/5' }}">
                 {{ rotulo }}
             </a>
             {% endfor %}
             {% if aluno.is_admin %}
             <a href="/admin"
-               class="px-3 py-1.5 rounded-lg whitespace-nowrap transition {{ 'bg-white/15 font-semibold' if request.url.path.startswith('/admin') else 'hover:bg-white/10' }}">
+               class="px-3 py-1.5 rounded-lg whitespace-nowrap transition font-medium {{ 'bg-white/10 text-white' if request.url.path.startswith('/admin') else 'text-slate-400 hover:text-white hover:bg-white/5' }}">
                 ⚙️ Admin
             </a>
             {% endif %}
