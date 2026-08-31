@@ -7,7 +7,7 @@
     <link rel="manifest" href="/static/manifest.json">
     <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
     <link rel="icon" href="/static/icon-192.png">
-    <meta name="theme-color" content="#020617">
+    <meta name="theme-color" content="#0b0f19">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="Norte Tel">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -21,77 +21,121 @@
                         'norte-azul': '#143C6E',
                         'norte-azul-escuro': '#0F2E56',
                         'norte-azul-claro': '#1F5AA8',
+                        'bg-dark': '#0b0f19',
                     },
                 },
             },
         };
     </script>
-    <style>[x-cloak] { display: none !important; }</style>
+    <style>
+        [x-cloak] { display: none !important; }
+        body { background-color: #0b0f19; }
+        .glass-card {
+            background: rgba(19, 27, 46, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        .neon-border-glow { box-shadow: 0 0 15px rgba(0, 242, 254, 0.15), inset 0 0 15px rgba(0, 242, 254, 0.06); }
+        .neon-btn-glow { box-shadow: 0 0 20px rgba(37, 99, 235, 0.4); }
+        .scroll-sem-barra::-webkit-scrollbar { height: 0; }
+        .scroll-sem-barra { scrollbar-width: none; }
+    </style>
+    {% block cabecalho_extra %}{% endblock %}
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('/sw.js').catch(function () {});
         }
     </script>
-    {% block cabecalho_extra %}{% endblock %}
 </head>
-<body class="min-h-screen bg-slate-950 text-slate-100">
-    {% if aluno %}
-    <header class="sticky top-0 z-40 bg-slate-950/90 backdrop-blur-md border-b border-white/10">
-        <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
-            <a href="/" class="flex items-center gap-2.5 font-bold text-white tracking-tight">
-                <img src="/assets/icone.png" alt="" class="w-8 h-8 rounded-lg">
-                <span>Norte Tel</span>
+<body class="min-h-screen bg-[#0b0f19] text-slate-200 antialiased md:h-screen md:overflow-hidden md:flex"
+      {% if aluno %}x-data="{ menuAberto: false }"{% endif %}>
+{% if aluno %}
+{% set links_nav = [
+    ("/", "Início", "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 00-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"),
+    ("/cursos", "Cursos", "M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"),
+    ("/materiais", "Materiais", "M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"),
+    ("/ranking", "Ranking", "M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"),
+    ("/certificados", "Certificados", "M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"),
+] %}
+
+<div class="md:hidden sticky top-0 z-30 flex items-center justify-between px-4 py-3 bg-[#0a0e17] border-b border-white/5">
+    <button type="button" @click="menuAberto = true" class="text-slate-300 p-1 -ml-1">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <a href="/" class="flex items-center gap-2 font-bold text-white text-sm">
+        <span class="w-7 h-7 rounded-lg bg-gradient-to-tr from-blue-600 to-cyan-400 flex items-center justify-center text-xs">N</span>
+        Norte Tel
+    </a>
+    <a href="/perfil" class="shrink-0">
+        {% if aluno.foto_url %}
+        <img src="{{ aluno.foto_url }}" alt="" class="w-8 h-8 rounded-full object-cover ring-2 ring-emerald-400/70">
+        {% else %}
+        <span class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-sm">👤</span>
+        {% endif %}
+    </a>
+</div>
+
+<div x-show="menuAberto" x-cloak @click="menuAberto = false" class="md:hidden fixed inset-0 bg-black/60 z-40"></div>
+
+<aside :class="menuAberto ? 'translate-x-0' : '-translate-x-full md:translate-x-0'"
+       class="fixed md:static inset-y-0 left-0 w-64 bg-[#0a0e17] border-r border-white/5 flex flex-col justify-between p-4 z-50 transition-transform duration-200 md:shrink-0 md:h-screen">
+    <div>
+        <div class="flex items-center justify-between px-2 py-3 mb-6">
+            <a href="/" class="flex items-center gap-3">
+                <span class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-400 flex items-center justify-center font-bold text-white shadow-lg shrink-0">N</span>
+                <span class="font-bold text-lg text-white tracking-wide">Norte Tel</span>
             </a>
-            <nav class="hidden md:flex items-center gap-1 text-sm">
-                {% for href, rotulo in [("/", "Início"), ("/cursos", "Cursos"), ("/materiais", "Materiais"), ("/ranking", "Ranking"), ("/certificados", "Certificados")] %}
-                <a href="{{ href }}"
-                   class="px-3.5 py-2 rounded-lg transition font-medium {{ 'bg-white/10 text-white' if request.url.path == href else 'text-slate-400 hover:text-white hover:bg-white/5' }}">
-                    {{ rotulo }}
-                </a>
-                {% endfor %}
-                {% if aluno.is_admin %}
-                <a href="/admin"
-                   class="px-3.5 py-2 rounded-lg transition font-medium {{ 'bg-white/10 text-white' if request.url.path.startswith('/admin') else 'text-slate-400 hover:text-white hover:bg-white/5' }}">
-                    ⚙️ Admin
-                </a>
-                {% endif %}
-            </nav>
-            <div class="flex items-center gap-3">
-                <a href="/perfil" class="flex items-center gap-2.5 hover:opacity-80 transition">
-                    <span class="text-sm text-slate-300 hidden sm:inline">{{ aluno.nome_completo }}</span>
-                    {% if aluno.foto_url %}
-                    <span class="relative inline-flex shrink-0">
-                        <img src="{{ aluno.foto_url }}" alt="" class="w-9 h-9 rounded-full object-cover ring-2 ring-white/15">
-                        <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-400 rounded-full ring-2 ring-slate-950"></span>
-                    </span>
-                    {% endif %}
-                </a>
-                <form action="/logout" method="post">
-                    <button type="submit" class="text-sm bg-white/5 hover:bg-white/10 border border-white/10 text-slate-200 rounded-lg px-3.5 py-2 transition">
-                        Sair
-                    </button>
-                </form>
-            </div>
+            <button type="button" @click="menuAberto = false" class="md:hidden text-slate-500 hover:text-white p-1">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
         </div>
-        <nav class="md:hidden flex items-center gap-1 text-sm px-4 pb-3 overflow-x-auto">
-            {% for href, rotulo in [("/", "Início"), ("/cursos", "Cursos"), ("/materiais", "Materiais"), ("/ranking", "Ranking"), ("/certificados", "Certificados")] %}
+
+        <nav class="space-y-1">
+            {% for href, rotulo, path_icone in links_nav %}
+            {% set ativo = (request.url.path == href) %}
             <a href="{{ href }}"
-               class="px-3 py-1.5 rounded-lg whitespace-nowrap transition font-medium {{ 'bg-white/10 text-white' if request.url.path == href else 'text-slate-400 hover:text-white hover:bg-white/5' }}">
+               class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition {{ 'text-white bg-blue-600/20 border border-blue-500/30 shadow-inner' if ativo else 'text-slate-400 border border-transparent hover:text-white hover:bg-white/5' }}">
+                <svg class="w-5 h-5 shrink-0 {{ 'text-blue-400' if ativo else '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ path_icone }}"/></svg>
                 {{ rotulo }}
             </a>
             {% endfor %}
-            {% if aluno.is_admin %}
-            <a href="/admin"
-               class="px-3 py-1.5 rounded-lg whitespace-nowrap transition font-medium {{ 'bg-white/10 text-white' if request.url.path.startswith('/admin') else 'text-slate-400 hover:text-white hover:bg-white/5' }}">
-                ⚙️ Admin
-            </a>
-            {% endif %}
         </nav>
-    </header>
-    {% endif %}
+    </div>
 
-    <main class="max-w-5xl mx-auto px-4 py-8">
+    <div class="pt-4 border-t border-white/5 space-y-1">
+        {% if aluno.is_admin %}
+        <a href="/admin"
+           class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition {{ 'text-white bg-blue-600/20 border border-blue-500/30' if request.url.path.startswith('/admin') else 'text-slate-400 border border-transparent hover:text-white hover:bg-white/5' }}">
+            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            Admin
+        </a>
+        {% endif %}
+        <a href="/perfil" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition">
+            {% if aluno.foto_url %}
+            <img src="{{ aluno.foto_url }}" alt="" class="w-8 h-8 rounded-full object-cover ring-2 ring-emerald-400/70 shrink-0">
+            {% else %}
+            <span class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-sm shrink-0">👤</span>
+            {% endif %}
+            <span class="min-w-0">
+                <span class="block text-sm font-medium text-white truncate">{{ aluno.nome_completo }}</span>
+                <span class="block text-[11px] text-slate-500">Ver perfil</span>
+            </span>
+        </a>
+        <form action="/logout" method="post">
+            <button type="submit" class="w-full text-left px-4 py-2.5 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition">
+                Sair
+            </button>
+        </form>
+    </div>
+</aside>
+{% endif %}
+
+<div class="flex-1 flex flex-col md:overflow-y-auto">
+    <main class="p-4 md:p-8 max-w-6xl mx-auto w-full">
         {% block conteudo %}{% endblock %}
     </main>
+</div>
 </body>
 </html>
