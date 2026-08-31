@@ -7,7 +7,7 @@
 <form action="/admin/aulas" method="get" class="mb-6 grid sm:grid-cols-2 gap-4 max-w-xl">
     <div>
         <label class="block text-sm font-medium text-slate-300 mb-1">Selecione o curso</label>
-        <select name="curso_id" onchange="this.form.submit()" class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+        <select name="curso_id" onchange="this.form.submit()" class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
             {% for c in cursos %}
             <option value="{{ c.id }}" {{ "selected" if c.id == curso_id }}>{{ c.titulo }}</option>
             {% endfor %}
@@ -16,7 +16,7 @@
     {% if modulos %}
     <div>
         <label class="block text-sm font-medium text-slate-300 mb-1">Selecione o módulo</label>
-        <select name="modulo_id" onchange="this.form.submit()" class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+        <select name="modulo_id" onchange="this.form.submit()" class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
             {% for m in modulos %}
             <option value="{{ m.id }}" {{ "selected" if m.id == modulo_id }}>{{ m.ordem }}. {{ m.titulo }}</option>
             {% endfor %}
@@ -57,20 +57,20 @@
             <input type="hidden" name="modulo_id" value="{{ modulo_id }}">
             <div>
                 <label class="block text-xs font-medium text-slate-300 mb-1">Título da aula *</label>
-                <input type="text" name="titulo" value="{{ aula.titulo }}" required class="w-full rounded-lg border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                <input type="text" name="titulo" value="{{ aula.titulo }}" required class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
             </div>
             <div>
                 <label class="block text-xs font-medium text-slate-300 mb-1">Link do vídeo *</label>
-                <input type="text" name="url_video" value="{{ aula.url_video }}" required class="w-full rounded-lg border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                <input type="text" name="url_video" value="{{ aula.url_video }}" required class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
             </div>
             <div class="grid grid-cols-2 gap-3">
                 <div>
                     <label class="block text-xs font-medium text-slate-300 mb-1">Ordem</label>
-                    <input type="number" name="ordem" min="1" value="{{ aula.ordem }}" class="w-full rounded-lg border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                    <input type="number" name="ordem" min="1" value="{{ aula.ordem }}" class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-slate-300 mb-1">Duração (minutos)</label>
-                    <input type="number" name="duracao_minutos" min="0" value="{{ aula.duracao_minutos or 0 }}" class="w-full rounded-lg border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                    <input type="number" name="duracao_minutos" min="0" value="{{ aula.duracao_minutos or 0 }}" class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
                 </div>
             </div>
             <div class="flex gap-2">
@@ -92,20 +92,20 @@
     <input type="hidden" name="modulo_id" value="{{ modulo_id }}">
     <div>
         <label class="block text-sm font-medium text-slate-300 mb-1">Título da aula *</label>
-        <input type="text" name="titulo" required class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+        <input type="text" name="titulo" required class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
     </div>
     <div>
         <label class="block text-sm font-medium text-slate-300 mb-1">Link do vídeo (Google Drive) *</label>
-        <input type="text" name="url_video" placeholder="https://drive.google.com/file/d/XXXXXXXX/view" required class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+        <input type="text" name="url_video" placeholder="https://drive.google.com/file/d/XXXXXXXX/view" required class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
     </div>
     <div class="grid grid-cols-2 gap-4">
         <div>
             <label class="block text-sm font-medium text-slate-300 mb-1">Ordem de exibição</label>
-            <input type="number" name="ordem" min="1" value="{{ aulas|length + 1 }}" class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+            <input type="number" name="ordem" min="1" value="{{ aulas|length + 1 }}" class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
         </div>
         <div>
             <label class="block text-sm font-medium text-slate-300 mb-1">Duração (minutos)</label>
-            <input type="number" name="duracao_minutos" min="0" value="10" class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+            <input type="number" name="duracao_minutos" min="0" value="10" class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
         </div>
     </div>
     <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-lg px-5 py-2.5 transition">

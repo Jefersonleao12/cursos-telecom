@@ -7,7 +7,7 @@
 <form action="/admin/provas" method="get" class="mb-6 grid sm:grid-cols-2 gap-4 max-w-xl">
     <div>
         <label class="block text-sm font-medium text-slate-300 mb-1">Selecione o curso</label>
-        <select name="curso_id" onchange="this.form.submit()" class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+        <select name="curso_id" onchange="this.form.submit()" class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
             {% for c in cursos %}
             <option value="{{ c.id }}" {{ "selected" if c.id == curso_id }}>{{ c.titulo }}</option>
             {% endfor %}
@@ -16,7 +16,7 @@
     {% if modulos %}
     <div>
         <label class="block text-sm font-medium text-slate-300 mb-1">Selecione o módulo</label>
-        <select name="modulo_id" onchange="this.form.submit()" class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+        <select name="modulo_id" onchange="this.form.submit()" class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
             {% for m in modulos %}
             <option value="{{ m.id }}" {{ "selected" if m.id == modulo_id }}>{{ m.ordem }}. {{ m.titulo }}</option>
             {% endfor %}
@@ -40,11 +40,11 @@
         <input type="hidden" name="modulo_id" value="{{ modulo_id }}">
         <div>
             <label class="block text-sm font-medium text-slate-300 mb-1">Título da avaliação *</label>
-            <input type="text" name="titulo" value="Avaliação do módulo" required class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+            <input type="text" name="titulo" value="Avaliação do módulo" required class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
         </div>
         <div>
             <label class="block text-sm font-medium text-slate-300 mb-1">Nota mínima para aprovação (0 a 10)</label>
-            <input type="number" name="nota_minima" min="0" max="10" step="0.5" value="7.0" class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+            <input type="number" name="nota_minima" min="0" max="10" step="0.5" value="7.0" class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
         </div>
         <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-lg px-5 py-2.5 transition">
             Criar avaliação
@@ -80,11 +80,11 @@
         <input type="hidden" name="modulo_id" value="{{ modulo_id }}">
         <div>
             <label class="block text-xs font-medium text-slate-300 mb-1">Título da avaliação *</label>
-            <input type="text" name="titulo" value="{{ prova.titulo }}" required class="w-full rounded-lg border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+            <input type="text" name="titulo" value="{{ prova.titulo }}" required class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
         </div>
         <div>
             <label class="block text-xs font-medium text-slate-300 mb-1">Nota mínima (0 a 10)</label>
-            <input type="number" name="nota_minima" min="0" max="10" step="0.5" value="{{ prova.nota_minima }}" class="w-full rounded-lg border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+            <input type="number" name="nota_minima" min="0" max="10" step="0.5" value="{{ prova.nota_minima }}" class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
         </div>
         <div class="flex gap-2">
             <button type="submit" class="text-sm font-semibold bg-blue-600 hover:bg-blue-500 text-white rounded-lg px-4 py-1.5 transition">Salvar alterações</button>
@@ -117,18 +117,18 @@
             <input type="hidden" name="modulo_id" value="{{ modulo_id }}">
             <div>
                 <label class="block text-xs font-medium text-slate-300 mb-1">Enunciado da pergunta *</label>
-                <textarea name="enunciado" rows="2" required class="w-full rounded-lg border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">{{ p.enunciado }}</textarea>
+                <textarea name="enunciado" rows="2" required class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">{{ p.enunciado }}</textarea>
             </div>
             <div class="grid sm:grid-cols-2 gap-3">
-                <div><label class="block text-xs font-medium text-slate-300 mb-1">Alternativa A *</label><input type="text" name="opcao_a" value="{{ p.opcao_a }}" required class="w-full rounded-lg border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"></div>
-                <div><label class="block text-xs font-medium text-slate-300 mb-1">Alternativa B *</label><input type="text" name="opcao_b" value="{{ p.opcao_b }}" required class="w-full rounded-lg border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"></div>
-                <div><label class="block text-xs font-medium text-slate-300 mb-1">Alternativa C *</label><input type="text" name="opcao_c" value="{{ p.opcao_c }}" required class="w-full rounded-lg border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"></div>
-                <div><label class="block text-xs font-medium text-slate-300 mb-1">Alternativa D *</label><input type="text" name="opcao_d" value="{{ p.opcao_d }}" required class="w-full rounded-lg border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"></div>
+                <div><label class="block text-xs font-medium text-slate-300 mb-1">Alternativa A *</label><input type="text" name="opcao_a" value="{{ p.opcao_a }}" required class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"></div>
+                <div><label class="block text-xs font-medium text-slate-300 mb-1">Alternativa B *</label><input type="text" name="opcao_b" value="{{ p.opcao_b }}" required class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"></div>
+                <div><label class="block text-xs font-medium text-slate-300 mb-1">Alternativa C *</label><input type="text" name="opcao_c" value="{{ p.opcao_c }}" required class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"></div>
+                <div><label class="block text-xs font-medium text-slate-300 mb-1">Alternativa D *</label><input type="text" name="opcao_d" value="{{ p.opcao_d }}" required class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"></div>
             </div>
             <div class="grid sm:grid-cols-2 gap-3">
                 <div>
                     <label class="block text-xs font-medium text-slate-300 mb-1">Alternativa correta *</label>
-                    <select name="resposta_correta" class="w-full rounded-lg border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                    <select name="resposta_correta" class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
                         {% for letra in ["A", "B", "C", "D"] %}
                         <option value="{{ letra }}" {{ "selected" if p.resposta_correta == letra }}>{{ letra }}</option>
                         {% endfor %}
@@ -136,7 +136,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-slate-300 mb-1">Ordem</label>
-                    <input type="number" name="ordem" min="1" value="{{ p.ordem }}" class="w-full rounded-lg border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                    <input type="number" name="ordem" min="1" value="{{ p.ordem }}" class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
                 </div>
             </div>
             <div class="flex gap-2">
@@ -157,18 +157,18 @@
     <input type="hidden" name="prova_id" value="{{ prova.id }}">
     <div>
         <label class="block text-sm font-medium text-slate-300 mb-1">Enunciado da pergunta *</label>
-        <textarea name="enunciado" rows="2" required class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50"></textarea>
+        <textarea name="enunciado" rows="2" required class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"></textarea>
     </div>
     <div class="grid sm:grid-cols-2 gap-4">
-        <div><label class="block text-sm font-medium text-slate-300 mb-1">Alternativa A *</label><input type="text" name="opcao_a" required class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50"></div>
-        <div><label class="block text-sm font-medium text-slate-300 mb-1">Alternativa B *</label><input type="text" name="opcao_b" required class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50"></div>
-        <div><label class="block text-sm font-medium text-slate-300 mb-1">Alternativa C *</label><input type="text" name="opcao_c" required class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50"></div>
-        <div><label class="block text-sm font-medium text-slate-300 mb-1">Alternativa D *</label><input type="text" name="opcao_d" required class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50"></div>
+        <div><label class="block text-sm font-medium text-slate-300 mb-1">Alternativa A *</label><input type="text" name="opcao_a" required class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"></div>
+        <div><label class="block text-sm font-medium text-slate-300 mb-1">Alternativa B *</label><input type="text" name="opcao_b" required class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"></div>
+        <div><label class="block text-sm font-medium text-slate-300 mb-1">Alternativa C *</label><input type="text" name="opcao_c" required class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"></div>
+        <div><label class="block text-sm font-medium text-slate-300 mb-1">Alternativa D *</label><input type="text" name="opcao_d" required class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"></div>
     </div>
     <div class="grid sm:grid-cols-2 gap-4">
         <div>
             <label class="block text-sm font-medium text-slate-300 mb-1">Alternativa correta *</label>
-            <select name="resposta_correta" class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+            <select name="resposta_correta" class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
                 {% for letra in ["A", "B", "C", "D"] %}
                 <option value="{{ letra }}">{{ letra }}</option>
                 {% endfor %}
@@ -176,7 +176,7 @@
         </div>
         <div>
             <label class="block text-sm font-medium text-slate-300 mb-1">Ordem</label>
-            <input type="number" name="ordem" min="1" value="{{ perguntas|length + 1 }}" class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+            <input type="number" name="ordem" min="1" value="{{ perguntas|length + 1 }}" class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
         </div>
     </div>
     <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-lg px-5 py-2.5 transition">

@@ -47,15 +47,15 @@
             <input type="hidden" name="caminho_storage_atual" value="{{ d.caminho_storage }}">
             <div>
                 <label class="block text-xs font-medium text-slate-300 mb-1">Título *</label>
-                <input type="text" name="titulo" value="{{ d.titulo }}" required class="w-full rounded-lg border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                <input type="text" name="titulo" value="{{ d.titulo }}" required class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
             </div>
             <div>
                 <label class="block text-xs font-medium text-slate-300 mb-1">Descrição</label>
-                <textarea name="descricao" rows="2" class="w-full rounded-lg border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">{{ d.descricao or "" }}</textarea>
+                <textarea name="descricao" rows="2" class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">{{ d.descricao or "" }}</textarea>
             </div>
             <div>
                 <label class="block text-xs font-medium text-slate-300 mb-1">Ordem</label>
-                <input type="number" name="ordem" min="1" value="{{ d.ordem }}" class="w-full rounded-lg border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                <input type="number" name="ordem" min="1" value="{{ d.ordem }}" class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
             </div>
             <label class="flex items-center gap-2 text-xs text-slate-300">
                 <input type="checkbox" name="ativo" value="true" {{ "checked" if d.ativo }}>
@@ -86,15 +86,15 @@
 <form action="/admin/destaques" method="post" enctype="multipart/form-data" class="glass-card rounded-2xl p-5 space-y-4 max-w-xl">
     <div>
         <label class="block text-sm font-medium text-slate-300 mb-1">Título *</label>
-        <input type="text" name="titulo" placeholder="Ex: João Silva — Técnico de Fibra Óptica" required class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+        <input type="text" name="titulo" placeholder="Ex: João Silva — Técnico de Fibra Óptica" required class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
     </div>
     <div>
         <label class="block text-sm font-medium text-slate-300 mb-1">Descrição (opcional)</label>
-        <textarea name="descricao" rows="2" placeholder="Ex: Na empresa há 6 anos, começou como auxiliar e hoje é supervisor regional." class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50"></textarea>
+        <textarea name="descricao" rows="2" placeholder="Ex: Na empresa há 6 anos, começou como auxiliar e hoje é supervisor regional." class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"></textarea>
     </div>
     <div>
         <label class="block text-sm font-medium text-slate-300 mb-1">Ordem de exibição</label>
-        <input type="number" name="ordem" min="1" value="{{ destaques|length + 1 }}" class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+        <input type="number" name="ordem" min="1" value="{{ destaques|length + 1 }}" class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
     </div>
     <div>
         <label class="block text-sm font-medium text-slate-300 mb-1">Foto *</label>

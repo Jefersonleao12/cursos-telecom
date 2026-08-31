@@ -11,7 +11,7 @@
 {% else %}
 <form action="/admin/modulos" method="get" class="mb-6 max-w-md">
     <label class="block text-sm font-medium text-slate-300 mb-1">Selecione o curso</label>
-    <select name="curso_id" onchange="this.form.submit()" class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+    <select name="curso_id" onchange="this.form.submit()" class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
         {% for c in cursos %}
         <option value="{{ c.id }}" {{ "selected" if c.id == curso_id }}>{{ c.titulo }}</option>
         {% endfor %}
@@ -51,11 +51,11 @@
             <input type="hidden" name="curso_id" value="{{ curso_id }}">
             <div>
                 <label class="block text-xs font-medium text-slate-300 mb-1">Título do módulo *</label>
-                <input type="text" name="titulo" value="{{ modulo.titulo }}" required class="w-full rounded-lg border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                <input type="text" name="titulo" value="{{ modulo.titulo }}" required class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
             </div>
             <div>
                 <label class="block text-xs font-medium text-slate-300 mb-1">Ordem</label>
-                <input type="number" name="ordem" min="1" value="{{ modulo.ordem }}" class="w-full rounded-lg border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                <input type="number" name="ordem" min="1" value="{{ modulo.ordem }}" class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
             </div>
             <div class="flex gap-2">
                 <button type="submit" class="text-sm font-semibold bg-blue-600 hover:bg-blue-500 text-white rounded-lg px-4 py-1.5 transition">Salvar alterações</button>
@@ -75,11 +75,11 @@
     <input type="hidden" name="curso_id" value="{{ curso_id }}">
     <div>
         <label class="block text-sm font-medium text-slate-300 mb-1">Título do módulo *</label>
-        <input type="text" name="titulo" placeholder="Ex: Módulo 1 - Fundamentos de Fibra Óptica" required class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+        <input type="text" name="titulo" placeholder="Ex: Módulo 1 - Fundamentos de Fibra Óptica" required class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
     </div>
     <div>
         <label class="block text-sm font-medium text-slate-300 mb-1">Ordem de exibição</label>
-        <input type="number" name="ordem" min="1" value="{{ modulos|length + 1 }}" class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+        <input type="number" name="ordem" min="1" value="{{ modulos|length + 1 }}" class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
     </div>
     <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-lg px-5 py-2.5 transition">
         Salvar módulo

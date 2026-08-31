@@ -18,24 +18,24 @@
     <form action="/admin/alunos" method="post" class="space-y-4 max-w-xl">
         <div>
             <label class="block text-sm font-medium text-slate-300 mb-1">Nome completo *</label>
-            <input type="text" name="nome_completo" required class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+            <input type="text" name="nome_completo" required class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
         </div>
         <div>
             <label class="block text-sm font-medium text-slate-300 mb-1">CPF *</label>
-            <input type="text" name="cpf" placeholder="Somente números ou 000.000.000-00" required class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+            <input type="text" name="cpf" placeholder="Somente números ou 000.000.000-00" required class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
         </div>
         <div>
             <label class="block text-sm font-medium text-slate-300 mb-1">E-mail *</label>
-            <input type="email" name="email" required class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+            <input type="email" name="email" required class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
         </div>
         <div>
             <label class="block text-sm font-medium text-slate-300 mb-1">WhatsApp</label>
-            <input type="text" name="telefone" placeholder="(69) 9xxxx-xxxx" class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+            <input type="text" name="telefone" placeholder="(69) 9xxxx-xxxx" class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
         </div>
         <div class="grid sm:grid-cols-2 gap-4">
             <div>
                 <label class="block text-sm font-medium text-slate-300 mb-1">Filial (cidade) *</label>
-                <select name="filial" required class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                <select name="filial" required class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
                     <option value="">Selecione...</option>
                     {% for f in filiais %}
                     <option value="{{ f }}">{{ f }}</option>
@@ -44,7 +44,7 @@
             </div>
             <div>
                 <label class="block text-sm font-medium text-slate-300 mb-1">Cargo / Função</label>
-                <input type="text" name="cargo" class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                <input type="text" name="cargo" class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
             </div>
         </div>
         <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-lg px-5 py-2.5 transition">
@@ -139,11 +139,11 @@
             <p class="text-xs text-slate-400">Para: {{ a.email }}</p>
             <div>
                 <label class="block text-xs font-medium text-slate-300 mb-1">Assunto *</label>
-                <input type="text" name="assunto" required class="w-full rounded-lg border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                <input type="text" name="assunto" required class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
             </div>
             <div>
                 <label class="block text-xs font-medium text-slate-300 mb-1">Mensagem *</label>
-                <textarea name="mensagem" rows="4" required class="w-full rounded-lg border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"></textarea>
+                <textarea name="mensagem" rows="4" required class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"></textarea>
             </div>
             <div class="flex gap-2">
                 <button type="submit" class="text-sm font-semibold bg-blue-600 hover:bg-blue-500 text-white rounded-lg px-4 py-1.5 transition">Enviar e-mail</button>
@@ -166,24 +166,24 @@
             {% endif %}
             <div>
                 <label class="block text-xs font-medium text-slate-300 mb-1">Nome completo *</label>
-                <input type="text" name="nome_completo" value="{{ a.nome_completo }}" required class="w-full rounded-lg border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                <input type="text" name="nome_completo" value="{{ a.nome_completo }}" required class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
             </div>
             <div>
                 <label class="block text-xs font-medium text-slate-300 mb-1">CPF *</label>
-                <input type="text" name="cpf" value="{{ item.cpf_formatado or '' }}" placeholder="Somente números ou 000.000.000-00" required class="w-full rounded-lg border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                <input type="text" name="cpf" value="{{ item.cpf_formatado or '' }}" placeholder="Somente números ou 000.000.000-00" required class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
             </div>
             <div>
                 <label class="block text-xs font-medium text-slate-300 mb-1">E-mail *</label>
-                <input type="email" name="email" value="{{ a.email }}" required class="w-full rounded-lg border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                <input type="email" name="email" value="{{ a.email }}" required class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
             </div>
             <div>
                 <label class="block text-xs font-medium text-slate-300 mb-1">WhatsApp</label>
-                <input type="text" name="telefone" value="{{ a.telefone or '' }}" class="w-full rounded-lg border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                <input type="text" name="telefone" value="{{ a.telefone or '' }}" class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
             </div>
             <div class="grid sm:grid-cols-2 gap-3">
                 <div>
                     <label class="block text-xs font-medium text-slate-300 mb-1">Filial (cidade) *</label>
-                    <select name="filial" required class="w-full rounded-lg border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                    <select name="filial" required class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
                         <option value="">Selecione...</option>
                         {% for f in filiais %}
                         <option value="{{ f }}" {{ "selected" if a.filial == f }}>{{ f }}</option>
@@ -192,7 +192,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-slate-300 mb-1">Cargo / Função</label>
-                    <input type="text" name="cargo" value="{{ a.cargo or '' }}" class="w-full rounded-lg border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                    <input type="text" name="cargo" value="{{ a.cargo or '' }}" class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
                 </div>
             </div>
             <label class="flex items-center gap-2 text-xs text-slate-300">
