@@ -248,6 +248,26 @@ create table if not exists public.jogo_campo_progresso (
 );
 
 -- ----------------------------------------------------------------------------
+-- SIMULADOR DE SUPORTE (jogo de treinamento de atendimento ao cliente, ver
+-- webapp/services/jogo_suporte.py). Mesma ideia do Simulador de Campo, mas
+-- pro time de suporte: o conteúdo (atendimentos, falas, alternativas) fica
+-- em webapp/data/jogo_suporte_atendimentos.py — aqui só o progresso.
+-- ----------------------------------------------------------------------------
+create table if not exists public.jogo_suporte_progresso (
+    aluno_id                 uuid primary key references public.alunos(id) on delete cascade,
+    tela                     text not null default 'welcome',  -- welcome | atendimento-intro | decision | feedback | atendimento-end | game-end
+    atendimento_index        int not null default 0,
+    decisao_index            int not null default 0,
+    acertos_atendimento      int not null default 0,
+    atendimentos_completados int not null default 0,
+    acertos_totais           int not null default 0,
+    xp                       int not null default 0,
+    humor_atual              int not null default 50,  -- 0-100, começa no humor_inicial do atendimento e varia por resposta
+    opcao_escolhida          int,          -- índice (na ordem embaralhada) da alternativa escolhida na última decisão
+    atualizado_em            timestamptz not null default now()
+);
+
+-- ----------------------------------------------------------------------------
 -- AVISOS (comunicados gerais do admin para todos os alunos, na tela de Início)
 -- ----------------------------------------------------------------------------
 create table if not exists public.avisos (

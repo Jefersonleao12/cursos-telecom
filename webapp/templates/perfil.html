@@ -41,10 +41,13 @@
                 </button>
                 <p class="text-sm text-slate-400">Clique na foto para ver maior ou trocar</p>
 
-                {% if selos_jogo %}
+                {% if selos_jogo or selos_suporte %}
                 <div class="flex flex-wrap justify-center gap-2 mt-1">
                     {% for selo in selos_jogo %}
                     <span title="{{ selo.nome }}" class="text-xs bg-blue-500/10 border border-blue-500/20 text-blue-300 rounded-full px-2.5 py-1">{{ selo.icone }} {{ selo.nome }}</span>
+                    {% endfor %}
+                    {% for selo in selos_suporte %}
+                    <span title="{{ selo.nome }}" class="text-xs bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 rounded-full px-2.5 py-1">{{ selo.icone }} {{ selo.nome }}</span>
                     {% endfor %}
                 </div>
                 {% endif %}

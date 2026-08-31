@@ -1,9 +1,14 @@
 """Top alunos por progresso — porta modules/ranking.py."""
 from fastapi import APIRouter, Depends, Request
 
-from database.repositorio import calcular_ranking_alunos, jogo_campo_missoes_completadas_em_lote
+from database.repositorio import (
+    calcular_ranking_alunos,
+    jogo_campo_missoes_completadas_em_lote,
+    jogo_suporte_atendimentos_completados_em_lote,
+)
 from webapp.deps import obter_aluno_atual
 from webapp.services.jogo_campo import selos_conquistados
+from webapp.services.jogo_suporte import selos_conquistados as suporte_selos_conquistados
 from webapp.templating import templates
 
 router = APIRouter()
@@ -19,6 +24,9 @@ def ranking(request: Request, aluno: dict = Depends(obter_aluno_atual)):
     missoes_por_aluno = jogo_campo_missoes_completadas_em_lote(
         [{"id": item["aluno_id"]} for item in lista]
     )
+    atendimentos_por_aluno = jogo_suporte_atendimentos_completados_em_lote(
+        [{"id": item["aluno_id"]} for item in lista]
+    )
 
     top = []
     for posicao, item in enumerate(lista[:_QUANTIDADE_EXIBIDA], start=1):
@@ -30,6 +38,7 @@ def ranking(request: Request, aluno: dict = Depends(obter_aluno_atual)):
                 "eh_voce": item["aluno_id"] == aluno["id"],
                 "progresso_pct": int(item["progresso_medio"] * 100),
                 "selos_jogo": selos_conquistados(missoes_por_aluno.get(item["aluno_id"], 0)),
+                "selos_suporte": suporte_selos_conquistados(atendimentos_por_aluno.get(item["aluno_id"], 0)),
             }
         )
 

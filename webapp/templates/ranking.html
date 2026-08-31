@@ -29,10 +29,13 @@
                 <p class="text-sm text-slate-400 truncate">
                     {{ [item.empresa, item.filial] | select | join(' · ') }}
                 </p>
-                {% if linha.selos_jogo %}
+                {% if linha.selos_jogo or linha.selos_suporte %}
                 <div class="flex flex-wrap gap-1 mt-1">
                     {% for selo in linha.selos_jogo %}
                     <span class="text-xs bg-blue-500/10 text-blue-300 border border-blue-500/20 rounded-full px-2 py-0.5">{{ selo.icone }} {{ selo.nome }}</span>
+                    {% endfor %}
+                    {% for selo in linha.selos_suporte %}
+                    <span class="text-xs bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 rounded-full px-2 py-0.5">{{ selo.icone }} {{ selo.nome }}</span>
                     {% endfor %}
                 </div>
                 {% endif %}

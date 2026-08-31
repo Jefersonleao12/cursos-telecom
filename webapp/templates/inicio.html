@@ -108,6 +108,30 @@
     </div>
 </section>
 
+<section class="mt-6">
+    <a href="/suporte" class="group glass-card neon-border-glow rounded-2xl p-6 relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5 hover:border-white/20 transition">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-xl shrink-0">💬</div>
+            <div>
+                <span class="text-[10px] font-bold tracking-widest uppercase text-slate-400">Simulador de Suporte</span>
+                <h2 class="text-lg font-bold text-white mt-0.5 leading-snug">
+                    {% if suporte.concluiu_tudo %}Você já é uma lenda do suporte! 🏆
+                    {% elif suporte.comecou %}Continue de onde parou — atendimento {{ suporte.atendimentos_completados + 1 }}/{{ suporte.total_atendimentos }}
+                    {% else %}Encare atendimentos reais de chat e mantenha o cliente satisfeito{% endif %}
+                </h2>
+                <p class="text-xs text-slate-400 mt-1">
+                    {{ suporte.atendimentos_completados }} de {{ suporte.total_atendimentos }} atendimentos
+                    {% if suporte.quantidade_selos > 0 %}· {{ suporte.quantidade_selos }} selo(s) 🏆{% endif %}
+                </p>
+            </div>
+        </div>
+        <span class="shrink-0 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 group-hover:from-blue-500 group-hover:to-indigo-500 text-white font-semibold rounded-xl text-sm transition neon-btn-glow inline-flex items-center justify-center gap-2">
+            {{ "Ver relatório" if suporte.concluiu_tudo else ("Continuar" if suporte.comecou else "Começar agora") }}
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+        </span>
+    </a>
+</section>
+
 {% if destaques %}
 <section class="mt-8 space-y-4" x-data="{ destaqueAberto: null }">
     <h3 class="text-xl font-bold text-white flex items-center gap-2">👥 Nossa Equipe</h3>

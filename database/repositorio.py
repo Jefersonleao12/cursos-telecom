@@ -980,6 +980,58 @@ def jogo_campo_missoes_completadas_em_lote(alunos: list) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# SIMULADOR DE SUPORTE (jogo de treinamento, ver webapp/services/jogo_suporte.py)
+# ---------------------------------------------------------------------------
+
+_JOGO_SUPORTE_PADRAO = {
+    "tela": "welcome",
+    "atendimento_index": 0,
+    "decisao_index": 0,
+    "acertos_atendimento": 0,
+    "atendimentos_completados": 0,
+    "acertos_totais": 0,
+    "xp": 0,
+    "humor_atual": 50,
+    "opcao_escolhida": None,
+}
+
+
+def jogo_suporte_obter_progresso(aluno_id: str) -> dict:
+    """Retorna o progresso do aluno no Simulador de Suporte (estado inicial se nunca jogou)."""
+    sb = get_supabase_client()
+    resposta = sb.table("jogo_suporte_progresso").select("*").eq("aluno_id", aluno_id).execute()
+    if resposta.data:
+        return resposta.data[0]
+    return {"aluno_id": aluno_id, **_JOGO_SUPORTE_PADRAO}
+
+
+def jogo_suporte_salvar_progresso(aluno_id: str, **campos) -> dict:
+    """Grava (cria ou atualiza) o progresso do aluno no Simulador de Suporte."""
+    sb = get_supabase_client()
+    linha = {"aluno_id": aluno_id, **campos}
+    resposta = sb.table("jogo_suporte_progresso").upsert(linha, on_conflict="aluno_id").execute()
+    return resposta.data[0]
+
+
+def jogo_suporte_atendimentos_completados_em_lote(alunos: list) -> dict:
+    """Quantos atendimentos cada aluno já completou no Simulador de Suporte — usado no Ranking."""
+    if not alunos:
+        return {}
+    sb = get_supabase_client()
+    ids = [a["id"] for a in alunos]
+    resposta = (
+        sb.table("jogo_suporte_progresso")
+        .select("aluno_id, atendimentos_completados")
+        .in_("aluno_id", ids)
+        .execute()
+    )
+    resultado = {a["id"]: 0 for a in alunos}
+    for linha in resposta.data:
+        resultado[linha["aluno_id"]] = linha["atendimentos_completados"]
+    return resultado
+
+
+# ---------------------------------------------------------------------------
 # PROVAS E PERGUNTAS
 # ---------------------------------------------------------------------------
 
