@@ -1,46 +1,46 @@
 {% extends "base.html" %}
 {% block titulo %}Materiais — Norte Tel{% endblock %}
 {% block conteudo %}
-<h1 class="text-2xl font-bold text-norte-azul mb-1">🗂️ Materiais</h1>
-<p class="text-sm text-slate-500 mb-6">
+<h1 class="text-2xl font-bold text-blue-400 mb-1">🗂️ Materiais</h1>
+<p class="text-sm text-slate-400 mb-6">
     Links e pastas disponibilizados pela Norte Tel para consulta — clique em "Abrir" para acessar.
 </p>
 
 {% if not tem_materiais %}
-<div class="rounded-lg bg-slate-100 text-slate-600 text-sm px-4 py-3">Nenhum material disponível no momento. Volte em breve!</div>
+<div class="rounded-lg bg-white/5 border border-white/10 text-slate-400 text-sm px-4 py-3">Nenhum material disponível no momento. Volte em breve!</div>
 {% else %}
 <form action="/materiais" method="get" class="flex flex-col sm:flex-row gap-3 mb-6">
     <input type="text" name="q" value="{{ termo_busca }}" placeholder="🔎 Digite o nome do material que você precisa..."
-           class="flex-1 rounded-lg border border-slate-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+           class="flex-1 rounded-lg bg-slate-900/80 border border-white/10 px-4 py-2.5 text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
     <select name="categoria" onchange="this.form.submit()"
-            class="rounded-lg border border-slate-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+            class="rounded-lg bg-slate-900/80 border border-white/10 px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
         <option value="{{ todas_categorias }}" {{ "selected" if categoria_escolhida == todas_categorias }}>{{ todas_categorias }}</option>
         {% for c in categorias %}
         <option value="{{ c }}" {{ "selected" if categoria_escolhida == c }}>{{ c }}</option>
         {% endfor %}
     </select>
-    <button type="submit" class="bg-norte-azul hover:bg-norte-azul-escuro text-white text-sm font-semibold rounded-lg px-5 py-2.5 transition">
+    <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-lg px-5 py-2.5 transition neon-btn-glow">
         Buscar
     </button>
 </form>
 
 {% if not agrupado %}
-<div class="rounded-lg bg-amber-50 text-amber-800 text-sm px-4 py-3">Nenhum material encontrado com esses filtros. Tente outra busca.</div>
+<div class="rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-300 text-sm px-4 py-3">Nenhum material encontrado com esses filtros. Tente outra busca.</div>
 {% else %}
 {% for cat, itens in agrupado.items() %}
-<h2 class="text-sm font-bold text-slate-700 mt-6 mb-2">📂 {{ cat }}</h2>
+<h2 class="text-sm font-bold text-slate-300 mt-6 mb-2">📂 {{ cat }}</h2>
 <div class="space-y-3">
     {% for item in itens %}
-    <div class="bg-white rounded-xl border border-slate-200 p-4 flex items-center gap-4 hover:shadow-md hover:border-norte-azul-claro transition">
+    <div class="glass-card rounded-xl p-4 flex items-center gap-4 hover:border-white/20 transition">
         <div class="text-3xl w-10 text-center shrink-0">{{ item.icone or "🔗" }}</div>
         <div class="flex-1 min-w-0">
-            <p class="font-semibold text-slate-800">{{ item.titulo }}</p>
+            <p class="font-semibold text-white">{{ item.titulo }}</p>
             {% if item.descricao %}
-            <p class="text-sm text-slate-500">{{ item.descricao }}</p>
+            <p class="text-sm text-slate-400">{{ item.descricao }}</p>
             {% endif %}
         </div>
         <a href="{{ item.link_url or '#' }}" target="_blank" rel="noopener noreferrer"
-           class="shrink-0 text-center bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-lg px-4 py-2 transition">
+           class="shrink-0 text-center bg-white/5 hover:bg-white/10 border border-white/10 text-slate-200 text-sm font-semibold rounded-lg px-4 py-2 transition">
             Abrir ↗
         </a>
     </div>

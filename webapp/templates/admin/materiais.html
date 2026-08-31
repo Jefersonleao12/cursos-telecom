@@ -1,63 +1,63 @@
 {% extends "admin/base.html" %}
 {% block titulo %}Admin — Materiais — Norte Tel{% endblock %}
 {% block admin_conteudo %}
-<p class="text-sm text-slate-500 mb-4">
+<p class="text-sm text-slate-400 mb-4">
     Cada material é um link (ex: pasta ou arquivo do Google Drive) — o aluno vê um card com ícone e título, e
     clica para abrir.
 </p>
 
-<h2 class="text-sm font-bold text-slate-700 mb-3">Materiais cadastrados</h2>
+<h2 class="text-sm font-bold text-slate-300 mb-3">Materiais cadastrados</h2>
 {% if not materiais %}
 <p class="text-sm text-slate-400 mb-6">Nenhum material cadastrado ainda.</p>
 {% else %}
 <div class="space-y-3 mb-6">
     {% for m in materiais %}
-    <div class="bg-white rounded-xl border border-slate-200 p-4">
+    <div class="glass-card rounded-xl p-4">
         <div class="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
             <div class="min-w-0">
-                <p class="text-sm text-slate-700">{{ m.icone or "🔗" }} <strong>{{ m.titulo }}</strong> — categoria: {{ m.categoria or "-" }}</p>
+                <p class="text-sm text-slate-300">{{ m.icone or "🔗" }} <strong>{{ m.titulo }}</strong> — categoria: {{ m.categoria or "-" }}</p>
                 <p class="text-xs text-slate-400 truncate">{{ m.link_url or "(sem link)" }}</p>
             </div>
             <div class="flex gap-2 shrink-0">
-                <a href="/admin/materiais?editar={{ m.id }}" class="text-xs font-semibold bg-slate-100 hover:bg-slate-200 rounded-lg px-3 py-1.5 transition">✏️ Editar</a>
+                <a href="/admin/materiais?editar={{ m.id }}" class="text-xs font-semibold bg-white/5 hover:bg-white/10 rounded-lg px-3 py-1.5 transition">✏️ Editar</a>
                 <form action="/admin/materiais/{{ m.id }}/excluir" method="post">
-                    <button type="submit" class="text-xs font-semibold bg-red-50 text-red-700 hover:bg-red-100 rounded-lg px-3 py-1.5 transition">🗑️ Excluir</button>
+                    <button type="submit" class="text-xs font-semibold bg-red-500/10 text-red-300 hover:bg-red-500/20 rounded-lg px-3 py-1.5 transition">🗑️ Excluir</button>
                 </form>
             </div>
         </div>
 
         {% if editando_id == m.id %}
-        <form action="/admin/materiais/{{ m.id }}/editar" method="post" class="mt-3 space-y-3 border-t border-slate-100 pt-3">
+        <form action="/admin/materiais/{{ m.id }}/editar" method="post" class="mt-3 space-y-3 border-t border-white/10 pt-3">
             {% if erro_edicao %}
-            <div class="rounded-lg bg-red-50 text-red-700 text-sm px-4 py-3">{{ erro_edicao }}</div>
+            <div class="rounded-lg bg-red-500/10 text-red-300 text-sm px-4 py-3">{{ erro_edicao }}</div>
             {% endif %}
             <div>
-                <label class="block text-xs font-medium text-slate-700 mb-1">Título *</label>
-                <input type="text" name="titulo" value="{{ m.titulo }}" required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+                <label class="block text-xs font-medium text-slate-300 mb-1">Título *</label>
+                <input type="text" name="titulo" value="{{ m.titulo }}" required class="w-full rounded-lg border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
             </div>
             <div>
-                <label class="block text-xs font-medium text-slate-700 mb-1">Descrição</label>
-                <textarea name="descricao" rows="2" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">{{ m.descricao or "" }}</textarea>
+                <label class="block text-xs font-medium text-slate-300 mb-1">Descrição</label>
+                <textarea name="descricao" rows="2" class="w-full rounded-lg border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">{{ m.descricao or "" }}</textarea>
             </div>
             <div>
-                <label class="block text-xs font-medium text-slate-700 mb-1">Categoria *</label>
-                <input type="text" name="categoria" value="{{ m.categoria or '' }}" required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+                <label class="block text-xs font-medium text-slate-300 mb-1">Categoria *</label>
+                <input type="text" name="categoria" value="{{ m.categoria or '' }}" required class="w-full rounded-lg border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
             </div>
             <div>
-                <label class="block text-xs font-medium text-slate-700 mb-1">Link (Google Drive ou outro) *</label>
-                <input type="text" name="link_url" value="{{ m.link_url or '' }}" required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+                <label class="block text-xs font-medium text-slate-300 mb-1">Link (Google Drive ou outro) *</label>
+                <input type="text" name="link_url" value="{{ m.link_url or '' }}" required class="w-full rounded-lg border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
             </div>
             <div>
-                <label class="block text-xs font-medium text-slate-700 mb-1">Ícone</label>
-                <select name="icone_label" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+                <label class="block text-xs font-medium text-slate-300 mb-1">Ícone</label>
+                <select name="icone_label" class="w-full rounded-lg border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
                     {% for rotulo, emoji in icones.items() %}
                     <option value="{{ rotulo }}" {{ "selected" if emoji == (m.icone or "🔗") }}>{{ rotulo }}</option>
                     {% endfor %}
                 </select>
             </div>
             <div class="flex gap-2">
-                <button type="submit" class="text-sm font-semibold bg-norte-azul hover:bg-norte-azul-escuro text-white rounded-lg px-4 py-1.5 transition">Salvar alterações</button>
-                <a href="/admin/materiais" class="text-sm font-semibold bg-white border border-slate-300 rounded-lg px-4 py-1.5 transition">Cancelar</a>
+                <button type="submit" class="text-sm font-semibold bg-blue-600 hover:bg-blue-500 text-white rounded-lg px-4 py-1.5 transition">Salvar alterações</button>
+                <a href="/admin/materiais" class="text-sm font-semibold bg-white/5 border border-white/10 text-slate-200 rounded-lg px-4 py-1.5 transition">Cancelar</a>
             </div>
         </form>
         {% endif %}
@@ -66,24 +66,24 @@
 </div>
 {% endif %}
 
-<hr class="my-6 border-slate-200">
+<hr class="my-6 border-white/10">
 
-<h2 class="text-sm font-bold text-slate-700 mb-3">Adicionar novo material</h2>
+<h2 class="text-sm font-bold text-slate-300 mb-3">Adicionar novo material</h2>
 {% if erro_cadastro %}
-<div class="rounded-lg bg-red-50 text-red-700 text-sm px-4 py-3 mb-4 max-w-xl">{{ erro_cadastro }}</div>
+<div class="rounded-lg bg-red-500/10 text-red-300 text-sm px-4 py-3 mb-4 max-w-xl">{{ erro_cadastro }}</div>
 {% endif %}
-<form action="/admin/materiais" method="post" class="bg-white rounded-2xl border border-slate-200 p-5 space-y-4 max-w-xl" x-data="{ categoria: '{{ categorias[0] if categorias else nova_categoria_opcao }}' }">
+<form action="/admin/materiais" method="post" class="glass-card rounded-2xl p-5 space-y-4 max-w-xl" x-data="{ categoria: '{{ categorias[0] if categorias else nova_categoria_opcao }}' }">
     <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">Título *</label>
-        <input type="text" name="titulo" placeholder="Ex: Atualização de equipamentos e ferramentas" required class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+        <label class="block text-sm font-medium text-slate-300 mb-1">Título *</label>
+        <input type="text" name="titulo" placeholder="Ex: Atualização de equipamentos e ferramentas" required class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
     </div>
     <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">Descrição (opcional)</label>
-        <textarea name="descricao" rows="2" class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro"></textarea>
+        <label class="block text-sm font-medium text-slate-300 mb-1">Descrição (opcional)</label>
+        <textarea name="descricao" rows="2" class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50"></textarea>
     </div>
     <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">Categoria *</label>
-        <select name="categoria_opcao" x-model="categoria" class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+        <label class="block text-sm font-medium text-slate-300 mb-1">Categoria *</label>
+        <select name="categoria_opcao" x-model="categoria" class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
             {% for c in categorias %}
             <option value="{{ c }}">{{ c }}</option>
             {% endfor %}
@@ -91,23 +91,23 @@
         </select>
     </div>
     <div x-show="categoria === '{{ nova_categoria_opcao }}'" x-cloak>
-        <label class="block text-sm font-medium text-slate-700 mb-1">Nome da nova categoria *</label>
-        <input type="text" name="nova_categoria" class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+        <label class="block text-sm font-medium text-slate-300 mb-1">Nome da nova categoria *</label>
+        <input type="text" name="nova_categoria" class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
     </div>
     <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">Link (Google Drive ou outro) *</label>
-        <input type="text" name="link_url" placeholder="https://drive.google.com/..." required class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+        <label class="block text-sm font-medium text-slate-300 mb-1">Link (Google Drive ou outro) *</label>
+        <input type="text" name="link_url" placeholder="https://drive.google.com/..." required class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
         <p class="text-xs text-slate-400 mt-1">Lembre de deixar o compartilhamento como "Qualquer pessoa com o link".</p>
     </div>
     <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">Ícone</label>
-        <select name="icone_label" class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+        <label class="block text-sm font-medium text-slate-300 mb-1">Ícone</label>
+        <select name="icone_label" class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
             {% for rotulo in icones %}
             <option value="{{ rotulo }}">{{ rotulo }}</option>
             {% endfor %}
         </select>
     </div>
-    <button type="submit" class="bg-norte-azul hover:bg-norte-azul-escuro text-white text-sm font-semibold rounded-lg px-5 py-2.5 transition">
+    <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-lg px-5 py-2.5 transition">
         Adicionar material
     </button>
 </form>

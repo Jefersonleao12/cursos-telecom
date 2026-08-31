@@ -14,35 +14,35 @@
     ("/admin/duvidas", "❓ Dúvidas"),
 ] %}
 
-<div class="rounded-2xl bg-gradient-to-r from-norte-azul-escuro to-norte-azul-claro text-white p-6 mb-4">
+<div class="rounded-2xl bg-gradient-to-r from-slate-900 to-blue-950 border border-white/10 text-white p-6 mb-4">
     <h1 class="text-xl font-bold">⚙️ Painel de Administração</h1>
-    <p class="text-sm opacity-85 mt-1">Gerencie cursos, aulas, provas, materiais e acompanhe os alunos da plataforma.</p>
+    <p class="text-sm text-slate-400 mt-1">Gerencie cursos, aulas, provas, materiais e acompanhe os alunos da plataforma.</p>
 </div>
 
 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-    <div class="bg-white rounded-xl border border-slate-200 p-4 text-center">
-        <p class="text-2xl font-bold text-norte-azul">{{ visao_geral.cursos }}</p>
-        <p class="text-xs text-slate-500 mt-1">📚 Cursos</p>
+    <div class="glass-card rounded-xl p-4 text-center">
+        <p class="text-2xl font-bold text-blue-400">{{ visao_geral.cursos }}</p>
+        <p class="text-xs text-slate-400 mt-1">📚 Cursos</p>
     </div>
-    <div class="bg-white rounded-xl border border-slate-200 p-4 text-center">
-        <p class="text-2xl font-bold text-norte-azul">{{ visao_geral.alunos }}</p>
-        <p class="text-xs text-slate-500 mt-1">🧑‍🎓 Alunos cadastrados</p>
+    <div class="glass-card rounded-xl p-4 text-center">
+        <p class="text-2xl font-bold text-blue-400">{{ visao_geral.alunos }}</p>
+        <p class="text-xs text-slate-400 mt-1">🧑‍🎓 Alunos cadastrados</p>
     </div>
-    <div class="bg-white rounded-xl border border-slate-200 p-4 text-center">
-        <p class="text-2xl font-bold text-norte-azul">{{ visao_geral.duvidas_pendentes }}</p>
-        <p class="text-xs text-slate-500 mt-1">❓ Dúvidas pendentes</p>
+    <div class="glass-card rounded-xl p-4 text-center">
+        <p class="text-2xl font-bold text-blue-400">{{ visao_geral.duvidas_pendentes }}</p>
+        <p class="text-xs text-slate-400 mt-1">❓ Dúvidas pendentes</p>
     </div>
-    <div class="bg-white rounded-xl border border-slate-200 p-4 text-center">
-        <p class="text-2xl font-bold text-norte-azul">{{ visao_geral.perguntas }}</p>
-        <p class="text-xs text-slate-500 mt-1">📝 Perguntas de prova</p>
+    <div class="glass-card rounded-xl p-4 text-center">
+        <p class="text-2xl font-bold text-blue-400">{{ visao_geral.perguntas }}</p>
+        <p class="text-xs text-slate-400 mt-1">📝 Perguntas de prova</p>
     </div>
 </div>
 
 <div class="grid md:grid-cols-[210px_1fr] gap-6 items-start">
-    <nav class="flex md:flex-col gap-1 overflow-x-auto md:overflow-visible border-b md:border-b-0 border-slate-200 pb-2 md:pb-0">
+    <nav class="flex md:flex-col gap-1 overflow-x-auto md:overflow-visible border-b md:border-b-0 border-white/10 pb-2 md:pb-0">
         {% for href, rotulo in secoes_admin %}
         <a href="{{ href }}"
-           class="px-3 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition {{ 'bg-norte-azul text-white' if request.url.path == href else 'text-slate-600 hover:bg-slate-100' }}">
+           class="px-3 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition {{ 'bg-blue-600 text-white' if request.url.path == href else 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
             {{ rotulo }}
         </a>
         {% endfor %}

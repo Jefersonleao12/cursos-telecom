@@ -1,50 +1,50 @@
 {% extends "base.html" %}
 {% block titulo %}Top Alunos — Norte Tel{% endblock %}
 {% block conteudo %}
-<h1 class="text-2xl font-bold text-norte-azul mb-1">🏅 Top Alunos</h1>
-<p class="text-sm text-slate-500 mb-6">
+<h1 class="text-2xl font-bold text-blue-400 mb-1">🏅 Top Alunos</h1>
+<p class="text-sm text-slate-400 mb-6">
     Os alunos com mais progresso na plataforma — continue estudando para aparecer aqui e subir de posição!
 </p>
 
 {% if not tem_ranking %}
-<div class="rounded-lg bg-slate-100 text-slate-600 text-sm px-4 py-3">
+<div class="rounded-lg bg-white/5 border border-white/10 text-slate-400 text-sm px-4 py-3">
     Ninguém começou um curso ainda. Seja o primeiro a aparecer aqui! 💪
 </div>
 {% else %}
 <div class="space-y-3">
     {% for linha in top %}
     {% set item = linha.item %}
-    <div class="bg-white rounded-xl border {{ 'border-norte-azul-claro ring-1 ring-norte-azul-claro' if linha.eh_voce else 'border-slate-200' }} p-4 flex flex-col sm:flex-row sm:items-center gap-4">
+    <div class="glass-card rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-4 {{ 'border-blue-500/40 ring-1 ring-blue-500/30' if linha.eh_voce else '' }}">
         <div class="flex items-center gap-4 flex-1 min-w-0">
             <div class="text-2xl font-bold w-10 text-center shrink-0">{{ linha.medalha }}</div>
             {% if item.foto_url %}
-            <img src="{{ item.foto_url }}" alt="" class="w-12 h-12 rounded-full object-cover border border-slate-200 shrink-0">
+            <img src="{{ item.foto_url }}" alt="" class="w-12 h-12 rounded-full object-cover ring-2 ring-white/10 shrink-0">
             {% else %}
-            <div class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-xl shrink-0">👤</div>
+            <div class="w-12 h-12 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-xl shrink-0">👤</div>
             {% endif %}
             <div class="min-w-0">
-                <p class="font-bold text-norte-azul truncate">
+                <p class="font-bold text-white truncate">
                     {{ item.nome_completo }}{% if linha.eh_voce %} (você){% endif %}
                 </p>
-                <p class="text-sm text-slate-500 truncate">
+                <p class="text-sm text-slate-400 truncate">
                     {{ [item.empresa, item.filial] | select | join(' · ') }}
                 </p>
                 {% if linha.selos_jogo %}
                 <div class="flex flex-wrap gap-1 mt-1">
                     {% for selo in linha.selos_jogo %}
-                    <span class="text-xs bg-blue-50 text-norte-azul rounded-full px-2 py-0.5">{{ selo.icone }} {{ selo.nome }}</span>
+                    <span class="text-xs bg-blue-500/10 text-blue-300 border border-blue-500/20 rounded-full px-2 py-0.5">{{ selo.icone }} {{ selo.nome }}</span>
                     {% endfor %}
                 </div>
                 {% endif %}
             </div>
         </div>
         <div class="sm:w-56 shrink-0">
-            <p class="text-sm text-slate-700 mb-1">
+            <p class="text-sm text-slate-300 mb-1">
                 🏆 <strong>{{ item.cursos_concluidos }}</strong>
                 {{ "curso concluído" if item.cursos_concluidos == 1 else "cursos concluídos" }}
             </p>
-            <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
-                <div class="h-full bg-norte-azul-claro" style="width: {{ linha.progresso_pct }}%"></div>
+            <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-blue-500 to-cyan-400" style="width: {{ linha.progresso_pct }}%"></div>
             </div>
             <p class="text-xs text-slate-500 mt-1">{{ linha.progresso_pct }}% de progresso médio</p>
         </div>
@@ -52,19 +52,19 @@
     {% endfor %}
 </div>
 
-<hr class="my-6 border-slate-200">
+<hr class="my-6 border-white/10">
 
 {% if posicao_atual is none %}
-<div class="rounded-lg bg-slate-100 text-slate-600 text-sm px-4 py-3">
+<div class="rounded-lg bg-white/5 border border-white/10 text-slate-400 text-sm px-4 py-3">
     Você ainda não apareceu no ranking — comece um curso para entrar na disputa! 💪
 </div>
 {% elif posicao_atual > quantidade_exibida %}
-<div class="rounded-lg bg-blue-50 text-norte-azul text-sm px-4 py-3">
+<div class="rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-300 text-sm px-4 py-3">
     📍 Sua posição atual: <strong>{{ posicao_atual }}º lugar</strong> de {{ total_alunos }} alunos no ranking.
     Continue estudando para subir!
 </div>
 {% else %}
-<div class="rounded-lg bg-green-50 text-green-700 text-sm px-4 py-3">
+<div class="rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-sm px-4 py-3">
     🎉 Você está entre os primeiros do ranking! Continue assim.
 </div>
 {% endif %}

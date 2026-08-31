@@ -6,8 +6,8 @@
 {% else %}
 <form action="/admin/aulas" method="get" class="mb-6 grid sm:grid-cols-2 gap-4 max-w-xl">
     <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">Selecione o curso</label>
-        <select name="curso_id" onchange="this.form.submit()" class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+        <label class="block text-sm font-medium text-slate-300 mb-1">Selecione o curso</label>
+        <select name="curso_id" onchange="this.form.submit()" class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
             {% for c in cursos %}
             <option value="{{ c.id }}" {{ "selected" if c.id == curso_id }}>{{ c.titulo }}</option>
             {% endfor %}
@@ -15,8 +15,8 @@
     </div>
     {% if modulos %}
     <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">Selecione o módulo</label>
-        <select name="modulo_id" onchange="this.form.submit()" class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+        <label class="block text-sm font-medium text-slate-300 mb-1">Selecione o módulo</label>
+        <select name="modulo_id" onchange="this.form.submit()" class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
             {% for m in modulos %}
             <option value="{{ m.id }}" {{ "selected" if m.id == modulo_id }}>{{ m.ordem }}. {{ m.titulo }}</option>
             {% endfor %}
@@ -26,56 +26,56 @@
 </form>
 
 {% if not modulos %}
-<p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-4 py-3">Este curso ainda não tem nenhum módulo. Cadastre um em "Módulos" primeiro.</p>
+<p class="text-sm text-amber-300 bg-amber-500/10 rounded-lg px-4 py-3">Este curso ainda não tem nenhum módulo. Cadastre um em "Módulos" primeiro.</p>
 {% else %}
 
-<h2 class="text-sm font-bold text-slate-700 mb-3">Aulas deste módulo</h2>
+<h2 class="text-sm font-bold text-slate-300 mb-3">Aulas deste módulo</h2>
 {% if not aulas %}
 <p class="text-sm text-slate-400 mb-6">Nenhuma aula cadastrada ainda neste módulo.</p>
 {% else %}
 <div class="space-y-3 mb-6">
     {% for aula in aulas %}
-    <div class="bg-white rounded-xl border border-slate-200 p-4">
+    <div class="glass-card rounded-xl p-4">
         <div class="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
             <div class="min-w-0">
-                <p class="text-sm text-slate-700"><strong>{{ aula.ordem }}. {{ aula.titulo }}</strong></p>
+                <p class="text-sm text-slate-300"><strong>{{ aula.ordem }}. {{ aula.titulo }}</strong></p>
                 <p class="text-xs text-slate-400 truncate">{{ aula.url_video }}</p>
             </div>
             <div class="flex gap-2 shrink-0">
-                <a href="/admin/aulas?curso_id={{ curso_id }}&modulo_id={{ modulo_id }}&editar={{ aula.id }}" class="text-xs font-semibold bg-slate-100 hover:bg-slate-200 rounded-lg px-3 py-1.5 transition">✏️ Editar</a>
+                <a href="/admin/aulas?curso_id={{ curso_id }}&modulo_id={{ modulo_id }}&editar={{ aula.id }}" class="text-xs font-semibold bg-white/5 hover:bg-white/10 rounded-lg px-3 py-1.5 transition">✏️ Editar</a>
                 <form action="/admin/aulas/{{ aula.id }}/excluir" method="post">
                     <input type="hidden" name="curso_id" value="{{ curso_id }}">
                     <input type="hidden" name="modulo_id" value="{{ modulo_id }}">
-                    <button type="submit" class="text-xs font-semibold bg-red-50 text-red-700 hover:bg-red-100 rounded-lg px-3 py-1.5 transition">🗑️ Excluir</button>
+                    <button type="submit" class="text-xs font-semibold bg-red-500/10 text-red-300 hover:bg-red-500/20 rounded-lg px-3 py-1.5 transition">🗑️ Excluir</button>
                 </form>
             </div>
         </div>
 
         {% if editando_id == aula.id %}
-        <form action="/admin/aulas/{{ aula.id }}/editar" method="post" class="mt-3 space-y-3 border-t border-slate-100 pt-3">
+        <form action="/admin/aulas/{{ aula.id }}/editar" method="post" class="mt-3 space-y-3 border-t border-white/10 pt-3">
             <input type="hidden" name="curso_id" value="{{ curso_id }}">
             <input type="hidden" name="modulo_id" value="{{ modulo_id }}">
             <div>
-                <label class="block text-xs font-medium text-slate-700 mb-1">Título da aula *</label>
-                <input type="text" name="titulo" value="{{ aula.titulo }}" required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+                <label class="block text-xs font-medium text-slate-300 mb-1">Título da aula *</label>
+                <input type="text" name="titulo" value="{{ aula.titulo }}" required class="w-full rounded-lg border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
             </div>
             <div>
-                <label class="block text-xs font-medium text-slate-700 mb-1">Link do vídeo *</label>
-                <input type="text" name="url_video" value="{{ aula.url_video }}" required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+                <label class="block text-xs font-medium text-slate-300 mb-1">Link do vídeo *</label>
+                <input type="text" name="url_video" value="{{ aula.url_video }}" required class="w-full rounded-lg border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
             </div>
             <div class="grid grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-xs font-medium text-slate-700 mb-1">Ordem</label>
-                    <input type="number" name="ordem" min="1" value="{{ aula.ordem }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Ordem</label>
+                    <input type="number" name="ordem" min="1" value="{{ aula.ordem }}" class="w-full rounded-lg border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-slate-700 mb-1">Duração (minutos)</label>
-                    <input type="number" name="duracao_minutos" min="0" value="{{ aula.duracao_minutos or 0 }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Duração (minutos)</label>
+                    <input type="number" name="duracao_minutos" min="0" value="{{ aula.duracao_minutos or 0 }}" class="w-full rounded-lg border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
                 </div>
             </div>
             <div class="flex gap-2">
-                <button type="submit" class="text-sm font-semibold bg-norte-azul hover:bg-norte-azul-escuro text-white rounded-lg px-4 py-1.5 transition">Salvar alterações</button>
-                <a href="/admin/aulas?curso_id={{ curso_id }}&modulo_id={{ modulo_id }}" class="text-sm font-semibold bg-white border border-slate-300 rounded-lg px-4 py-1.5 transition">Cancelar</a>
+                <button type="submit" class="text-sm font-semibold bg-blue-600 hover:bg-blue-500 text-white rounded-lg px-4 py-1.5 transition">Salvar alterações</button>
+                <a href="/admin/aulas?curso_id={{ curso_id }}&modulo_id={{ modulo_id }}" class="text-sm font-semibold bg-white/5 border border-white/10 text-slate-200 rounded-lg px-4 py-1.5 transition">Cancelar</a>
             </div>
         </form>
         {% endif %}
@@ -84,31 +84,31 @@
 </div>
 {% endif %}
 
-<hr class="my-6 border-slate-200">
+<hr class="my-6 border-white/10">
 
-<h2 class="text-sm font-bold text-slate-700 mb-3">Cadastrar nova aula</h2>
-<form action="/admin/aulas" method="post" class="bg-white rounded-2xl border border-slate-200 p-5 space-y-4 max-w-xl">
+<h2 class="text-sm font-bold text-slate-300 mb-3">Cadastrar nova aula</h2>
+<form action="/admin/aulas" method="post" class="glass-card rounded-2xl p-5 space-y-4 max-w-xl">
     <input type="hidden" name="curso_id" value="{{ curso_id }}">
     <input type="hidden" name="modulo_id" value="{{ modulo_id }}">
     <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">Título da aula *</label>
-        <input type="text" name="titulo" required class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+        <label class="block text-sm font-medium text-slate-300 mb-1">Título da aula *</label>
+        <input type="text" name="titulo" required class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
     </div>
     <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">Link do vídeo (Google Drive) *</label>
-        <input type="text" name="url_video" placeholder="https://drive.google.com/file/d/XXXXXXXX/view" required class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+        <label class="block text-sm font-medium text-slate-300 mb-1">Link do vídeo (Google Drive) *</label>
+        <input type="text" name="url_video" placeholder="https://drive.google.com/file/d/XXXXXXXX/view" required class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
     </div>
     <div class="grid grid-cols-2 gap-4">
         <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Ordem de exibição</label>
-            <input type="number" name="ordem" min="1" value="{{ aulas|length + 1 }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+            <label class="block text-sm font-medium text-slate-300 mb-1">Ordem de exibição</label>
+            <input type="number" name="ordem" min="1" value="{{ aulas|length + 1 }}" class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
         </div>
         <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Duração (minutos)</label>
-            <input type="number" name="duracao_minutos" min="0" value="10" class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+            <label class="block text-sm font-medium text-slate-300 mb-1">Duração (minutos)</label>
+            <input type="number" name="duracao_minutos" min="0" value="10" class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
         </div>
     </div>
-    <button type="submit" class="bg-norte-azul hover:bg-norte-azul-escuro text-white text-sm font-semibold rounded-lg px-5 py-2.5 transition">
+    <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-lg px-5 py-2.5 transition">
         Salvar aula
     </button>
 </form>

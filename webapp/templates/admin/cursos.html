@@ -1,54 +1,54 @@
 {% extends "admin/base.html" %}
 {% block titulo %}Admin — Cursos — Norte Tel{% endblock %}
 {% block admin_conteudo %}
-<h2 class="text-sm font-bold text-slate-700 mb-3">Cursos cadastrados</h2>
+<h2 class="text-sm font-bold text-slate-300 mb-3">Cursos cadastrados</h2>
 
 {% if not cursos %}
 <p class="text-sm text-slate-400 mb-6">Nenhum curso cadastrado ainda.</p>
 {% else %}
 <div class="space-y-3 mb-6">
     {% for curso in cursos %}
-    <div class="bg-white rounded-xl border border-slate-200 p-4">
+    <div class="glass-card rounded-xl p-4">
         <div class="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
-            <p class="text-sm text-slate-700"><strong>{{ curso.titulo }}</strong> — Instrutor: {{ curso.instrutor }}</p>
+            <p class="text-sm text-slate-300"><strong>{{ curso.titulo }}</strong> — Instrutor: {{ curso.instrutor }}</p>
             <div class="flex gap-2 shrink-0">
-                <a href="/admin/cursos?editar={{ curso.id }}" class="text-xs font-semibold bg-slate-100 hover:bg-slate-200 rounded-lg px-3 py-1.5 transition">✏️ Editar</a>
-                <a href="/admin/cursos?excluir={{ curso.id }}" class="text-xs font-semibold bg-red-50 text-red-700 hover:bg-red-100 rounded-lg px-3 py-1.5 transition">🗑️ Excluir</a>
+                <a href="/admin/cursos?editar={{ curso.id }}" class="text-xs font-semibold bg-white/5 hover:bg-white/10 rounded-lg px-3 py-1.5 transition">✏️ Editar</a>
+                <a href="/admin/cursos?excluir={{ curso.id }}" class="text-xs font-semibold bg-red-500/10 text-red-300 hover:bg-red-500/20 rounded-lg px-3 py-1.5 transition">🗑️ Excluir</a>
             </div>
         </div>
 
         {% if excluindo_id == curso.id %}
-        <div class="mt-3 rounded-lg bg-amber-50 text-amber-800 text-sm px-4 py-3">
+        <div class="mt-3 rounded-lg bg-amber-500/10 text-amber-300 text-sm px-4 py-3">
             Tem certeza que quer excluir <strong>{{ curso.titulo }}</strong>? Isso apaga também os módulos, aulas,
             provas e resultados desse curso. Essa ação não pode ser desfeita.
             <form action="/admin/cursos/{{ curso.id }}/excluir" method="post" class="flex gap-2 mt-3">
-                <button type="submit" class="text-sm font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg px-4 py-1.5 transition">Sim, excluir</button>
-                <a href="/admin/cursos" class="text-sm font-semibold bg-white border border-slate-300 rounded-lg px-4 py-1.5 transition">Cancelar</a>
+                <button type="submit" class="text-sm font-semibold bg-red-600 hover:bg-red-500 text-white rounded-lg px-4 py-1.5 transition">Sim, excluir</button>
+                <a href="/admin/cursos" class="text-sm font-semibold bg-white/5 border border-white/10 text-slate-200 rounded-lg px-4 py-1.5 transition">Cancelar</a>
             </form>
         </div>
         {% endif %}
 
         {% if editando_id == curso.id %}
-        <form action="/admin/cursos/{{ curso.id }}/editar" method="post" class="mt-3 space-y-3 border-t border-slate-100 pt-3">
+        <form action="/admin/cursos/{{ curso.id }}/editar" method="post" class="mt-3 space-y-3 border-t border-white/10 pt-3">
             <div>
-                <label class="block text-xs font-medium text-slate-700 mb-1">Título do curso *</label>
-                <input type="text" name="titulo" value="{{ curso.titulo }}" required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+                <label class="block text-xs font-medium text-slate-300 mb-1">Título do curso *</label>
+                <input type="text" name="titulo" value="{{ curso.titulo }}" required class="w-full rounded-lg border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
             </div>
             <div>
-                <label class="block text-xs font-medium text-slate-700 mb-1">Descrição</label>
-                <textarea name="descricao" rows="2" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">{{ curso.descricao or "" }}</textarea>
+                <label class="block text-xs font-medium text-slate-300 mb-1">Descrição</label>
+                <textarea name="descricao" rows="2" class="w-full rounded-lg border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">{{ curso.descricao or "" }}</textarea>
             </div>
             <div>
-                <label class="block text-xs font-medium text-slate-700 mb-1">Nome do instrutor *</label>
-                <input type="text" name="instrutor" value="{{ curso.instrutor }}" required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+                <label class="block text-xs font-medium text-slate-300 mb-1">Nome do instrutor *</label>
+                <input type="text" name="instrutor" value="{{ curso.instrutor }}" required class="w-full rounded-lg border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
             </div>
             <div>
-                <label class="block text-xs font-medium text-slate-700 mb-1">Carga horária (horas)</label>
-                <input type="number" name="carga_horaria" min="1" value="{{ curso.carga_horaria or 8 }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+                <label class="block text-xs font-medium text-slate-300 mb-1">Carga horária (horas)</label>
+                <input type="number" name="carga_horaria" min="1" value="{{ curso.carga_horaria or 8 }}" class="w-full rounded-lg border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
             </div>
             <div class="flex gap-2">
-                <button type="submit" class="text-sm font-semibold bg-norte-azul hover:bg-norte-azul-escuro text-white rounded-lg px-4 py-1.5 transition">Salvar alterações</button>
-                <a href="/admin/cursos" class="text-sm font-semibold bg-white border border-slate-300 rounded-lg px-4 py-1.5 transition">Cancelar</a>
+                <button type="submit" class="text-sm font-semibold bg-blue-600 hover:bg-blue-500 text-white rounded-lg px-4 py-1.5 transition">Salvar alterações</button>
+                <a href="/admin/cursos" class="text-sm font-semibold bg-white/5 border border-white/10 text-slate-200 rounded-lg px-4 py-1.5 transition">Cancelar</a>
             </div>
         </form>
         {% endif %}
@@ -57,27 +57,27 @@
 </div>
 {% endif %}
 
-<hr class="my-6 border-slate-200">
+<hr class="my-6 border-white/10">
 
-<h2 class="text-sm font-bold text-slate-700 mb-3">Cadastrar novo curso</h2>
-<form action="/admin/cursos" method="post" class="bg-white rounded-2xl border border-slate-200 p-5 space-y-4 max-w-xl">
+<h2 class="text-sm font-bold text-slate-300 mb-3">Cadastrar novo curso</h2>
+<form action="/admin/cursos" method="post" class="glass-card rounded-2xl p-5 space-y-4 max-w-xl">
     <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">Título do curso *</label>
-        <input type="text" name="titulo" required class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+        <label class="block text-sm font-medium text-slate-300 mb-1">Título do curso *</label>
+        <input type="text" name="titulo" required class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
     </div>
     <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">Descrição</label>
-        <textarea name="descricao" rows="2" class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro"></textarea>
+        <label class="block text-sm font-medium text-slate-300 mb-1">Descrição</label>
+        <textarea name="descricao" rows="2" class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50"></textarea>
     </div>
     <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">Nome do instrutor *</label>
-        <input type="text" name="instrutor" required class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+        <label class="block text-sm font-medium text-slate-300 mb-1">Nome do instrutor *</label>
+        <input type="text" name="instrutor" required class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
     </div>
     <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">Carga horária (horas)</label>
-        <input type="number" name="carga_horaria" min="1" value="8" class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+        <label class="block text-sm font-medium text-slate-300 mb-1">Carga horária (horas)</label>
+        <input type="number" name="carga_horaria" min="1" value="8" class="w-full rounded-lg border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
     </div>
-    <button type="submit" class="bg-norte-azul hover:bg-norte-azul-escuro text-white text-sm font-semibold rounded-lg px-5 py-2.5 transition">
+    <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-lg px-5 py-2.5 transition">
         Salvar curso
     </button>
 </form>

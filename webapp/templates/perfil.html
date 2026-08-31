@@ -4,26 +4,26 @@
 <script src="/static/js/foto-perfil.js" defer></script>
 {% endblock %}
 {% block conteudo %}
-<h1 class="text-2xl font-bold text-norte-azul mb-4 text-center">👤 Meu Perfil</h1>
+<h1 class="text-2xl font-bold text-blue-400 mb-4 text-center">👤 Meu Perfil</h1>
 
 <div x-data="{ aba: '{{ aba_ativa or 'dados' }}' }">
-    <div class="flex justify-center gap-1 border-b border-slate-200 mb-6">
-        <button @click="aba = 'dados'" :class="aba === 'dados' ? 'border-norte-azul text-norte-azul' : 'border-transparent text-slate-500'"
+    <div class="flex justify-center gap-1 border-b border-white/10 mb-6">
+        <button @click="aba = 'dados'" :class="aba === 'dados' ? 'border-blue-400 text-blue-400' : 'border-transparent text-slate-500'"
                 class="px-4 py-2 text-sm font-semibold border-b-2 transition">Meus Dados</button>
-        <button @click="aba = 'senha'" :class="aba === 'senha' ? 'border-norte-azul text-norte-azul' : 'border-transparent text-slate-500'"
+        <button @click="aba = 'senha'" :class="aba === 'senha' ? 'border-blue-400 text-blue-400' : 'border-transparent text-slate-500'"
                 class="px-4 py-2 text-sm font-semibold border-b-2 transition">Trocar Senha</button>
-        <button @click="aba = 'historico'" :class="aba === 'historico' ? 'border-norte-azul text-norte-azul' : 'border-transparent text-slate-500'"
+        <button @click="aba = 'historico'" :class="aba === 'historico' ? 'border-blue-400 text-blue-400' : 'border-transparent text-slate-500'"
                 class="px-4 py-2 text-sm font-semibold border-b-2 transition">Meu Histórico</button>
     </div>
 
     <!-- MEUS DADOS -->
     <div x-show="aba === 'dados'" x-cloak>
-        <div class="bg-white rounded-2xl border border-slate-200 p-6 max-w-xl mx-auto">
+        <div class="glass-card rounded-2xl p-6 max-w-xl mx-auto">
             {% if sucesso_dados %}
-            <div class="rounded-lg bg-green-50 text-green-700 text-sm px-4 py-3 mb-4">{{ sucesso_dados }}</div>
+            <div class="rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-sm px-4 py-3 mb-4">{{ sucesso_dados }}</div>
             {% endif %}
             {% if erro_dados %}
-            <div class="rounded-lg bg-red-50 text-red-700 text-sm px-4 py-3 mb-4">{{ erro_dados }}</div>
+            <div class="rounded-lg bg-red-500/10 border border-red-500/20 text-red-300 text-sm px-4 py-3 mb-4">{{ erro_dados }}</div>
             {% endif %}
 
             <div class="flex flex-col items-center gap-2 mb-6"
@@ -31,50 +31,50 @@
                  x-init="ligarCompressaoDeFoto($refs.inputFoto, (url) => preview = url)">
                 <button @click="aberto = true" type="button" class="relative group shrink-0 rounded-full">
                     {% if aluno.foto_url %}
-                    <img src="{{ aluno.foto_url }}" alt="" class="w-20 h-20 rounded-full object-cover border border-slate-200">
+                    <img src="{{ aluno.foto_url }}" alt="" class="w-20 h-20 rounded-full object-cover ring-2 ring-white/10">
                     {% else %}
-                    <div class="w-20 h-20 rounded-full bg-blue-50 flex items-center justify-center text-3xl">👤</div>
+                    <div class="w-20 h-20 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-3xl">👤</div>
                     {% endif %}
-                    <span class="absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/30 transition flex items-center justify-center text-white text-xs font-semibold opacity-0 group-hover:opacity-100">
+                    <span class="absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/40 transition flex items-center justify-center text-white text-xs font-semibold opacity-0 group-hover:opacity-100">
                         ✏️ Editar
                     </span>
                 </button>
-                <p class="text-sm text-slate-500">Clique na foto para ver maior ou trocar</p>
+                <p class="text-sm text-slate-400">Clique na foto para ver maior ou trocar</p>
 
                 {% if selos_jogo %}
                 <div class="flex flex-wrap justify-center gap-2 mt-1">
                     {% for selo in selos_jogo %}
-                    <span title="{{ selo.nome }}" class="text-xs bg-blue-50 text-norte-azul rounded-full px-2.5 py-1">{{ selo.icone }} {{ selo.nome }}</span>
+                    <span title="{{ selo.nome }}" class="text-xs bg-blue-500/10 border border-blue-500/20 text-blue-300 rounded-full px-2.5 py-1">{{ selo.icone }} {{ selo.nome }}</span>
                     {% endfor %}
                 </div>
                 {% endif %}
 
                 <div x-show="aberto" x-cloak
-                     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60"
+                     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70"
                      @click.self="aberto = false">
-                    <div class="bg-white rounded-2xl p-6 max-w-xs w-full">
+                    <div class="glass-card rounded-2xl p-6 max-w-xs w-full">
                         <div class="flex items-center justify-between mb-4">
-                            <h3 class="font-bold text-slate-800">Foto de perfil</h3>
-                            <button @click="aberto = false; preview = null" type="button" class="text-slate-400 hover:text-slate-600 text-lg leading-none">✕</button>
+                            <h3 class="font-bold text-white">Foto de perfil</h3>
+                            <button @click="aberto = false; preview = null" type="button" class="text-slate-400 hover:text-white text-lg leading-none">✕</button>
                         </div>
 
                         <div class="flex justify-center mb-4">
                             <template x-if="preview">
-                                <img :src="preview" alt="Pré-visualização" class="w-40 h-40 rounded-full object-cover border border-slate-200">
+                                <img :src="preview" alt="Pré-visualização" class="w-40 h-40 rounded-full object-cover ring-2 ring-white/10">
                             </template>
                             <template x-if="!preview">
                                 {% if aluno.foto_url %}
-                                <img src="{{ aluno.foto_url }}" alt="" class="w-40 h-40 rounded-full object-cover border border-slate-200">
+                                <img src="{{ aluno.foto_url }}" alt="" class="w-40 h-40 rounded-full object-cover ring-2 ring-white/10">
                                 {% else %}
-                                <div class="w-40 h-40 rounded-full bg-blue-50 flex items-center justify-center text-5xl">👤</div>
+                                <div class="w-40 h-40 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-5xl">👤</div>
                                 {% endif %}
                             </template>
                         </div>
 
                         <form action="/perfil/foto" method="post" enctype="multipart/form-data" class="space-y-3" @submit="enviando = true">
                             <input type="file" name="foto" x-ref="inputFoto" accept="image/jpeg,image/png,image/heic,image/heif"
-                                   class="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-sm file:font-medium hover:file:bg-slate-200">
-                            <button type="submit" :disabled="enviando" class="w-full bg-norte-azul hover:bg-norte-azul-escuro text-white text-sm font-semibold rounded-lg py-2.5 transition disabled:opacity-60 disabled:cursor-not-allowed">
+                                   class="block w-full text-sm text-slate-300 file:mr-3 file:rounded-lg file:border-0 file:bg-white/10 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-slate-200 hover:file:bg-white/20">
+                            <button type="submit" :disabled="enviando" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-lg py-2.5 transition disabled:opacity-60 disabled:cursor-not-allowed neon-btn-glow">
                                 <span x-text="enviando ? '📷 Enviando, aguarde...' : '📷 Salvar nova foto'"></span>
                             </button>
                         </form>
@@ -83,38 +83,38 @@
             </div>
 
             <form action="/perfil/dados" method="post" class="space-y-4">
-                <div class="grid sm:grid-cols-2 gap-4 text-sm text-slate-500 mb-2">
-                    <p>Nome: <strong class="text-slate-700">{{ aluno.nome_completo }}</strong></p>
-                    <p>E-mail: <strong class="text-slate-700">{{ aluno.email }}</strong></p>
+                <div class="grid sm:grid-cols-2 gap-4 text-sm text-slate-400 mb-2">
+                    <p>Nome: <strong class="text-slate-200">{{ aluno.nome_completo }}</strong></p>
+                    <p>E-mail: <strong class="text-slate-200">{{ aluno.email }}</strong></p>
                 </div>
-                <p class="text-xs text-slate-400 mb-4">Para trocar nome ou e-mail, entre em contato com o administrador.</p>
+                <p class="text-xs text-slate-500 mb-4">Para trocar nome ou e-mail, entre em contato com o administrador.</p>
 
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Empresa</label>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">Empresa</label>
                     <input type="text" name="empresa" value="{{ aluno.empresa or '' }}"
-                           class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+                           class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Cargo / Função</label>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">Cargo / Função</label>
                     <input type="text" name="cargo" value="{{ aluno.cargo or '' }}"
-                           class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+                           class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Telefone de contato</label>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">Telefone de contato</label>
                     <input type="text" name="telefone" value="{{ aluno.telefone or '' }}" placeholder="(69) 9xxxx-xxxx"
-                           class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
-                    <p class="text-xs text-slate-400 mt-1">Usado só para o administrador te retornar mais fácil quando você envia uma dúvida.</p>
+                           class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                    <p class="text-xs text-slate-500 mt-1">Usado só para o administrador te retornar mais fácil quando você envia uma dúvida.</p>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Filial (cidade)</label>
-                    <select name="filial" class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+                    <label class="block text-sm font-medium text-slate-300 mb-1">Filial (cidade)</label>
+                    <select name="filial" class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
                         <option value="" {{ "selected" if not aluno.filial }}>Selecione...</option>
                         {% for f in filiais %}
                         <option value="{{ f }}" {{ "selected" if aluno.filial == f }}>{{ f }}</option>
                         {% endfor %}
                     </select>
                 </div>
-                <button type="submit" class="bg-norte-azul hover:bg-norte-azul-escuro text-white text-sm font-semibold rounded-lg px-5 py-2.5 transition">
+                <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-lg px-5 py-2.5 transition neon-btn-glow">
                     Salvar alterações
                 </button>
             </form>
@@ -123,34 +123,34 @@
 
     <!-- TROCAR SENHA -->
     <div x-show="aba === 'senha'" x-cloak>
-        <div class="bg-white rounded-2xl border border-slate-200 p-6 max-w-md mx-auto">
-            <p class="text-sm text-slate-500 mb-4">Por segurança, informe sua senha atual antes de definir uma nova.</p>
+        <div class="glass-card rounded-2xl p-6 max-w-md mx-auto">
+            <p class="text-sm text-slate-400 mb-4">Por segurança, informe sua senha atual antes de definir uma nova.</p>
 
             {% if sucesso_senha %}
-            <div class="rounded-lg bg-green-50 text-green-700 text-sm px-4 py-3 mb-4">{{ sucesso_senha }}</div>
+            <div class="rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-sm px-4 py-3 mb-4">{{ sucesso_senha }}</div>
             {% endif %}
             {% if erro_senha %}
-            <div class="rounded-lg bg-red-50 text-red-700 text-sm px-4 py-3 mb-4">{{ erro_senha }}</div>
+            <div class="rounded-lg bg-red-500/10 border border-red-500/20 text-red-300 text-sm px-4 py-3 mb-4">{{ erro_senha }}</div>
             {% endif %}
 
             <form action="/perfil/senha" method="post" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Senha atual</label>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">Senha atual</label>
                     <input type="password" name="senha_atual" required
-                           class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+                           class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Nova senha</label>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">Nova senha</label>
                     <input type="password" name="nova_senha" minlength="6" required
-                           class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
-                    <p class="text-xs text-slate-400 mt-1">Mínimo de 6 caracteres.</p>
+                           class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                    <p class="text-xs text-slate-500 mt-1">Mínimo de 6 caracteres.</p>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Confirmar nova senha</label>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">Confirmar nova senha</label>
                     <input type="password" name="confirmar" minlength="6" required
-                           class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+                           class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
                 </div>
-                <button type="submit" class="bg-norte-azul hover:bg-norte-azul-escuro text-white text-sm font-semibold rounded-lg px-5 py-2.5 transition">
+                <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-lg px-5 py-2.5 transition neon-btn-glow">
                     Trocar senha
                 </button>
             </form>
@@ -160,31 +160,31 @@
     <!-- MEU HISTÓRICO -->
     <div x-show="aba === 'historico'" x-cloak>
         {% if not historico %}
-        <div class="rounded-lg bg-slate-100 text-slate-600 text-sm px-4 py-3">
+        <div class="rounded-lg bg-white/5 border border-white/10 text-slate-400 text-sm px-4 py-3">
             Você ainda não começou nenhum curso. Vá até "Cursos" para começar!
         </div>
         {% else %}
         <div class="space-y-4">
             {% for item in historico %}
-            <div class="bg-white rounded-2xl border border-slate-200 p-5">
-                <h3 class="font-bold text-slate-800 mb-1">{{ item.curso.titulo }}</h3>
-                <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden mb-1">
-                    <div class="h-full bg-norte-azul-claro" style="width: {{ item.progresso_pct }}%"></div>
+            <div class="glass-card rounded-2xl p-5">
+                <h3 class="font-bold text-white mb-1">{{ item.curso.titulo }}</h3>
+                <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden mb-1">
+                    <div class="h-full bg-gradient-to-r from-blue-500 to-cyan-400" style="width: {{ item.progresso_pct }}%"></div>
                 </div>
                 <p class="text-xs text-slate-500 mb-4">{{ item.progresso_pct }}% das aulas concluídas</p>
 
                 <div class="grid grid-cols-3 gap-3 text-center">
                     <div>
-                        <p class="text-xs text-slate-400">{{ "Tempo até concluir" if item.tempo_conclusao else "Status do curso" }}</p>
-                        <p class="text-sm font-bold text-slate-700">{{ item.tempo_conclusao or "Em andamento" }}</p>
+                        <p class="text-xs text-slate-500">{{ "Tempo até concluir" if item.tempo_conclusao else "Status do curso" }}</p>
+                        <p class="text-sm font-bold text-slate-300">{{ item.tempo_conclusao or "Em andamento" }}</p>
                     </div>
                     <div>
-                        <p class="text-xs text-slate-400">Nota média nas avaliações</p>
-                        <p class="text-sm font-bold text-slate-700">{{ "%.1f/10"|format(item.nota_media) if item.nota_media is not none else "-" }}</p>
+                        <p class="text-xs text-slate-500">Nota média nas avaliações</p>
+                        <p class="text-sm font-bold text-slate-300">{{ "%.1f/10"|format(item.nota_media) if item.nota_media is not none else "-" }}</p>
                     </div>
                     <div>
-                        <p class="text-xs text-slate-400">Tempo total nas provas</p>
-                        <p class="text-sm font-bold text-slate-700">{{ item.tempo_total_provas or "-" }}</p>
+                        <p class="text-xs text-slate-500">Tempo total nas provas</p>
+                        <p class="text-sm font-bold text-slate-300">{{ item.tempo_total_provas or "-" }}</p>
                     </div>
                 </div>
             </div>

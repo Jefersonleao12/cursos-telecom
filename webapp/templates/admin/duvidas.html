@@ -1,30 +1,30 @@
 {% extends "admin/base.html" %}
 {% block titulo %}Admin — Dúvidas — Norte Tel{% endblock %}
 {% block admin_conteudo %}
-<h2 class="text-sm font-bold text-slate-700 mb-3">Dúvidas enviadas pelos alunos</h2>
+<h2 class="text-sm font-bold text-slate-300 mb-3">Dúvidas enviadas pelos alunos</h2>
 
-<details class="bg-white rounded-2xl border border-slate-200 p-5 mb-6">
-    <summary class="cursor-pointer select-none font-bold text-sm text-slate-700">🔔 Testar notificação por WhatsApp</summary>
-    <p class="text-xs text-slate-500 mt-3 mb-4">
+<details class="glass-card rounded-2xl p-5 mb-6">
+    <summary class="cursor-pointer select-none font-bold text-sm text-slate-300">🔔 Testar notificação por WhatsApp</summary>
+    <p class="text-xs text-slate-400 mt-3 mb-4">
         Toda dúvida enviada por um aluno tenta avisar você automaticamente no WhatsApp (via CallMeBot). Use o
         botão abaixo para conferir se isso está configurado corretamente — a dúvida em si sempre fica salva
         aqui mesmo se a notificação falhar.
     </p>
     {% if teste_resultado %}
-    <div class="rounded-lg {{ 'bg-green-50 text-green-700' if teste_ok else 'bg-red-50 text-red-700' }} text-sm px-4 py-3 mb-4">
+    <div class="rounded-lg {{ 'bg-emerald-500/10 text-emerald-300' if teste_ok else 'bg-red-500/10 text-red-300' }} text-sm px-4 py-3 mb-4">
         {{ teste_resultado }}
     </div>
     {% endif %}
     <form action="/admin/duvidas/testar-whatsapp" method="post">
         <input type="hidden" name="pendentes" value="{{ apenas_pendentes|lower }}">
-        <button type="submit" class="text-sm font-semibold bg-slate-100 hover:bg-slate-200 rounded-lg px-4 py-2 transition">
+        <button type="submit" class="text-sm font-semibold bg-white/5 hover:bg-white/10 rounded-lg px-4 py-2 transition">
             Enviar mensagem de teste
         </button>
     </form>
 </details>
 
 <form action="/admin/duvidas" method="get" class="mb-4">
-    <label class="flex items-center gap-2 text-sm text-slate-600">
+    <label class="flex items-center gap-2 text-sm text-slate-300">
         <input type="checkbox" name="pendentes" value="true" onchange="this.form.submit()" {{ "checked" if apenas_pendentes }}>
         Mostrar só as pendentes
     </label>
@@ -35,27 +35,27 @@
 {% else %}
 <div class="space-y-3">
     {% for d in duvidas %}
-    <div class="bg-white rounded-xl border border-slate-200 p-4 flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+    <div class="glass-card rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
         <div class="min-w-0">
-            <p class="text-sm font-semibold text-slate-700">{{ d.aluno_nome }}</p>
-            {% if d.telefone %}<p class="text-xs text-slate-500">📱 {{ d.telefone }}</p>{% endif %}
-            <p class="text-sm text-slate-600 mt-1">{{ d.mensagem }}</p>
+            <p class="text-sm font-semibold text-slate-300">{{ d.aluno_nome }}</p>
+            {% if d.telefone %}<p class="text-xs text-slate-400">📱 {{ d.telefone }}</p>{% endif %}
+            <p class="text-sm text-slate-300 mt-1">{{ d.mensagem }}</p>
             <p class="text-xs text-slate-400 mt-1">Enviada em: {{ d.criado_em[:16].replace("T", " ") }}</p>
         </div>
         <div class="flex flex-col gap-2 shrink-0 sm:items-end">
             {% if d.numero_whatsapp %}
             <a href="https://wa.me/{{ d.numero_whatsapp }}" target="_blank" rel="noopener noreferrer"
-               class="text-xs font-semibold bg-green-50 text-green-700 hover:bg-green-100 rounded-lg px-3 py-1.5 transition text-center">
+               class="text-xs font-semibold bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 rounded-lg px-3 py-1.5 transition text-center">
                 💬 WhatsApp
             </a>
             {% endif %}
             {% if not d.respondida %}
             <form action="/admin/duvidas/{{ d.id }}/responder" method="post">
                 <input type="hidden" name="pendentes" value="{{ apenas_pendentes|lower }}">
-                <button type="submit" class="text-xs font-semibold bg-slate-100 hover:bg-slate-200 rounded-lg px-3 py-1.5 transition">✅ Marcar respondida</button>
+                <button type="submit" class="text-xs font-semibold bg-white/5 hover:bg-white/10 rounded-lg px-3 py-1.5 transition">✅ Marcar respondida</button>
             </form>
             {% else %}
-            <span class="text-xs text-green-600">✅ Respondida</span>
+            <span class="text-xs text-emerald-400">✅ Respondida</span>
             {% endif %}
         </div>
     </div>
