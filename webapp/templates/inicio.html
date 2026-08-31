@@ -108,41 +108,36 @@
     </div>
 </section>
 
-<section class="mt-8 space-y-3">
-    <h3 class="text-base font-bold text-white flex items-center gap-2">🧭 Acesso rápido</h3>
-    <div class="scroll-sem-barra flex gap-4 overflow-x-auto pb-1 -mx-1 px-1">
-        {% for href, icone_acao, titulo_acao, desc_acao in [
-            ("/cursos", "📚", "Meus Cursos", "Continue de onde parou ou comece um novo curso."),
-            ("/certificados", "🏆", "Certificados", "Baixe seus certificados de capacitação."),
-            ("/ranking", "🏅", "Top Alunos", "Veja quem está mais adiantado nos cursos."),
-            ("/materiais", "🗂️", "Materiais", "Fotos, documentos e arquivos para consulta."),
-        ] %}
-        <a href="{{ href }}" class="group glass-card shrink-0 w-48 rounded-2xl p-4 hover:border-white/20 transition flex flex-col justify-between h-32">
-            <div class="flex items-center justify-between">
-                <div class="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-base">{{ icone_acao }}</div>
-                <svg class="w-3.5 h-3.5 text-slate-500 group-hover:text-slate-300 group-hover:translate-x-0.5 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-            </div>
-            <div>
-                <h4 class="font-semibold text-white text-sm">{{ titulo_acao }}</h4>
-                <p class="text-xs text-slate-400 mt-1 line-clamp-2">{{ desc_acao }}</p>
-            </div>
-        </a>
-        {% endfor %}
-    </div>
-</section>
-
 {% if destaques %}
-<section class="mt-8 space-y-3">
-    <h3 class="text-base font-bold text-white flex items-center gap-2">👥 Nossa Equipe</h3>
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+<section class="mt-8 space-y-4" x-data="{ destaqueAberto: null }">
+    <h3 class="text-xl font-bold text-white flex items-center gap-2">👥 Nossa Equipe</h3>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
         {% for destaque in destaques %}
-        <div class="glass-card rounded-2xl p-3 flex flex-col gap-2 hover:border-white/20 transition">
-            <img src="{{ destaque.foto_url }}" alt="{{ destaque.titulo }}" class="w-full h-36 object-cover rounded-xl">
+        <button type="button" @click="destaqueAberto = {{ destaque.id }}"
+                class="text-left group glass-card neon-border-glow rounded-2xl p-3 flex flex-col gap-3 hover:border-white/20 transition cursor-pointer">
+            <img src="{{ destaque.foto_url }}" alt="{{ destaque.titulo }}" class="w-full h-48 object-cover rounded-xl">
             <div>
-                <h4 class="text-sm font-bold text-white">{{ destaque.titulo }}</h4>
+                <h4 class="text-sm font-bold text-white group-hover:text-blue-400 transition">{{ destaque.titulo }}</h4>
                 {% if destaque.descricao %}
-                <p class="text-[11px] text-slate-400 line-clamp-2 mt-0.5">{{ destaque.descricao }}</p>
+                <p class="text-xs text-slate-400 line-clamp-2 mt-1">{{ destaque.descricao }}</p>
                 {% endif %}
+            </div>
+        </button>
+
+        <div x-show="destaqueAberto === {{ destaque.id }}" x-cloak
+             class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+             @click.self="destaqueAberto = null" @keydown.escape.window="destaqueAberto = null">
+            <div class="glass-card neon-border-glow rounded-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto" @click.stop>
+                <img src="{{ destaque.foto_url }}" alt="{{ destaque.titulo }}" class="w-full max-h-[55vh] object-cover rounded-t-2xl">
+                <div class="p-5">
+                    <div class="flex items-start justify-between gap-3">
+                        <h4 class="text-lg font-bold text-white">{{ destaque.titulo }}</h4>
+                        <button type="button" @click="destaqueAberto = null" class="shrink-0 text-slate-400 hover:text-white transition">✕</button>
+                    </div>
+                    {% if destaque.descricao %}
+                    <p class="text-sm text-slate-300 mt-2 whitespace-pre-wrap leading-relaxed">{{ destaque.descricao }}</p>
+                    {% endif %}
+                </div>
             </div>
         </div>
         {% endfor %}
