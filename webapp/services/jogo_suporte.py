@@ -1,9 +1,10 @@
 """
 "Simulador de Suporte" — jogo de treinamento de atendimento ao cliente
-(irmão do Simulador de Campo). Cada atendimento tem 4 decisões (fala do
-cliente + 3 respostas possíveis, uma correta); a cada 5 atendimentos
-concluídos o aluno ganha um selo, visível no Ranking; ao concluir todos,
-ganha o selo final.
+(irmão do Simulador de Campo). Cada atendimento tem uma ou mais decisões
+(fala do cliente + 3 respostas possíveis, uma correta) — a quantidade
+varia por atendimento, ver webapp/data/jogo_suporte_atendimentos.py; a
+cada 5 atendimentos concluídos o aluno ganha um selo, visível no Ranking;
+ao concluir todos, ganha o selo final.
 
 Diferente do Simulador de Campo, aqui existe um medidor de humor do
 cliente: cada resposta escolhida soma ou subtrai pontos de humor
@@ -22,7 +23,6 @@ import random
 from database.repositorio import jogo_suporte_obter_progresso, jogo_suporte_salvar_progresso
 from webapp.data.jogo_suporte_atendimentos import ATENDIMENTOS
 
-_DECISOES_POR_ATENDIMENTO = 4  # todos os atendimentos do lote atual têm 4 decisões
 _SELOS_A_CADA = 5
 _HUMOR_MIN = 0
 _HUMOR_MAX = 100
@@ -101,13 +101,13 @@ def obter_tela(aluno_id: str) -> dict:
         "atendimento_numero": progresso["atendimento_index"] + 1,
         "total_atendimentos": total_atendimentos,
         "decisao_numero": progresso["decisao_index"] + 1,
-        "total_decisoes": _DECISOES_POR_ATENDIMENTO,
         "humor_atual": progresso["humor_atual"],
         "humor_tier": _tier_humor(progresso["humor_atual"]),
     }
 
     if tela in ("atendimento-intro", "decision", "feedback", "atendimento-end"):
         contexto["atendimento"] = _atendimento_atual(progresso)
+        contexto["total_decisoes"] = len(contexto["atendimento"]["decisoes"])
 
     if tela == "decision":
         atendimento = contexto["atendimento"]
@@ -129,7 +129,7 @@ def obter_tela(aluno_id: str) -> dict:
         contexto["ultimo_atendimento"] = progresso["atendimento_index"] + 1 >= total_atendimentos
 
     if tela == "game-end":
-        total_decisoes = total_atendimentos * _DECISOES_POR_ATENDIMENTO
+        total_decisoes = sum(len(a["decisoes"]) for a in ATENDIMENTOS)
         contexto["acertos_totais"] = progresso["acertos_totais"]
         contexto["total_decisoes_jogo"] = total_decisoes
         contexto["selos"] = selos_conquistados(progresso["atendimentos_completados"])
