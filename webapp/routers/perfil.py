@@ -1,6 +1,7 @@
 """'Meu Perfil' — porta modules/perfil.py: dados de contato, troca de
 senha (confere a senha atual antes) e histórico de progresso do aluno."""
 from fastapi import APIRouter, Depends, Form, Request, UploadFile
+from starlette.concurrency import run_in_threadpool
 
 from database.repositorio import (
     ImagemInvalidaError,
@@ -141,8 +142,11 @@ def trocar_senha(
 async def salvar_foto(request: Request, foto: UploadFile, aluno: dict = Depends(obter_aluno_atual)):
     conteudo = await foto.read()
     if conteudo:
+        # atualizar_foto_perfil processa a imagem (Pillow) e envia pro
+        # Storage do Supabase — bloqueante, então roda numa thread separada
+        # pra não travar o event loop (e com ele, todo mundo) durante o upload.
         try:
-            nova_url = atualizar_foto_perfil(aluno["id"], conteudo)
+            nova_url = await run_in_threadpool(atualizar_foto_perfil, aluno["id"], conteudo)
         except ImagemInvalidaError as erro:
             return _renderizar(request, aluno, aba_ativa="dados", erro_dados=str(erro))
         aluno = dict(aluno, foto_url=nova_url)

@@ -8,6 +8,7 @@ Substitui por completo o mecanismo antigo de "restaurar sessão da URL /
 localStorage" (modules/auth.py) — aqui não existe estado "pendente" de
 round-trip de JavaScript: o cookie já chega pronto na própria requisição.
 """
+from starlette.concurrency import run_in_threadpool
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import RedirectResponse
@@ -48,7 +49,14 @@ def _resolver_aluno(request: Request):
 class AutenticacaoMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         path = request.url.path
-        aluno, token_invalido = _resolver_aluno(request)
+        # _resolver_aluno faz uma consulta síncrona ao Supabase — rodar ela
+        # direto aqui bloquearia o event loop inteiro (e, com ele, TODAS as
+        # requisições de TODO MUNDO) até a consulta voltar, já que isso roda
+        # em toda requisição autenticada. run_in_threadpool joga essa
+        # chamada bloqueante pra uma thread separada, do mesmo jeito que o
+        # FastAPI já faz automaticamente pras rotas declaradas com "def"
+        # (não "async def").
+        aluno, token_invalido = await run_in_threadpool(_resolver_aluno, request)
         request.state.aluno = aluno
 
         publico = path in _CAMINHOS_PUBLICOS or any(path.startswith(p) for p in _PREFIXOS_PUBLICOS)

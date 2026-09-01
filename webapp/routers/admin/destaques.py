@@ -2,6 +2,7 @@
 '🌟 Destaques' de modules/admin.py."""
 from fastapi import APIRouter, Depends, Form, Request, UploadFile
 from fastapi.responses import RedirectResponse
+from starlette.concurrency import run_in_threadpool
 
 from database.repositorio import (
     ImagemInvalidaError,
@@ -50,7 +51,9 @@ async def criar(
     if not titulo.strip() or not conteudo:
         return _renderizar(request, aluno, erro_cadastro="Preencha o título e escolha uma foto.")
     try:
-        criar_destaque(titulo, descricao, conteudo, ordem)
+        # Processa a imagem (Pillow) e envia pro Storage numa thread
+        # separada, pra não travar o event loop de todo mundo.
+        await run_in_threadpool(criar_destaque, titulo, descricao, conteudo, ordem)
     except ImagemInvalidaError as erro:
         return _renderizar(request, aluno, erro_cadastro=str(erro))
     return RedirectResponse("/admin/destaques", status_code=303)
@@ -73,7 +76,11 @@ async def editar(
 
     conteudo = await foto.read() if foto else None
     try:
-        editar_destaque(destaque_id, titulo, descricao, ordem, ativo, caminho_storage_atual, conteudo or None)
+        # Processa a imagem (Pillow) e envia pro Storage numa thread
+        # separada, pra não travar o event loop de todo mundo.
+        await run_in_threadpool(
+            editar_destaque, destaque_id, titulo, descricao, ordem, ativo, caminho_storage_atual, conteudo or None
+        )
     except ImagemInvalidaError as erro:
         return _renderizar(request, aluno, editando_id=destaque_id, erro_edicao=str(erro))
     return RedirectResponse("/admin/destaques", status_code=303)

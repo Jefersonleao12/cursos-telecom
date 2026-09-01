@@ -766,6 +766,7 @@ def registrar_inicio_curso(aluno_id: str, curso_id: int):
         sb.table("progresso_cursos").insert(
             {"aluno_id": aluno_id, "curso_id": curso_id}
         ).execute()
+        obter_tempos_curso.clear()
 
 
 def finalizar_progresso_curso(aluno_id: str, curso_id: int):
@@ -774,8 +775,10 @@ def finalizar_progresso_curso(aluno_id: str, curso_id: int):
     sb.table("progresso_cursos").update(
         {"finalizado_em": datetime.now(timezone.utc).isoformat()}
     ).eq("aluno_id", aluno_id).eq("curso_id", curso_id).is_("finalizado_em", "null").execute()
+    obter_tempos_curso.clear()
 
 
+@cache_com_ttl(ttl=15)
 def obter_tempos_curso(aluno_id: str, curso_id: int):
     """Retorna o registro de início/fim do curso para este aluno (ou None)."""
     sb = get_supabase_client()

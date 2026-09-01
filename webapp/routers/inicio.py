@@ -17,7 +17,7 @@ import random
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-from fastapi import APIRouter, Depends, Form, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, Form, Request
 
 from database.repositorio import (
     calcular_progresso_curso,
@@ -174,6 +174,7 @@ def inicio(request: Request, aluno: dict = Depends(obter_aluno_atual)):
 @router.post("/duvida")
 def enviar_duvida_rota(
     request: Request,
+    background_tasks: BackgroundTasks,
     mensagem: str = Form(...),
     aluno: dict = Depends(obter_aluno_atual),
 ):
@@ -182,5 +183,9 @@ def enviar_duvida_rota(
 
     telefone = aluno.get("telefone")
     enviar_duvida(aluno["id"], aluno["nome_completo"], mensagem, telefone)
-    notificar_nova_duvida(aluno["nome_completo"], mensagem, telefone)
+    # O aviso do WhatsApp não precisa segurar a resposta pro aluno — a
+    # dúvida já foi salva no banco acima, o WhatsApp é só um aviso extra
+    # pra equipe, então roda depois de responder (evita o aluno esperar
+    # o timeout de 10s da API do CallMeBot se ela estiver lenta).
+    background_tasks.add_task(notificar_nova_duvida, aluno["nome_completo"], mensagem, telefone)
     return _renderizar(request, aluno, sucesso_duvida="Dúvida enviada com sucesso! Em breve alguém vai te responder. 🙌")

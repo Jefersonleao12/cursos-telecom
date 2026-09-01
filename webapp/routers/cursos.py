@@ -5,6 +5,7 @@ no servidor, e prova por módulo.
 """
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import RedirectResponse
+from starlette.concurrency import run_in_threadpool
 
 from database.repositorio import (
     buscar_aula,
@@ -134,6 +135,17 @@ def concluir_aula(curso_id: int, aula_id: int, aluno: dict = Depends(obter_aluno
 
 @router.post("/cursos/{curso_id}/modulos/{modulo_id}/prova")
 async def enviar_prova(request: Request, curso_id: int, modulo_id: int, aluno: dict = Depends(obter_aluno_atual)):
+    # await request.form() precisa rodar no event loop (é I/O assíncrono de
+    # verdade), mas o resto da função inteira é síncrono e bate várias vezes
+    # no Supabase — roda tudo isso numa thread separada (run_in_threadpool)
+    # pra não travar o processamento das requisições de outros alunos
+    # enquanto a prova é corrigida e salva.
+    dados_form = await request.form()
+    respostas_brutas = dict(dados_form)
+    return await run_in_threadpool(_processar_prova, request, curso_id, modulo_id, aluno, respostas_brutas)
+
+
+def _processar_prova(request: Request, curso_id: int, modulo_id: int, aluno: dict, respostas_brutas: dict):
     curso = buscar_curso(curso_id)
     if curso is None:
         return templates.TemplateResponse(
@@ -155,8 +167,7 @@ async def enviar_prova(request: Request, curso_id: int, modulo_id: int, aluno: d
 
     prova = item["prova"]
     perguntas = item["perguntas_prova"]
-    dados_form = await request.form()
-    respostas = {p["id"]: dados_form.get(f"pergunta_{p['id']}") for p in perguntas}
+    respostas = {p["id"]: respostas_brutas.get(f"pergunta_{p['id']}") for p in perguntas}
 
     if any(resposta is None for resposta in respostas.values()):
         return _renderizar_detalhe(

@@ -4,8 +4,9 @@ duas telas obrigatórias (troca de senha temporária, foto de perfil no
 primeiro acesso). Portado de modules/auth.py — mesmas regras de negócio,
 persistência da sessão por cookie httponly em vez de URL/localStorage.
 """
-from fastapi import APIRouter, Depends, Form, Request, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, Form, Request, UploadFile
 from fastapi.responses import RedirectResponse
+from starlette.concurrency import run_in_threadpool
 
 from database.repositorio import (
     ImagemInvalidaError,
@@ -65,11 +66,14 @@ def fazer_logout():
 
 
 @router.post("/esqueci-senha")
-def esqueci_senha(request: Request, cpf: str = Form(...)):
+def esqueci_senha(request: Request, background_tasks: BackgroundTasks, cpf: str = Form(...)):
     aluno_encontrado = solicitar_redefinicao_senha(cpf)
     if aluno_encontrado:
-        notificar_pedido_redefinicao_senha(
-            aluno_encontrado["nome_completo"], aluno_encontrado["email"]
+        # Roda depois de responder — não faz sentido a pessoa esperar o
+        # WhatsApp do admin pra ver a mensagem de confirmação na tela.
+        background_tasks.add_task(
+            notificar_pedido_redefinicao_senha,
+            aluno_encontrado["nome_completo"], aluno_encontrado["email"],
         )
     # Mesma mensagem independente de o CPF existir ou não, para não revelar
     # quais CPFs têm cadastro na plataforma.
@@ -137,7 +141,9 @@ async def definir_foto_obrigatoria(
         )
 
     try:
-        atualizar_foto_perfil(aluno["id"], conteudo)
+        # Processa a imagem (Pillow) e envia pro Storage do Supabase numa
+        # thread separada, pra não travar o event loop de todo mundo.
+        await run_in_threadpool(atualizar_foto_perfil, aluno["id"], conteudo)
     except ImagemInvalidaError as erro:
         return templates.TemplateResponse(
             request, "auth/definir_foto.html", {"erro": str(erro)}, status_code=400,
