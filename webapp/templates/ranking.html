@@ -1,5 +1,10 @@
 {% extends "base.html" %}
 {% block titulo %}Top Alunos — Norte Tel{% endblock %}
+
+{% macro selo_badge(selo) %}
+<span class="text-xs {{ 'bg-blue-500/10 text-blue-300 border-blue-500/20' if selo.tipo == 'campo' else 'bg-cyan-500/10 text-cyan-300 border-cyan-500/20' }} border rounded-full px-2 py-0.5">{{ selo.icone }} {{ selo.nome }}</span>
+{% endmacro %}
+
 {% block conteudo %}
 <h1 class="text-2xl font-bold text-blue-400 mb-1">🏅 Top Alunos</h1>
 <p class="text-sm text-slate-400 mb-6">
@@ -29,14 +34,24 @@
                 <p class="text-sm text-slate-400 truncate">
                     {{ [item.empresa, item.filial] | select | join(' · ') }}
                 </p>
-                {% if linha.selos_jogo or linha.selos_suporte %}
-                <div class="flex flex-wrap gap-1 mt-1">
-                    {% for selo in linha.selos_jogo %}
-                    <span class="text-xs bg-blue-500/10 text-blue-300 border border-blue-500/20 rounded-full px-2 py-0.5">{{ selo.icone }} {{ selo.nome }}</span>
-                    {% endfor %}
-                    {% for selo in linha.selos_suporte %}
-                    <span class="text-xs bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 rounded-full px-2 py-0.5">{{ selo.icone }} {{ selo.nome }}</span>
-                    {% endfor %}
+                {% if linha.selos %}
+                <div x-data="{ mostrarTodos: false }" class="mt-1">
+                    <div class="flex flex-wrap gap-1">
+                        {% for selo in linha.selos[:10] %}
+                        {{ selo_badge(selo) }}
+                        {% endfor %}
+                    </div>
+                    {% if linha.selos|length > 10 %}
+                    <div x-show="mostrarTodos" x-cloak class="flex flex-wrap gap-1 mt-1">
+                        {% for selo in linha.selos[10:] %}
+                        {{ selo_badge(selo) }}
+                        {% endfor %}
+                    </div>
+                    <button type="button" @click="mostrarTodos = !mostrarTodos" class="text-xs font-semibold text-blue-400 hover:text-blue-300 mt-1">
+                        <span x-show="!mostrarTodos">Mostrar mais {{ linha.selos|length - 10 }} selos ▾</span>
+                        <span x-show="mostrarTodos" x-cloak>Mostrar menos ▴</span>
+                    </button>
+                    {% endif %}
                 </div>
                 {% endif %}
             </div>

@@ -30,6 +30,14 @@ def ranking(request: Request, aluno: dict = Depends(obter_aluno_atual)):
 
     top = []
     for posicao, item in enumerate(lista[:_QUANTIDADE_EXIBIDA], start=1):
+        selos_jogo = [
+            {**selo, "tipo": "campo"}
+            for selo in selos_conquistados(missoes_por_aluno.get(item["aluno_id"], 0))
+        ]
+        selos_suporte = [
+            {**selo, "tipo": "suporte"}
+            for selo in suporte_selos_conquistados(atendimentos_por_aluno.get(item["aluno_id"], 0))
+        ]
         top.append(
             {
                 "posicao": posicao,
@@ -37,8 +45,10 @@ def ranking(request: Request, aluno: dict = Depends(obter_aluno_atual)):
                 "item": item,
                 "eh_voce": item["aluno_id"] == aluno["id"],
                 "progresso_pct": int(item["progresso_medio"] * 100),
-                "selos_jogo": selos_conquistados(missoes_por_aluno.get(item["aluno_id"], 0)),
-                "selos_suporte": suporte_selos_conquistados(atendimentos_por_aluno.get(item["aluno_id"], 0)),
+                # Combinados numa lista só pra template poder mostrar os 10
+                # primeiros e esconder o resto atrás de um "mostrar mais"
+                # (sem isso, um aluno com muitos selos polui o card inteiro).
+                "selos": selos_jogo + selos_suporte,
             }
         )
 
