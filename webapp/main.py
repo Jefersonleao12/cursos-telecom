@@ -26,6 +26,7 @@ from webapp.routers.cursos import router as cursos_router
 from webapp.routers.inicio import router as inicio_router
 from webapp.routers.jogo import router as jogo_router
 from webapp.routers.jogo_suporte import router as jogo_suporte_router
+from webapp.routers.jogo_suporte_ia import router as jogo_suporte_ia_router
 from webapp.routers.materiais import router as materiais_router
 from webapp.routers.perfil import router as perfil_router
 from webapp.routers.ranking import router as ranking_router
@@ -41,6 +42,7 @@ app.include_router(auth_router)
 app.include_router(inicio_router)
 app.include_router(jogo_router)
 app.include_router(jogo_suporte_router)
+app.include_router(jogo_suporte_ia_router)
 app.include_router(cursos_router)
 app.include_router(materiais_router)
 app.include_router(ranking_router)

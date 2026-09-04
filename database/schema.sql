@@ -268,6 +268,31 @@ create table if not exists public.jogo_suporte_progresso (
 );
 
 -- ----------------------------------------------------------------------------
+-- SIMULADOR DE SUPORTE POR IA (modo piloto, em paralelo ao de múltipla
+-- escolha acima — ver webapp/services/jogo_suporte_ia.py). Aqui o aluno
+-- digita texto livre pro "cliente"; quem interpreta a mensagem e escreve
+-- a fala do cliente é o Gemini, guiado por um prompt montado a partir do
+-- MESMO conteúdo de webapp/data/jogo_suporte_atendimentos.py (situação,
+-- passos corretos, erros conhecidos) — não existe um banco de conteúdo
+-- separado pra esse modo. Humor e tolerância a fuga de contexto são
+-- regras fixas em Python (não confiamos isso à IA); ela só classifica a
+-- mensagem do aluno e escreve a próxima fala do cliente.
+-- ----------------------------------------------------------------------------
+create table if not exists public.jogo_suporte_ia_progresso (
+    aluno_id                 uuid primary key references public.alunos(id) on delete cascade,
+    tela                     text not null default 'welcome',  -- welcome | chat | atendimento-end | game-end
+    atendimento_index        int not null default 0,
+    mensagens                jsonb not null default '[]'::jsonb,  -- [{"autor": "cliente"|"aluno", "texto": "..."}]
+    humor_atual              int not null default 50,
+    fora_de_contexto_seguidas int not null default 0,  -- "tolerância": zera a cada mensagem no assunto
+    turnos_no_atendimento    int not null default 0,   -- trava de segurança contra atendimento infinito
+    atendimentos_completados int not null default 0,
+    xp                       int not null default 0,
+    ultimo_desfecho          text,   -- resolvido | fracasso_humor | fracasso_paciencia | tempo_esgotado (do atendimento que acabou de fechar)
+    atualizado_em            timestamptz not null default now()
+);
+
+-- ----------------------------------------------------------------------------
 -- AVISOS (comunicados gerais do admin para todos os alunos, na tela de Início)
 -- ----------------------------------------------------------------------------
 create table if not exists public.avisos (

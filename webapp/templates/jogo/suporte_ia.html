@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block titulo %}Simulador de Suporte por IA — Norte Tel{% endblock %}
+{% block conteudo %}
+
+{% if tela == "welcome" %}
+<section class="max-w-2xl mx-auto glass-card neon-border-glow rounded-2xl p-8 relative overflow-hidden">
+    <div class="absolute -right-10 -top-10 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="relative z-10">
+        <span class="text-[10px] font-bold tracking-widest uppercase text-slate-400">🧪 Beta · Simulador de Suporte por IA</span>
+        <h1 class="text-2xl font-bold text-white mt-1 leading-snug">Escreva sua resposta com suas próprias palavras. <span class="text-cyan-400">A IA reage de verdade.</span></h1>
+        <p class="text-sm text-slate-400 mt-3 leading-relaxed">
+            Nada de múltipla escolha aqui: você digita a resposta livremente pro cliente, e uma IA decide como ele reage —
+            se sua mensagem resolve o passo certo, é incompleta, erra, ou foge do assunto, o humor do cliente muda de
+            acordo. Os mesmos {{ total_atendimentos }} atendimentos do simulador clássico, só que conversados de verdade.
+        </p>
+        <form action="/suporte-ia/iniciar" method="post" class="mt-6">
+            <button type="submit" class="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold rounded-xl text-sm transition neon-btn-glow inline-flex items-center justify-center gap-2">
+                Começar (beta)
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </button>
+        </form>
+        <a href="/suporte" class="block mt-3 text-xs text-slate-500 hover:text-slate-300 transition">← Prefere o simulador clássico (múltipla escolha)?</a>
+    </div>
+</section>
+{% endif %}
+
+{% if tela == "game-end" %}
+<section class="max-w-2xl mx-auto glass-card neon-border-glow rounded-2xl p-8">
+    <span class="text-[10px] font-bold tracking-widest uppercase text-slate-400">Relatório final de plantão (IA)</span>
+    <h1 class="text-3xl font-bold text-cyan-400 mt-1">{{ xp }} XP</h1>
+    <p class="text-sm text-slate-300 mt-3">{{ atendimentos_completados }} atendimentos concluídos no modo por IA.</p>
+    <form action="/suporte-ia/reiniciar" method="post" class="mt-6">
+        <button type="submit" class="px-5 py-2.5 border border-white/10 hover:bg-white/5 text-slate-200 font-semibold rounded-xl text-sm transition">
+            Jogar novamente
+        </button>
+    </form>
+</section>
+{% endif %}
+
+{% if tela in ("chat", "atendimento-end") %}
+<div class="lg:flex lg:gap-4 lg:h-[74vh] lg:min-h-[560px]">
+
+    {# ---------- CHAT ---------- #}
+    <main class="flex-1 min-w-0 flex flex-col glass-card rounded-2xl overflow-hidden">
+        <div class="p-4 border-b border-white/10 flex items-center justify-between gap-2 shrink-0">
+            <div class="min-w-0">
+                <p class="text-sm font-bold text-white truncate">{{ atendimento.cliente }}</p>
+                <p class="text-[11px] font-mono text-slate-400">{{ atendimento.id }} · Atendimento {{ atendimento_numero }}/{{ total_atendimentos }} · 🧪 beta</p>
+            </div>
+            <div class="shrink-0 text-right">
+                <span class="text-xs font-mono text-slate-500">⚡ {{ xp }} XP</span>
+            </div>
+        </div>
+
+        <div class="scroll-sem-barra flex-1 overflow-y-auto p-4 sm:p-6 space-y-3">
+            {% for msg in mensagens %}
+                {% if msg.autor == "cliente" %}
+                <div class="flex justify-start">
+                    <div class="max-w-[85%] sm:max-w-md bg-white/10 border border-white/10 rounded-2xl rounded-tl-sm px-4 py-3">
+                        <p class="text-[10px] font-mono uppercase text-slate-400 mb-1">{{ atendimento.cliente.split(" ")[0] }}</p>
+                        <p class="text-sm text-slate-100 leading-relaxed">{{ msg.texto }}</p>
+                    </div>
+                </div>
+                {% else %}
+                <div class="flex justify-end">
+                    <div class="max-w-[85%] sm:max-w-md bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl rounded-tr-sm px-4 py-3">
+                        <p class="text-[10px] font-mono uppercase text-blue-100/70 mb-1">Você</p>
+                        <p class="text-sm text-white leading-relaxed">{{ msg.texto }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            {% endfor %}
+
+            {% if tela == "atendimento-end" %}
+            <div class="max-w-md mx-auto text-center py-4">
+                <p class="text-[11px] font-mono uppercase tracking-widest text-slate-500">{{ atendimento.id }} · Atendimento encerrado</p>
+                <div class="mt-3 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold
+                    {{ 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' if desfecho_tier == 'satisfeito' else ('bg-amber-500/10 text-amber-400 border border-amber-500/20' if desfecho_tier == 'neutro' else 'bg-red-500/10 text-red-400 border border-red-500/20') }}">
+                    {{ desfecho_titulo }}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="p-4 border-t border-white/10 shrink-0">
+            {% if tela == "chat" %}
+            {% if erro_ia %}
+            <p class="text-xs text-amber-400 mb-2">⚠️ {{ erro_ia }}</p>
+            {% endif %}
+            <form action="/suporte-ia/enviar" method="post" class="flex items-end gap-2">
+                <textarea name="mensagem" rows="2" required placeholder="Digite sua resposta pro cliente..."
+                    class="flex-1 resize-none bg-white/5 border border-white/10 focus:border-blue-500/40 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition">{{ rascunho or "" }}</textarea>
+                <button type="submit" class="shrink-0 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold rounded-xl px-5 py-3 text-sm transition neon-btn-glow">
+                    Enviar
+                </button>
+            </form>
+            {% endif %}
+
+            {% if tela == "atendimento-end" %}
+            <form action="/suporte-ia/proximo-atendimento" method="post">
+                <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold rounded-xl py-3 text-sm transition neon-btn-glow">
+                    {{ "Ver relatório final →" if ultimo_atendimento else "Próximo atendimento →" }}
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </main>
+
+    {# ---------- PAINEL: humor + dados ---------- #}
+    <aside class="lg:w-72 shrink-0 glass-card rounded-2xl p-5 mt-3 lg:mt-0">
+        <div class="flex flex-col items-center text-center pb-4 border-b border-white/10">
+            <span class="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center text-2xl">👤</span>
+            <p class="text-sm font-bold text-white mt-2">{{ atendimento.cliente }}</p>
+            <p class="text-xs font-mono text-slate-400">{{ atendimento.id }}</p>
+        </div>
+
+        <div class="space-y-3 py-4 text-xs border-b border-white/10">
+            <div class="flex justify-between gap-2"><span class="text-slate-500">Fila</span><span class="text-slate-300">{{ atendimento.fila }}</span></div>
+            <div class="flex justify-between gap-2"><span class="text-slate-500">Categoria</span><span class="text-amber-400">{{ atendimento.categoria }}</span></div>
+        </div>
+
+        <div class="py-4">
+            <p class="text-[11px] font-mono uppercase tracking-widest text-slate-500 mb-2">Humor do cliente</p>
+            <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                <div class="h-full rounded-full transition-all duration-300 {{ 'bg-emerald-400' if humor_tier == 'satisfeito' else ('bg-amber-400' if humor_tier == 'neutro' else 'bg-red-400') }}" style="width: {{ humor_atual }}%"></div>
+            </div>
+            <div class="flex items-center justify-between mt-2">
+                <span class="text-xs font-semibold {{ 'text-emerald-400' if humor_tier == 'satisfeito' else ('text-amber-400' if humor_tier == 'neutro' else 'text-red-400') }}">
+                    {{ "😊 Satisfeito" if humor_tier == "satisfeito" else ("😐 Neutro" if humor_tier == "neutro" else "😠 Insatisfeito") }}
+                </span>
+                <span class="text-xs font-mono text-slate-500">{{ humor_atual }}/100</span>
+            </div>
+        </div>
+    </aside>
+</div>
+{% endif %}
+
+{% endblock %}

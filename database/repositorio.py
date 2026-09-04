@@ -1016,6 +1016,36 @@ def jogo_suporte_salvar_progresso(aluno_id: str, **campos) -> dict:
     return resposta.data[0]
 
 
+_JOGO_SUPORTE_IA_PADRAO = {
+    "tela": "welcome",
+    "atendimento_index": 0,
+    "mensagens": [],
+    "humor_atual": 50,
+    "fora_de_contexto_seguidas": 0,
+    "turnos_no_atendimento": 0,
+    "atendimentos_completados": 0,
+    "xp": 0,
+    "ultimo_desfecho": None,
+}
+
+
+def jogo_suporte_ia_obter_progresso(aluno_id: str) -> dict:
+    """Retorna o progresso do aluno no Simulador de Suporte por IA (estado inicial se nunca jogou)."""
+    sb = get_supabase_client()
+    resposta = sb.table("jogo_suporte_ia_progresso").select("*").eq("aluno_id", aluno_id).execute()
+    if resposta.data:
+        return resposta.data[0]
+    return {"aluno_id": aluno_id, **_JOGO_SUPORTE_IA_PADRAO}
+
+
+def jogo_suporte_ia_salvar_progresso(aluno_id: str, **campos) -> dict:
+    """Grava (cria ou atualiza) o progresso do aluno no Simulador de Suporte por IA."""
+    sb = get_supabase_client()
+    linha = {"aluno_id": aluno_id, **campos}
+    resposta = sb.table("jogo_suporte_ia_progresso").upsert(linha, on_conflict="aluno_id").execute()
+    return resposta.data[0]
+
+
 def jogo_suporte_atendimentos_completados_em_lote(alunos: list) -> dict:
     """Quantos atendimentos cada aluno já completou no Simulador de Suporte — usado no Ranking."""
     if not alunos:
