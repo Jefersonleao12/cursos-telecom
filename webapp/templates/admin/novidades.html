@@ -1,0 +1,137 @@
+{% extends "admin/base.html" %}
+{% block titulo %}Admin — Novidades — Norte Tel{% endblock %}
+
+{# Um único macro pros dois formulários (novo e edição): assim os campos não
+   saem de sincronia quando algum deles mudar. 'item' vem preenchido na
+   edição e vazio no cadastro. #}
+{% macro campos_novidade(item, categorias, nova_categoria_opcao) %}
+<div x-data="{ categoria: '{{ (item.categoria if item else 'Geral')|replace("'", "\\'") }}' }" class="space-y-3">
+    <div>
+        <label class="block text-sm font-medium text-slate-300 mb-1">Título *</label>
+        <input type="text" name="titulo" value="{{ item.titulo if item else '' }}"
+               placeholder="Ex: Nova config de ONU para clientes com IPTV"
+               class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+    </div>
+    <div>
+        <label class="block text-sm font-medium text-slate-300 mb-1">O que mudou / como resolver</label>
+        <textarea name="conteudo" rows="5"
+                  placeholder="Explique o passo a passo. As quebras de linha são mantidas na tela do aluno."
+                  class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50">{{ item.conteudo if item and item.conteudo else '' }}</textarea>
+    </div>
+    <div>
+        <label class="block text-sm font-medium text-slate-300 mb-1">Link do vídeo (opcional)</label>
+        <input type="text" name="video_url" value="{{ item.video_url if item and item.video_url else '' }}"
+               placeholder="https://youtu.be/... ou https://drive.google.com/..."
+               class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+        <p class="text-xs text-slate-400 mt-1">
+            Aceita YouTube, Google Drive ou link direto de vídeo — o mesmo que as aulas dos cursos usam.
+            No Drive, deixe o compartilhamento como "Qualquer pessoa com o link".
+            Texto ou vídeo: pelo menos um dos dois é obrigatório.
+        </p>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-3">
+        <div>
+            <label class="block text-sm font-medium text-slate-300 mb-1">Categoria *</label>
+            <select name="categoria_opcao" x-model="categoria"
+                    class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                {% for c in categorias %}
+                <option value="{{ c }}">{{ c }}</option>
+                {% endfor %}
+                <option value="{{ nova_categoria_opcao }}">{{ nova_categoria_opcao }}</option>
+            </select>
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-slate-300 mb-1">Quem descobriu / publicou</label>
+            <input type="text" name="autor" value="{{ item.autor if item and item.autor else '' }}"
+                   placeholder="Deixe em branco para usar seu nome"
+                   class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+        </div>
+    </div>
+    <div x-show="categoria === '{{ nova_categoria_opcao }}'" x-cloak>
+        <label class="block text-sm font-medium text-slate-300 mb-1">Nome da nova categoria *</label>
+        <input type="text" name="nova_categoria"
+               class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+    </div>
+    <label class="flex items-center gap-2 text-sm text-slate-300">
+        <input type="checkbox" name="fixada" value="1" {{ "checked" if item and item.fixada }}
+               class="w-4 h-4 rounded border-white/20 bg-slate-900">
+        📌 Fixar no topo (fica acima das mais recentes)
+    </label>
+</div>
+{% endmacro %}
+
+{% block admin_conteudo %}
+<p class="text-sm text-slate-400 mb-4">
+    O mural técnico da equipe: uma configuração nova, uma solução rápida que alguém descobriu, um
+    procedimento que mudou. O aluno vê em <strong>Novidades</strong>, da mais recente para a mais antiga.
+    Para acervo permanente de consulta (manuais, planilhas), use <strong>Materiais</strong>.
+</p>
+
+<h2 class="text-sm font-bold text-slate-300 mb-3">Novidades publicadas</h2>
+{% if not novidades %}
+<p class="text-sm text-slate-400 mb-6">Nenhuma novidade cadastrada ainda.</p>
+{% else %}
+<div class="space-y-3 mb-8">
+    {% for n in novidades %}
+    <div class="glass-card rounded-xl p-4 {{ 'opacity-60' if not n.ativa }}">
+        <div class="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+            <div class="min-w-0">
+                <p class="text-sm text-slate-300">
+                    {% if n.fixada %}📌 {% endif %}<strong>{{ n.titulo }}</strong>
+                    <span class="text-slate-500">— {{ n.categoria }}</span>
+                    {% if not n.ativa %}<span class="text-amber-400 text-xs">(fora do ar)</span>{% endif %}
+                </p>
+                <p class="text-xs text-slate-500">
+                    {{ n.criado_em[:10] }}{% if n.autor %} · por {{ n.autor }}{% endif %}
+                    {%- if n.video_url %} · 🎥 com vídeo{% endif %}
+                </p>
+            </div>
+            <div class="flex flex-wrap gap-2 shrink-0">
+                <a href="/admin/novidades?editar={{ n.id }}" class="text-xs font-semibold bg-white/5 hover:bg-white/10 text-slate-200 rounded-lg px-3 py-1.5 transition">✏️ Editar</a>
+                <form action="/admin/novidades/{{ n.id }}/alternar" method="post">
+                    <button type="submit" class="text-xs font-semibold bg-white/5 hover:bg-white/10 text-slate-200 rounded-lg px-3 py-1.5 transition">
+                        {{ "🚫 Tirar do ar" if n.ativa else "✅ Publicar" }}
+                    </button>
+                </form>
+                <a href="/admin/novidades?excluir={{ n.id }}" class="text-xs font-semibold bg-red-500/10 text-red-300 hover:bg-red-500/20 rounded-lg px-3 py-1.5 transition">🗑️ Excluir</a>
+            </div>
+        </div>
+
+        {% if excluindo_id == n.id %}
+        <div class="mt-3 border-t border-white/10 pt-3 flex flex-wrap items-center gap-3">
+            <p class="text-sm text-red-300">Excluir "{{ n.titulo }}" de vez? Isso não tem volta.</p>
+            <form action="/admin/novidades/{{ n.id }}/excluir" method="post">
+                <button type="submit" class="text-sm font-semibold bg-red-600 hover:bg-red-500 text-white rounded-lg px-4 py-1.5 transition">Sim, excluir</button>
+            </form>
+            <a href="/admin/novidades" class="text-sm font-semibold bg-white/5 border border-white/10 text-slate-200 rounded-lg px-4 py-1.5 transition">Cancelar</a>
+        </div>
+        {% endif %}
+
+        {% if editando_id == n.id %}
+        <form action="/admin/novidades/{{ n.id }}/editar" method="post" class="mt-3 border-t border-white/10 pt-3">
+            {% if erro_edicao %}
+            <div class="mb-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-300 text-sm px-4 py-2">{{ erro_edicao }}</div>
+            {% endif %}
+            {{ campos_novidade(n, categorias, nova_categoria_opcao) }}
+            <div class="flex gap-2 mt-3">
+                <button type="submit" class="text-sm font-semibold bg-blue-600 hover:bg-blue-500 text-white rounded-lg px-4 py-1.5 transition">Salvar</button>
+                <a href="/admin/novidades" class="text-sm font-semibold bg-white/5 border border-white/10 text-slate-200 rounded-lg px-4 py-1.5 transition">Cancelar</a>
+            </div>
+        </form>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<h2 class="text-sm font-bold text-slate-300 mb-3">Publicar novidade</h2>
+{% if erro_cadastro %}
+<div class="mb-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-300 text-sm px-4 py-2">{{ erro_cadastro }}</div>
+{% endif %}
+<form action="/admin/novidades" method="post" class="glass-card rounded-xl p-4">
+    {{ campos_novidade(None, categorias, nova_categoria_opcao) }}
+    <button type="submit" class="mt-4 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-lg px-5 py-2.5 transition">
+        Publicar novidade
+    </button>
+</form>
+{% endblock %}

@@ -24,6 +24,7 @@ import requests
 from utils.helpers import obter_segredo
 from database.repositorio import jogo_suporte_ia_obter_progresso, jogo_suporte_ia_salvar_progresso
 from webapp.data.jogo_suporte_atendimentos import ATENDIMENTOS
+from webapp.services.fila_casos import fila_completa, nova_fila_sorteada
 
 _ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/{modelo}:generateContent"
 # Flash-Lite (não o Flash "cheio"): mais barato e com cota gratuita bem
@@ -161,6 +162,21 @@ def _chamar_gemini(prompt_sistema: str, mensagens: list) -> dict:
     return resultado
 
 
+def _fila_atual(progresso: dict) -> list:
+    """Ordem dos atendimentos deste aluno (índices em ATENDIMENTOS).
+
+    Cada aluno tem a sua, sorteada — ver webapp/services/fila_casos.py.
+    """
+    return fila_completa(
+        progresso.get("fila_atendimentos"), progresso["aluno_id"], len(ATENDIMENTOS), "suporte-ia"
+    )
+
+
+def _atendimento_real_index(progresso: dict) -> int:
+    fila = _fila_atual(progresso)
+    return fila[min(progresso["atendimento_index"], len(fila) - 1)]
+
+
 def _tier_humor(humor: int) -> str:
     if humor >= 70:
         return "satisfeito"
@@ -205,7 +221,7 @@ def obter_tela(aluno_id: str) -> dict:
     }
 
     if tela in ("chat", "atendimento-end"):
-        contexto["atendimento"] = ATENDIMENTOS[progresso["atendimento_index"]]
+        contexto["atendimento"] = ATENDIMENTOS[_atendimento_real_index(progresso)]
 
     if tela == "atendimento-end":
         desfecho = progresso["ultimo_desfecho"]
@@ -220,13 +236,16 @@ def obter_tela(aluno_id: str) -> dict:
     return contexto
 
 
-def _entrar_em_atendimento(aluno_id: str, atendimento_index: int):
-    atendimento = ATENDIMENTOS[atendimento_index]
+def _entrar_em_atendimento(aluno_id: str, posicao_na_fila: int, fila: list):
+    """'posicao_na_fila' é a posição na fila DESTE aluno; a fila é que diz
+    qual atendimento do arquivo isso significa."""
+    atendimento = ATENDIMENTOS[fila[posicao_na_fila]]
     mensagem_abertura = atendimento["decisoes"][0]["cena"]
     jogo_suporte_ia_salvar_progresso(
         aluno_id,
         tela="chat",
-        atendimento_index=atendimento_index,
+        atendimento_index=posicao_na_fila,
+        fila_atendimentos=fila,
         mensagens=[{"autor": "cliente", "texto": mensagem_abertura}],
         humor_atual=atendimento["humor_inicial"],
         fora_de_contexto_seguidas=0,
@@ -239,7 +258,9 @@ def iniciar_jogo(aluno_id: str):
     progresso = jogo_suporte_ia_obter_progresso(aluno_id)
     if progresso["tela"] != "welcome":
         return
-    _entrar_em_atendimento(aluno_id, atendimento_index=0)
+    # Sorteia a ordem dos atendimentos deste aluno e guarda junto com o
+    # progresso — não muda no meio da partida, mas rejogar dá outra ordem.
+    _entrar_em_atendimento(aluno_id, 0, nova_fila_sorteada(len(ATENDIMENTOS)))
 
 
 def enviar_mensagem(aluno_id: str, texto_aluno: str) -> tuple[bool, str]:
@@ -254,7 +275,7 @@ def enviar_mensagem(aluno_id: str, texto_aluno: str) -> tuple[bool, str]:
     if progresso["tela"] != "chat" or not texto_aluno:
         return True, ""
 
-    atendimento = ATENDIMENTOS[progresso["atendimento_index"]]
+    atendimento = ATENDIMENTOS[_atendimento_real_index(progresso)]
     mensagens = list(progresso["mensagens"]) + [{"autor": "aluno", "texto": texto_aluno}]
 
     try:
@@ -321,9 +342,10 @@ def enviar_mensagem(aluno_id: str, texto_aluno: str) -> tuple[bool, str]:
 def proximo_atendimento(aluno_id: str):
     """Sai da tela de fim de atendimento -> próximo, ou relatório final do jogo."""
     progresso = jogo_suporte_ia_obter_progresso(aluno_id)
+    fila = _fila_atual(progresso)
     proximo_index = progresso["atendimento_index"] + 1
-    if proximo_index < len(ATENDIMENTOS):
-        _entrar_em_atendimento(aluno_id, proximo_index)
+    if proximo_index < len(fila):
+        _entrar_em_atendimento(aluno_id, proximo_index, fila)
     else:
         jogo_suporte_ia_salvar_progresso(aluno_id, tela="game-end")
 
@@ -335,4 +357,6 @@ def reiniciar(aluno_id: str):
         tela="welcome", atendimento_index=0, mensagens=[],
         humor_atual=50, fora_de_contexto_seguidas=0, turnos_no_atendimento=0,
         atendimentos_completados=0, xp=0, ultimo_desfecho=None,
+        # Zera a fila: no próximo "iniciar" ela é sorteada de novo.
+        fila_atendimentos=None,
     )

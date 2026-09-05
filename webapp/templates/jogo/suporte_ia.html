@@ -181,6 +181,7 @@
     const input = document.getElementById('chat-input');
     const btnEnviar = document.getElementById('chat-enviar-btn');
     const nomeCliente = form.dataset.clienteNome || 'Cliente';
+    let enviando = false;
 
     function escapeHtml(texto){
         const div = document.createElement('div');
@@ -261,8 +262,20 @@
         ev.preventDefault();
         const texto = input.value.trim();
         if (!texto) return;
+        if (enviando) return;   // evita mandar duas vezes com toque duplo
+        enviando = true;
 
-        input.disabled = true;
+        // O teclado do celular fechava a cada mensagem enviada. A causa era
+        // o "input.disabled = true" que ficava aqui: desabilitar um campo
+        // tira o foco dele, e sem foco o teclado desce. Depois nem o
+        // input.focus() lá embaixo trazia de volta, porque o navegador do
+        // celular só abre o teclado quando o foco vem de um toque do
+        // usuário, não de um comando que roda depois da resposta chegar.
+        // Solução: nunca desabilitar. "readOnly" impede a digitação do mesmo
+        // jeito enquanto o cliente responde, mas mantém o foco — então o
+        // teclado só desce quando o próprio aluno mandar descer.
+        input.focus();          // ainda dentro do toque: garante o teclado aberto
+        input.readOnly = true;
         btnEnviar.disabled = true;
         document.getElementById('erro-ia-banner').innerHTML = '';
 
@@ -315,9 +328,15 @@
             document.getElementById('erro-ia-banner').innerHTML =
                 '<p class="text-xs text-amber-400 mb-2">⚠️ Não deu pra enviar (falha de conexão). Tente de novo.</p>';
         } finally {
-            input.disabled = false;
+            input.readOnly = false;
             btnEnviar.disabled = false;
-            input.focus();
+            enviando = false;
+            // Só devolve o foco se ele tiver se perdido no caminho. Chamar
+            // focus() com o campo já focado não faz mal, mas chamar quando o
+            // aluno fechou o teclado de propósito reabriria ele na cara dele.
+            if (document.activeElement !== input && document.activeElement !== document.body) {
+                input.focus();
+            }
         }
     });
 })();

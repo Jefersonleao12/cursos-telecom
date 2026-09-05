@@ -264,6 +264,7 @@ create table if not exists public.jogo_suporte_progresso (
     xp                       int not null default 0,
     humor_atual              int not null default 50,  -- 0-100, começa no humor_inicial do atendimento e varia por resposta
     opcao_escolhida          int,          -- índice (na ordem embaralhada) da alternativa escolhida na última decisão
+    fila_atendimentos        jsonb,        -- ordem SORTEADA dos atendimentos deste aluno (índices em ATENDIMENTOS); ver webapp/services/fila_casos.py
     atualizado_em            timestamptz not null default now()
 );
 
@@ -289,8 +290,35 @@ create table if not exists public.jogo_suporte_ia_progresso (
     atendimentos_completados int not null default 0,
     xp                       int not null default 0,
     ultimo_desfecho          text,   -- resolvido | fracasso_humor | fracasso_paciencia | tempo_esgotado (do atendimento que acabou de fechar)
+    fila_atendimentos        jsonb,  -- ordem SORTEADA dos atendimentos deste aluno; ver webapp/services/fila_casos.py
     atualizado_em            timestamptz not null default now()
 );
+
+-- ----------------------------------------------------------------------------
+-- NOVIDADES (o "mural técnico" da equipe: uma configuração nova, uma solução
+-- rápida que alguém descobriu, um procedimento que mudou. Diferente de
+-- MATERIAIS, que é acervo permanente de consulta — aqui o que importa é o
+-- que é RECENTE, então a tela lista da mais nova pra mais antiga.)
+--
+-- video_url aceita YouTube, Google Drive ou qualquer outro link de vídeo;
+-- quem decide como incorporar é webapp/services/video.py, o mesmo módulo
+-- que as aulas dos cursos usam. É opcional: dá pra publicar uma novidade
+-- só com texto.
+-- ----------------------------------------------------------------------------
+create table if not exists public.novidades (
+    id          bigint generated always as identity primary key,
+    titulo      text not null,
+    conteudo    text,                      -- texto livre explicando a novidade
+    video_url   text,                      -- opcional: YouTube / Drive / outro
+    categoria   text not null default 'Geral',
+    autor       text,                      -- quem descobriu/publicou (texto livre)
+    fixada      boolean not null default false,  -- aparece no topo, independente da data
+    ativa       boolean not null default true,   -- desativar em vez de excluir preserva o histórico
+    criado_em   timestamptz not null default now()
+);
+
+create index if not exists idx_novidades_recentes
+    on public.novidades (ativa, fixada desc, criado_em desc);
 
 -- ----------------------------------------------------------------------------
 -- AVISOS (comunicados gerais do admin para todos os alunos, na tela de Início)

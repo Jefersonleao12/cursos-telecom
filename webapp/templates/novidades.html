@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block titulo %}Novidades — Norte Tel{% endblock %}
+{% block conteudo %}
+<h1 class="text-2xl font-bold text-blue-400 mb-1">📣 Novidades</h1>
+<p class="text-sm text-slate-400 mb-6">
+    O que mudou por aqui: configurações novas, soluções rápidas que a equipe descobriu
+    e procedimentos atualizados — do mais recente para o mais antigo.
+</p>
+
+{% if not tem_novidades %}
+<div class="rounded-lg bg-white/5 border border-white/10 text-slate-400 text-sm px-4 py-3">
+    Nenhuma novidade publicada ainda. Assim que a equipe compartilhar algo, aparece aqui.
+</div>
+{% else %}
+<form action="/novidades" method="get" class="flex flex-col sm:flex-row gap-3 mb-6">
+    <input type="text" name="q" value="{{ termo_busca }}" placeholder="🔎 Buscar por assunto..."
+           class="flex-1 rounded-lg bg-slate-900/80 border border-white/10 px-4 py-2.5 text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+    <select name="categoria" onchange="this.form.submit()"
+            class="rounded-lg bg-slate-900/80 border border-white/10 px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+        <option value="{{ todas_categorias }}" {{ "selected" if categoria_escolhida == todas_categorias }}>{{ todas_categorias }}</option>
+        {% for c in categorias %}
+        <option value="{{ c }}" {{ "selected" if categoria_escolhida == c }}>{{ c }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-lg px-5 py-2.5 transition neon-btn-glow">
+        Buscar
+    </button>
+</form>
+
+{% if not itens %}
+<div class="rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-300 text-sm px-4 py-3">
+    Nenhuma novidade encontrada com esses filtros. Tente outra busca.
+</div>
+{% else %}
+<div class="space-y-5">
+    {% for item in itens %}
+    <article class="glass-card rounded-2xl p-5 {{ 'neon-border-glow' if item.fixada }}">
+        <div class="flex items-start justify-between gap-3 mb-2">
+            <div class="min-w-0">
+                <h2 class="text-lg font-bold text-white">
+                    {% if item.fixada %}<span title="Fixada no topo">📌</span> {% endif %}{{ item.titulo }}
+                </h2>
+                <p class="text-[11px] font-mono text-slate-500 mt-0.5">
+                    {{ item.criado_em[:10] }}
+                    {%- if item.autor %} · por {{ item.autor }}{% endif %}
+                </p>
+            </div>
+            <span class="shrink-0 text-[11px] font-semibold bg-blue-500/10 text-blue-300 border border-blue-500/20 rounded-full px-3 py-1">
+                {{ item.categoria }}
+            </span>
+        </div>
+
+        {% if item.conteudo %}
+        {# whitespace-pre-line preserva as quebras de linha que o admin digitou,
+           sem precisar aceitar HTML (o Jinja continua escapando tudo). #}
+        <p class="text-sm text-slate-300 leading-relaxed whitespace-pre-line">{{ item.conteudo }}</p>
+        {% endif %}
+
+        {% if item.video_url %}
+        <div class="mt-4">
+            {% if item.embed.embed_url %}
+            <iframe src="{{ item.embed.embed_url }}" class="w-full aspect-video rounded-lg border border-white/10"
+                    allow="autoplay; encrypted-media" allowfullscreen></iframe>
+            {% else %}
+            <video src="{{ item.video_url }}" controls class="w-full rounded-lg border border-white/10"></video>
+            {% endif %}
+        </div>
+        {% endif %}
+    </article>
+    {% endfor %}
+</div>
+{% endif %}
+{% endif %}
+{% endblock %}

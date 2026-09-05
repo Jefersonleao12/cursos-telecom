@@ -18,6 +18,7 @@ import random
 from database.repositorio import jogo_campo_obter_progresso, jogo_campo_salvar_progresso
 from webapp.data import apr_opcoes
 from webapp.data.jogo_campo_missoes import MISSOES
+from webapp.services.fila_casos import fila_completa, nova_fila_sorteada
 
 _DECISOES_POR_MISSAO = 4  # todas as O.S. do lote atual têm 4 decisões
 _SELOS_A_CADA = 5
@@ -106,10 +107,9 @@ def _opcoes_embaralhadas(aluno_id: str, missao_real_index: int, decisao_index: i
 
 def _fila_atual(progresso: dict) -> list:
     """Ordem das O.S. (lista de índices em MISSOES). Sem reagendamento ainda = ordem 0..N-1."""
-    fila = progresso.get("fila_missoes")
-    if fila:
-        return list(fila)
-    return list(range(len(MISSOES)))
+    return fila_completa(
+        progresso.get("fila_missoes"), progresso["aluno_id"], len(MISSOES), "campo"
+    )
 
 
 def _missao_real_index(progresso: dict) -> int:
@@ -246,7 +246,11 @@ def iniciar_jogo(aluno_id: str):
     progresso = jogo_campo_obter_progresso(aluno_id)
     if progresso["tela"] != "welcome":
         return
-    _entrar_em_missao(aluno_id, missao_index=0, fila=list(range(len(MISSOES))))
+    # Ordem das O.S. sorteada pra este aluno (antes era sempre 0,1,2,3...,
+    # igual pra todo mundo, o que virava gabarito passado entre colegas).
+    # Fica gravada no progresso: não muda no meio da partida, mas quem
+    # jogar de novo recebe outra sequência.
+    _entrar_em_missao(aluno_id, missao_index=0, fila=nova_fila_sorteada(len(MISSOES)))
 
 
 def iniciar_missao(aluno_id: str):

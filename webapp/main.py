@@ -22,6 +22,7 @@ from webapp.routers.admin.duvidas import router as admin_duvidas_router
 from webapp.routers.admin.filiais import router as admin_filiais_router
 from webapp.routers.admin.materiais import router as admin_materiais_router
 from webapp.routers.admin.modulos import router as admin_modulos_router
+from webapp.routers.admin.novidades import router as admin_novidades_router
 from webapp.routers.admin.provas import router as admin_provas_router
 from webapp.routers.certificados import router as certificados_router
 from webapp.routers.cursos import router as cursos_router
@@ -31,6 +32,7 @@ from webapp.routers.jogo_suporte import router as jogo_suporte_router
 from webapp.routers.jogo_suporte_ia import router as jogo_suporte_ia_router
 from webapp.routers.simuladores import router as simuladores_router
 from webapp.routers.materiais import router as materiais_router
+from webapp.routers.novidades import router as novidades_router
 from webapp.routers.perfil import router as perfil_router
 from webapp.routers.ranking import router as ranking_router
 
@@ -60,6 +62,7 @@ app.include_router(jogo_suporte_ia_router)
 app.include_router(simuladores_router)
 app.include_router(cursos_router)
 app.include_router(materiais_router)
+app.include_router(novidades_router)
 app.include_router(ranking_router)
 app.include_router(certificados_router)
 app.include_router(perfil_router)
@@ -71,6 +74,7 @@ app.include_router(admin_provas_router)
 app.include_router(admin_alunos_router)
 app.include_router(admin_filiais_router)
 app.include_router(admin_materiais_router)
+app.include_router(admin_novidades_router)
 app.include_router(admin_avisos_router)
 app.include_router(admin_destaques_router)
 app.include_router(admin_duvidas_router)

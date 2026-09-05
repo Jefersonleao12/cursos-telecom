@@ -1038,7 +1038,6 @@ _JOGO_CAMPO_PADRAO = {
     "motivo_nao_realizado": None,
 }
 
-_JOGO_CAMPO_PADRAO_ITENS = tuple(_JOGO_CAMPO_PADRAO.items())
 
 
 def jogo_campo_obter_progresso(aluno_id: str) -> dict:
@@ -1092,9 +1091,9 @@ _JOGO_SUPORTE_PADRAO = {
     "xp": 0,
     "humor_atual": 50,
     "opcao_escolhida": None,
+    "fila_atendimentos": None,
 }
 
-_JOGO_SUPORTE_PADRAO_ITENS = tuple(_JOGO_SUPORTE_PADRAO.items())
 
 
 def jogo_suporte_obter_progresso(aluno_id: str) -> dict:
@@ -1117,6 +1116,7 @@ _JOGO_SUPORTE_IA_PADRAO = {
     "atendimentos_completados": 0,
     "xp": 0,
     "ultimo_desfecho": None,
+    "fila_atendimentos": None,
 }
 
 # Estado inicial de cada simulador, por tabela — usado por _progresso_jogo()
@@ -1128,7 +1128,6 @@ _PADROES_JOGO = {
 }
 
 
-_JOGO_SUPORTE_IA_PADRAO_ITENS = tuple(_JOGO_SUPORTE_IA_PADRAO.items())
 
 
 def jogo_suporte_ia_obter_progresso(aluno_id: str) -> dict:
@@ -1477,6 +1476,83 @@ def criar_material(titulo: str, descricao: str, categoria: str, link_url: str, i
     listar_materiais.clear()
     listar_categorias_materiais.clear()
     return resposta.data[0]
+
+
+# ---------------------------------------------------------------------------
+# NOVIDADES (mural técnico da equipe — ver webapp/routers/novidades.py)
+# ---------------------------------------------------------------------------
+
+@cache_com_ttl(ttl=300)
+def listar_novidades(incluir_inativas: bool = False):
+    """Novidades da mais recente pra mais antiga, com as fixadas no topo.
+
+    Por padrão traz só as ativas (o que o aluno vê). O admin chama com
+    incluir_inativas=True pra enxergar também as que ele desativou.
+    """
+    sb = get_supabase_client()
+    consulta = sb.table("novidades").select("*")
+    if not incluir_inativas:
+        consulta = consulta.eq("ativa", True)
+    return consulta.order("fixada", desc=True).order("criado_em", desc=True).execute().data or []
+
+
+@cache_com_ttl(ttl=300)
+def categorias_novidades():
+    """Categorias já usadas (sem repetir), em ordem alfabética."""
+    return sorted({n["categoria"] for n in listar_novidades(True) if n.get("categoria")})
+
+
+def _limpar_cache_novidades():
+    listar_novidades.clear()
+    categorias_novidades.clear()
+
+
+def buscar_novidade(novidade_id):
+    return next((n for n in listar_novidades(True) if n["id"] == novidade_id), None)
+
+
+def criar_novidade(titulo: str, conteudo: str, video_url: str, categoria: str, autor: str, fixada: bool = False):
+    sb = get_supabase_client()
+    nova = {
+        "titulo": titulo.strip(),
+        "conteudo": (conteudo or "").strip() or None,
+        "video_url": (video_url or "").strip() or None,
+        "categoria": (categoria or "").strip() or "Geral",
+        "autor": (autor or "").strip() or None,
+        "fixada": bool(fixada),
+        "ativa": True,
+    }
+    resposta = sb.table("novidades").insert(nova).execute()
+    _limpar_cache_novidades()
+    return resposta.data[0]
+
+
+def editar_novidade(novidade_id, titulo: str, conteudo: str, video_url: str, categoria: str, autor: str, fixada: bool):
+    sb = get_supabase_client()
+    dados = {
+        "titulo": titulo.strip(),
+        "conteudo": (conteudo or "").strip() or None,
+        "video_url": (video_url or "").strip() or None,
+        "categoria": (categoria or "").strip() or "Geral",
+        "autor": (autor or "").strip() or None,
+        "fixada": bool(fixada),
+    }
+    sb.table("novidades").update(dados).eq("id", novidade_id).execute()
+    _limpar_cache_novidades()
+
+
+def definir_novidade_ativa(novidade_id, ativa: bool):
+    """Liga/desliga a novidade. Desativar em vez de excluir preserva o
+    histórico do que a equipe já publicou."""
+    sb = get_supabase_client()
+    sb.table("novidades").update({"ativa": bool(ativa)}).eq("id", novidade_id).execute()
+    _limpar_cache_novidades()
+
+
+def excluir_novidade(novidade_id):
+    sb = get_supabase_client()
+    sb.table("novidades").delete().eq("id", novidade_id).execute()
+    _limpar_cache_novidades()
 
 
 @cache_com_ttl(ttl=300)

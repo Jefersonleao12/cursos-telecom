@@ -22,6 +22,7 @@ import random
 
 from database.repositorio import jogo_suporte_obter_progresso, jogo_suporte_salvar_progresso
 from webapp.data.jogo_suporte_atendimentos import ATENDIMENTOS
+from webapp.services.fila_casos import fila_completa, nova_fila_sorteada
 
 _SELOS_A_CADA = 5
 _HUMOR_MIN = 0
@@ -71,14 +72,37 @@ def _selo_recem_conquistado(atendimentos_completados: int):
     return None
 
 
-def _opcoes_embaralhadas(aluno_id: str, atendimento_index: int, decisao_index: int, opcoes: list) -> list:
-    """Ordem embaralhada, mas ESTÁVEL por aluno+atendimento+decisão (ver mesma lógica no Simulador de Campo)."""
-    semente = f"{aluno_id}:suporte:{atendimento_index}:{decisao_index}"
+def _opcoes_embaralhadas(aluno_id: str, atendimento_real_index: int, decisao_index: int, opcoes: list) -> list:
+    """Ordem embaralhada, mas ESTÁVEL por aluno+atendimento+decisão (ver mesma lógica no Simulador de Campo).
+
+    A semente usa o índice REAL do atendimento (a posição dele no arquivo de
+    conteúdo), não a posição na fila do aluno — assim a ordem das alternativas
+    de um atendimento é sempre a mesma pra ele, não importa em que ponto da
+    fila o atendimento caiu.
+    """
+    semente = f"{aluno_id}:suporte:{atendimento_real_index}:{decisao_index}"
     return random.Random(semente).sample(opcoes, len(opcoes))
 
 
+def _fila_atual(progresso: dict) -> list:
+    """Ordem dos atendimentos deste aluno (lista de índices em ATENDIMENTOS).
+
+    Cada aluno tem a sua, sorteada — ver webapp/services/fila_casos.py.
+    """
+    return fila_completa(
+        progresso.get("fila_atendimentos"), progresso["aluno_id"], len(ATENDIMENTOS), "suporte"
+    )
+
+
+def _atendimento_real_index(progresso: dict) -> int:
+    """De qual atendimento do arquivo estamos falando (a fila é por aluno,
+    então a posição 3 de um aluno não é a mesma de outro)."""
+    fila = _fila_atual(progresso)
+    return fila[min(progresso["atendimento_index"], len(fila) - 1)]
+
+
 def _atendimento_atual(progresso: dict) -> dict:
-    return ATENDIMENTOS[progresso["atendimento_index"]]
+    return ATENDIMENTOS[_atendimento_real_index(progresso)]
 
 
 def _tier_humor(humor: int) -> str:
@@ -113,13 +137,13 @@ def obter_tela(aluno_id: str) -> dict:
         atendimento = contexto["atendimento"]
         decisao = atendimento["decisoes"][progresso["decisao_index"]]
         contexto["decisao"] = decisao
-        contexto["opcoes"] = _opcoes_embaralhadas(aluno_id, progresso["atendimento_index"], progresso["decisao_index"], decisao["opcoes"])
+        contexto["opcoes"] = _opcoes_embaralhadas(aluno_id, _atendimento_real_index(progresso), progresso["decisao_index"], decisao["opcoes"])
 
     if tela == "feedback":
         atendimento = contexto["atendimento"]
         decisao = atendimento["decisoes"][progresso["decisao_index"]]
         contexto["decisao"] = decisao
-        opcoes = _opcoes_embaralhadas(aluno_id, progresso["atendimento_index"], progresso["decisao_index"], decisao["opcoes"])
+        opcoes = _opcoes_embaralhadas(aluno_id, _atendimento_real_index(progresso), progresso["decisao_index"], decisao["opcoes"])
         contexto["opcao_escolhida"] = opcoes[progresso["opcao_escolhida"]]
 
     if tela == "atendimento-end":
@@ -154,13 +178,18 @@ def _classificacao_final(acertos_totais: int, total_decisoes: int) -> dict:
     return {"titulo": _CLASSIFICACOES[-1][1], "texto": _CLASSIFICACOES[-1][2]}
 
 
-def _entrar_em_atendimento(aluno_id: str, atendimento_index: int):
-    """Prepara o progresso do aluno pra tela de intro de um atendimento novo."""
-    atendimento = ATENDIMENTOS[atendimento_index]
+def _entrar_em_atendimento(aluno_id: str, posicao_na_fila: int, fila: list):
+    """Prepara o progresso do aluno pra tela de intro de um atendimento novo.
+
+    'posicao_na_fila' é a posição na fila DESTE aluno; quem diz qual
+    atendimento do arquivo isso significa é a própria fila.
+    """
+    atendimento = ATENDIMENTOS[fila[posicao_na_fila]]
     jogo_suporte_salvar_progresso(
         aluno_id,
         tela="atendimento-intro",
-        atendimento_index=atendimento_index,
+        atendimento_index=posicao_na_fila,
+        fila_atendimentos=fila,
         decisao_index=0,
         acertos_atendimento=0,
         humor_atual=atendimento["humor_inicial"],
@@ -172,7 +201,10 @@ def iniciar_jogo(aluno_id: str):
     progresso = jogo_suporte_obter_progresso(aluno_id)
     if progresso["tela"] != "welcome":
         return
-    _entrar_em_atendimento(aluno_id, atendimento_index=0)
+    # Sorteia aqui a ordem dos atendimentos deste aluno e guarda junto com o
+    # progresso: não muda se ele fechar e voltar depois, mas quem jogar de
+    # novo pega uma sequência diferente.
+    _entrar_em_atendimento(aluno_id, 0, nova_fila_sorteada(len(ATENDIMENTOS)))
 
 
 def iniciar_atendimento(aluno_id: str):
@@ -185,7 +217,7 @@ def responder(aluno_id: str, opcao_index: int):
     progresso = jogo_suporte_obter_progresso(aluno_id)
     atendimento = _atendimento_atual(progresso)
     decisao = atendimento["decisoes"][progresso["decisao_index"]]
-    opcoes = _opcoes_embaralhadas(aluno_id, progresso["atendimento_index"], progresso["decisao_index"], decisao["opcoes"])
+    opcoes = _opcoes_embaralhadas(aluno_id, _atendimento_real_index(progresso), progresso["decisao_index"], decisao["opcoes"])
 
     if opcao_index < 0 or opcao_index >= len(opcoes):
         return  # requisição inválida (ex: índice de outra tela) — ignora
@@ -221,9 +253,10 @@ def continuar(aluno_id: str):
 def proximo_atendimento(aluno_id: str):
     """Sai da tela de fim de atendimento -> intro do próximo, ou relatório final do jogo."""
     progresso = jogo_suporte_obter_progresso(aluno_id)
+    fila = _fila_atual(progresso)
     proximo_index = progresso["atendimento_index"] + 1
-    if proximo_index < len(ATENDIMENTOS):
-        _entrar_em_atendimento(aluno_id, proximo_index)
+    if proximo_index < len(fila):
+        _entrar_em_atendimento(aluno_id, proximo_index, fila)
     else:
         jogo_suporte_salvar_progresso(aluno_id, tela="game-end")
 
@@ -238,4 +271,7 @@ def reiniciar(aluno_id: str):
         aluno_id,
         tela="welcome", atendimento_index=0, decisao_index=0, acertos_atendimento=0,
         acertos_totais=0, xp=0, humor_atual=50, opcao_escolhida=None,
+        # Zera a fila: no próximo "iniciar" ela é sorteada de novo, então
+        # rejogar não repete a mesma sequência de atendimentos.
+        fila_atendimentos=None,
     )

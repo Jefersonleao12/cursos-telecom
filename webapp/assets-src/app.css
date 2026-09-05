@@ -10,6 +10,33 @@
    Aqui todo campo de digitação ganha uma cor e um fundo legíveis de saída.
    Fica em @layer base de propósito: é só o ponto de partida, qualquer classe
    text-... ou bg-... escrita no HTML continua tendo a palavra final. */
+/* Não deixa selecionar/copiar o texto das telas.
+   No celular era só segurar o dedo em cima de qualquer frase pra aparecer o
+   menu "Copiar / Compartilhar" — o que abre caminho pra um aluno mandar o
+   enunciado (e o gabarito) pros colegas.
+   Vale dizer que isso atrapalha, não impede: quem quiser mesmo ainda pode
+   tirar print ou ver o código da página. Serve pra evitar a cópia fácil,
+   feita sem esforço, que é o caso comum.
+   Os campos de digitação seguem normais (item abaixo) — senão o aluno não
+   conseguiria nem recortar ou colar o que ele mesmo escreveu. */
+@layer base {
+    body {
+        -webkit-user-select: none;
+        user-select: none;
+        /* tira o balãozinho de "Copiar" do toque longo no iPhone */
+        -webkit-touch-callout: none;
+    }
+
+    input,
+    textarea,
+    select,
+    [contenteditable="true"] {
+        -webkit-user-select: text;
+        user-select: text;
+        -webkit-touch-callout: default;
+    }
+}
+
 @layer base {
     input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]),
     textarea,
