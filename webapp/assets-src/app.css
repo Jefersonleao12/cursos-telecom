@@ -2,6 +2,28 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Rede de segurança contra "digitação invisível".
+   Por padrão o navegador faz o texto digitado herdar a cor do elemento pai.
+   Como o <body> da plataforma é cinza-claro (tema escuro), qualquer campo
+   colocado sobre um fundo claro, ou sem cor declarada, ficava com o texto
+   quase da cor do fundo — o aluno digitava e não enxergava o que escreveu.
+   Aqui todo campo de digitação ganha uma cor e um fundo legíveis de saída.
+   Fica em @layer base de propósito: é só o ponto de partida, qualquer classe
+   text-... ou bg-... escrita no HTML continua tendo a palavra final. */
+@layer base {
+    input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]),
+    textarea,
+    select {
+        color: theme("colors.slate.200");
+        background-color: theme("colors.slate.900" / 80%);
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+        color: theme("colors.slate.500");
+    }
+}
+
 /* Estilos próprios da plataforma. Ficavam num <style> dentro do base.html —
    vieram pra cá pra saírem junto no mesmo arquivo .css já pronto, evitando
    que o navegador tenha que processar CSS solto no meio do HTML. */

@@ -1,52 +1,59 @@
 {% extends "base.html" %}
 {% block titulo %}Entrar — Norte Tel{% endblock %}
 {% block conteudo %}
-<div class="max-w-4xl mx-auto grid md:grid-cols-2 gap-0 rounded-2xl overflow-hidden shadow-lg">
-    <div class="bg-white p-8 flex flex-col justify-center order-2 md:order-1">
-        <img src="/assets/logo.png" alt="Norte Tel" class="w-40 mb-6">
-        <h1 class="text-xl font-bold text-norte-azul mb-1">Entrar na plataforma</h1>
-        <p class="text-sm text-slate-500 mb-6">
+{#
+   Esta tela era a única que tinha ficado no visual antigo (cartão branco com
+   texto escuro), destoando de todo o resto da plataforma. Além do visual, os
+   campos não declaravam cor de texto: herdavam o cinza-claro do <body>, que
+   sobre fundo branco deixava o que o aluno digitava praticamente invisível.
+   Agora usa o mesmo cartão de vidro e os mesmos campos das demais telas.
+#}
+<div class="max-w-4xl mx-auto grid md:grid-cols-2 gap-0 rounded-2xl overflow-hidden glass-card neon-border-glow">
+    <div class="p-8 flex flex-col justify-center order-2 md:order-1">
+        <img src="/assets/logo-branco.png" alt="Norte Tel" class="w-40 mb-6">
+        <h1 class="text-xl font-bold text-blue-400 mb-1">Entrar na plataforma</h1>
+        <p class="text-sm text-slate-400 mb-6">
             Use seu CPF e a senha do seu cadastro (cadastro feito pelo administrador).
         </p>
 
         {% if erro %}
-        <div class="mb-4 rounded-lg bg-red-50 text-red-700 text-sm px-4 py-3">{{ erro }}</div>
+        <div class="mb-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-300 text-sm px-4 py-3">{{ erro }}</div>
         {% endif %}
         {% if sucesso %}
-        <div class="mb-4 rounded-lg bg-green-50 text-green-700 text-sm px-4 py-3">{{ sucesso }}</div>
+        <div class="mb-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-sm px-4 py-3">{{ sucesso }}</div>
         {% endif %}
 
         <form action="/login" method="post" class="space-y-4">
             <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">CPF</label>
+                <label class="block text-sm font-medium text-slate-300 mb-1">CPF</label>
                 <input type="text" name="cpf" inputmode="numeric" placeholder="Somente números" required
-                       class="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+                       class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2.5 text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
             </div>
             <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Senha</label>
+                <label class="block text-sm font-medium text-slate-300 mb-1">Senha</label>
                 <input type="password" name="senha" placeholder="Sua senha" required
-                       class="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+                       class="w-full rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2.5 text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
             </div>
             <button type="submit"
-                    class="w-full bg-norte-azul hover:bg-norte-azul-escuro text-white font-semibold rounded-lg py-2.5 transition">
+                    class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg py-2.5 transition neon-btn-glow">
                 Entrar
             </button>
         </form>
 
         <div class="mt-6" x-data="{ aberto: false }">
-            <button type="button" @click="aberto = !aberto" class="text-sm text-norte-azul-claro hover:underline">
+            <button type="button" @click="aberto = !aberto" class="text-sm text-blue-400 hover:text-blue-300 hover:underline">
                 Esqueci minha senha
             </button>
             <div x-show="aberto" x-cloak class="mt-3 space-y-3">
-                <p class="text-xs text-slate-500">
+                <p class="text-xs text-slate-400">
                     Informe o CPF do seu cadastro. Um pedido de redefinição será enviado para o
                     administrador, que vai gerar uma nova senha para você.
                 </p>
                 <form action="/esqueci-senha" method="post" class="flex gap-2">
                     <input type="text" name="cpf" inputmode="numeric" placeholder="CPF cadastrado" required
-                           class="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-norte-azul-claro">
+                           class="flex-1 rounded-lg bg-slate-900/80 border border-white/10 px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
                     <button type="submit"
-                            class="text-sm bg-slate-100 hover:bg-slate-200 rounded-lg px-3 py-2 transition">
+                            class="text-sm font-semibold bg-white/5 hover:bg-white/10 text-slate-200 rounded-lg px-3 py-2 transition">
                         Solicitar
                     </button>
                 </form>
