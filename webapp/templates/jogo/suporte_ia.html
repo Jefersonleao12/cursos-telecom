@@ -38,7 +38,20 @@
 {% endif %}
 
 {% if tela in ("chat", "atendimento-end") %}
-<div id="chat-wrapper" x-data="{ painelAberto: false }" class="flex flex-col h-[78dvh] min-h-[480px] lg:flex-row lg:gap-4 lg:h-[74dvh] lg:min-h-[560px]">
+{#
+   Altura do chat no celular: antes era 78dvh (78% da tela), o que deixava
+   uma faixa morta embaixo do cartão. Agora ocupa a tela inteira menos o que
+   já está reservado acima e abaixo dele:
+     53px  -> barra de cima do celular (logo + menu), que é sticky
+     32px  -> respiro do <main> (p-4, 16px em cima e 16px embaixo)
+   = 85px. Uso 5.5rem (88px) pra sobrar uma folga de 3px e a borda de baixo
+   do cartão não encostar no fim da tela.
+   "dvh" (e não "vh") é de propósito: acompanha a barra de endereço do
+   navegador do celular aparecendo e sumindo, então o campo de digitação não
+   fica escondido atrás do teclado.
+   No computador nada muda — o lg: continua igual.
+#}
+<div id="chat-wrapper" x-data="{ painelAberto: false }" class="flex flex-col h-[calc(100dvh-5.5rem)] min-h-[420px] lg:flex-row lg:gap-4 lg:h-[74dvh] lg:min-h-[560px]">
     <div id="tela-marcador" data-tela="{{ tela }}" class="hidden"></div>
 
     {# ---------- CHAT ---------- #}
@@ -151,6 +164,15 @@
 </div>
 
 <script>
+// Abre a conversa já no fim, mostrando a última mensagem. Fica FORA do bloco
+// abaixo de propósito: aquele bloco só roda enquanto o atendimento está em
+// andamento, e a tela de encerramento é justamente onde mais importa chegar
+// no fim — é onde aparece o desfecho ("Atendimento resolvido").
+(function(){
+    const el = document.getElementById('chat-mensagens');
+    if (el) el.scrollTop = el.scrollHeight;
+})();
+
 (function(){
     const form = document.getElementById('chat-form');
     if (!form) return;  // tela de encerramento do atendimento — nada pra ligar aqui
