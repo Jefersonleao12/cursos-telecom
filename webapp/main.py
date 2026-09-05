@@ -9,6 +9,7 @@ from fastapi.responses import FileResponse, PlainTextResponse
 from starlette.middleware.gzip import GZipMiddleware
 
 from webapp.auth.routes import router as auth_router
+from webapp.cache_html import CacheDeHtmlMiddleware
 from webapp.middleware import AutenticacaoMiddleware
 from webapp.static_cache import EstaticosComCache
 from webapp.routers.admin.alunos import router as admin_alunos_router
@@ -39,6 +40,10 @@ app.mount("/static", EstaticosComCache(directory="static"), name="static")
 app.mount("/assets", EstaticosComCache(directory="assets"), name="assets")
 
 app.add_middleware(AutenticacaoMiddleware)
+# Manda o navegador conferir com o servidor antes de reusar uma página já
+# vista. Sem isso, depois de um deploy o aluno continuava vendo a tela antiga
+# (e o CSS antigo junto) até limpar o cache na mão.
+app.add_middleware(CacheDeHtmlMiddleware)
 # Comprime o HTML antes de mandar pro aluno. As páginas da plataforma têm
 # bastante marcação repetida (classes do Tailwind, SVGs dos ícones), então a
 # compressão costuma cortar o tamanho em ~5x — diferença grande no 4G.
