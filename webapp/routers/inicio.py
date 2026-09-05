@@ -24,6 +24,7 @@ from database.repositorio import (
     curso_totalmente_concluido,
     enviar_duvida,
     jogo_campo_obter_progresso,
+    jogo_suporte_ia_obter_progresso,
     jogo_suporte_obter_progresso,
     listar_avisos_ativos,
     listar_cursos,
@@ -143,6 +144,19 @@ def _resumo_do_suporte(aluno_id: str) -> dict:
     }
 
 
+def _resumo_do_suporte_ia(aluno_id: str) -> dict:
+    """Igual _resumo_do_suporte, mas pro modo beta em chat livre com IA
+    (webapp/services/jogo_suporte_ia.py) — não tem selo próprio ainda."""
+    progresso = jogo_suporte_ia_obter_progresso(aluno_id)
+    total_atendimentos = len(SUPORTE_ATENDIMENTOS)
+    return {
+        "comecou": progresso["tela"] != "welcome" or progresso["atendimentos_completados"] > 0,
+        "concluiu_tudo": total_atendimentos > 0 and progresso["atendimentos_completados"] >= total_atendimentos,
+        "atendimentos_completados": progresso["atendimentos_completados"],
+        "total_atendimentos": total_atendimentos,
+    }
+
+
 def _renderizar(request: Request, aluno: dict, **extra):
     saudacao, icone = _saudacao_e_icone()
     primeiro_nome = (aluno.get("nome_completo") or "").split(" ")[0]
@@ -161,6 +175,7 @@ def _renderizar(request: Request, aluno: dict, **extra):
             "resumo": _resumo_do_aluno(aluno["id"]),
             "jogo": _resumo_do_jogo(aluno["id"]),
             "suporte": _resumo_do_suporte(aluno["id"]),
+            "suporte_ia": _resumo_do_suporte_ia(aluno["id"]),
             **extra,
         },
     )
