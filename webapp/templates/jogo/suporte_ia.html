@@ -39,6 +39,7 @@
 
 {% if tela in ("chat", "atendimento-end") %}
 <div x-data="{ painelAberto: false }" class="flex flex-col h-[78vh] min-h-[480px] lg:flex-row lg:gap-4 lg:h-[74vh] lg:min-h-[560px]">
+    <div id="tela-marcador" data-tela="{{ tela }}" class="hidden"></div>
 
     {# ---------- CHAT ---------- #}
     <main class="flex-1 min-w-0 flex flex-col glass-card rounded-2xl overflow-hidden">
@@ -48,14 +49,14 @@
                 <p class="text-[11px] font-mono text-slate-400">{{ atendimento.id }} · Atendimento {{ atendimento_numero }}/{{ total_atendimentos }} · 🧪 beta</p>
             </div>
             <div class="flex items-center gap-3 shrink-0">
-                <span class="text-xs font-mono text-slate-500">⚡ {{ xp }} XP</span>
+                <span id="xp-contador" class="text-xs font-mono text-slate-500">⚡ {{ xp }} XP</span>
                 <button type="button" @click="painelAberto = true" class="lg:hidden shrink-0 text-slate-400 hover:text-white p-1">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
                 </button>
             </div>
         </div>
 
-        <div class="scroll-sem-barra flex-1 overflow-y-auto p-4 sm:p-6 space-y-3">
+        <div id="chat-mensagens" class="scroll-sem-barra flex-1 overflow-y-auto p-4 sm:p-6 space-y-3">
             {% for msg in mensagens %}
                 {% if msg.autor == "cliente" %}
                 <div class="flex justify-start">
@@ -87,13 +88,15 @@
 
         <div class="p-4 border-t border-white/10 shrink-0">
             {% if tela == "chat" %}
-            {% if erro_ia %}
-            <p class="text-xs text-amber-400 mb-2">⚠️ {{ erro_ia }}</p>
-            {% endif %}
-            <form action="/suporte-ia/enviar" method="post" class="flex items-end gap-2">
-                <textarea name="mensagem" rows="2" required placeholder="Digite sua resposta pro cliente..."
+            <div id="erro-ia-banner">
+                {% if erro_ia %}
+                <p class="text-xs text-amber-400 mb-2">⚠️ {{ erro_ia }}</p>
+                {% endif %}
+            </div>
+            <form id="chat-form" action="/suporte-ia/enviar" method="post" class="flex items-end gap-2" data-cliente-nome="{{ atendimento.cliente.split(' ')[0] }}">
+                <textarea id="chat-input" name="mensagem" rows="2" required placeholder="Digite sua resposta pro cliente..."
                     class="flex-1 resize-none bg-white/5 border border-white/10 focus:border-blue-500/40 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition">{{ rascunho or "" }}</textarea>
-                <button type="submit" class="shrink-0 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold rounded-xl px-5 py-3 text-sm transition neon-btn-glow">
+                <button id="chat-enviar-btn" type="submit" class="shrink-0 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-50 text-white font-semibold rounded-xl px-5 py-3 text-sm transition neon-btn-glow">
                     Enviar
                 </button>
             </form>
@@ -130,20 +133,139 @@
             <div class="flex justify-between gap-2"><span class="text-slate-500">Categoria</span><span class="text-amber-400">{{ atendimento.categoria }}</span></div>
         </div>
 
-        <div class="py-4">
+        <div id="humor-painel" class="py-4">
             <p class="text-[11px] font-mono uppercase tracking-widest text-slate-500 mb-2">Humor do cliente</p>
             <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
-                <div class="h-full rounded-full transition-all duration-300 {{ 'bg-emerald-400' if humor_tier == 'satisfeito' else ('bg-amber-400' if humor_tier == 'neutro' else 'bg-red-400') }}" style="width: {{ humor_atual }}%"></div>
+                <div id="humor-barra" class="h-full rounded-full transition-all duration-300 {{ 'bg-emerald-400' if humor_tier == 'satisfeito' else ('bg-amber-400' if humor_tier == 'neutro' else 'bg-red-400') }}" style="width: {{ humor_atual }}%"></div>
             </div>
             <div class="flex items-center justify-between mt-2">
-                <span class="text-xs font-semibold {{ 'text-emerald-400' if humor_tier == 'satisfeito' else ('text-amber-400' if humor_tier == 'neutro' else 'text-red-400') }}">
+                <span id="humor-label" class="text-xs font-semibold {{ 'text-emerald-400' if humor_tier == 'satisfeito' else ('text-amber-400' if humor_tier == 'neutro' else 'text-red-400') }}">
                     {{ "😊 Satisfeito" if humor_tier == "satisfeito" else ("😐 Neutro" if humor_tier == "neutro" else "😠 Insatisfeito") }}
                 </span>
-                <span class="text-xs font-mono text-slate-500">{{ humor_atual }}/100</span>
+                <span id="humor-valor" class="text-xs font-mono text-slate-500">{{ humor_atual }}/100</span>
             </div>
         </div>
     </aside>
 </div>
+
+<script>
+(function(){
+    const form = document.getElementById('chat-form');
+    if (!form) return;  // tela de encerramento do atendimento — nada pra ligar aqui
+
+    const mensagensEl = document.getElementById('chat-mensagens');
+    const input = document.getElementById('chat-input');
+    const btnEnviar = document.getElementById('chat-enviar-btn');
+    const nomeCliente = form.dataset.clienteNome || 'Cliente';
+
+    function escapeHtml(texto){
+        const div = document.createElement('div');
+        div.textContent = texto;
+        return div.innerHTML;
+    }
+
+    function rolarParaFinal(){
+        mensagensEl.scrollTop = mensagensEl.scrollHeight;
+    }
+
+    function criarBolhaAluno(texto){
+        const div = document.createElement('div');
+        div.className = 'flex justify-end';
+        div.innerHTML =
+            '<div class="max-w-[85%] sm:max-w-md bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl rounded-tr-sm px-4 py-3">' +
+            '<p class="text-[10px] font-mono uppercase text-blue-100/70 mb-1">Você</p>' +
+            '<p class="text-sm text-white leading-relaxed">' + escapeHtml(texto) + '</p></div>';
+        return div;
+    }
+
+    function criarBolhaDigitando(){
+        const div = document.createElement('div');
+        div.className = 'flex justify-start';
+        div.id = 'bolha-digitando';
+        div.innerHTML =
+            '<div class="max-w-[85%] sm:max-w-md bg-white/10 border border-white/10 rounded-2xl rounded-tl-sm px-4 py-3">' +
+            '<p class="text-[10px] font-mono uppercase text-slate-400 mb-1">' + escapeHtml(nomeCliente) + '</p>' +
+            '<p class="text-sm flex gap-1 items-center h-5">' +
+            '<span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay:0ms"></span>' +
+            '<span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay:150ms"></span>' +
+            '<span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay:300ms"></span>' +
+            '</p></div>';
+        return div;
+    }
+
+    function copiarElemento(idAlvo, doc){
+        const novo = doc.getElementById(idAlvo);
+        const atual = document.getElementById(idAlvo);
+        if (!novo || !atual) return;
+        atual.innerHTML = novo.innerHTML;
+        atual.className = novo.className;
+        atual.style.cssText = novo.style.cssText;
+    }
+
+    form.addEventListener('submit', async function(ev){
+        ev.preventDefault();
+        const texto = input.value.trim();
+        if (!texto) return;
+
+        input.disabled = true;
+        btnEnviar.disabled = true;
+        document.getElementById('erro-ia-banner').innerHTML = '';
+
+        mensagensEl.appendChild(criarBolhaAluno(texto));
+        input.value = '';
+        mensagensEl.appendChild(criarBolhaDigitando());
+        rolarParaFinal();
+
+        try {
+            const resposta = await fetch(form.action, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: new URLSearchParams({mensagem: texto}).toString(),
+            });
+            const html = await resposta.text();
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            const marcador = doc.getElementById('tela-marcador');
+            const novaTela = marcador ? marcador.dataset.tela : null;
+
+            if (novaTela && novaTela !== 'chat') {
+                // Atendimento encerrado (resolvido ou fracasso) — deixa a
+                // tela natural de encerramento assumir, como uma navegação normal.
+                document.open();
+                document.write(html);
+                document.close();
+                return;
+            }
+
+            document.getElementById('bolha-digitando').remove();
+
+            const novoErro = doc.getElementById('erro-ia-banner');
+            const falhou = novoErro && novoErro.innerHTML.trim();
+            if (falhou) {
+                document.getElementById('erro-ia-banner').innerHTML = novoErro.innerHTML;
+                input.value = texto;  // devolve o texto pro aluno não perder o que escreveu
+            } else {
+                const novasMensagens = doc.getElementById('chat-mensagens');
+                if (novasMensagens) mensagensEl.innerHTML = novasMensagens.innerHTML;
+                copiarElemento('xp-contador', doc);
+                copiarElemento('humor-barra', doc);
+                copiarElemento('humor-label', doc);
+                copiarElemento('humor-valor', doc);
+            }
+            rolarParaFinal();
+        } catch (erro) {
+            const digitando = document.getElementById('bolha-digitando');
+            if (digitando) digitando.remove();
+            input.value = texto;
+            document.getElementById('erro-ia-banner').innerHTML =
+                '<p class="text-xs text-amber-400 mb-2">⚠️ Não deu pra enviar (falha de conexão). Tente de novo.</p>';
+        } finally {
+            input.disabled = false;
+            btnEnviar.disabled = false;
+            input.focus();
+        }
+    });
+})();
+</script>
 {% endif %}
 
 {% endblock %}
