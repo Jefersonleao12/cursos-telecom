@@ -38,7 +38,7 @@
 {% endif %}
 
 {% if tela in ("chat", "atendimento-end") %}
-<div class="lg:flex lg:gap-4 lg:h-[74vh] lg:min-h-[560px]">
+<div x-data="{ painelAberto: false }" class="flex flex-col h-[78vh] min-h-[480px] lg:flex-row lg:gap-4 lg:h-[74vh] lg:min-h-[560px]">
 
     {# ---------- CHAT ---------- #}
     <main class="flex-1 min-w-0 flex flex-col glass-card rounded-2xl overflow-hidden">
@@ -47,8 +47,11 @@
                 <p class="text-sm font-bold text-white truncate">{{ atendimento.cliente }}</p>
                 <p class="text-[11px] font-mono text-slate-400">{{ atendimento.id }} · Atendimento {{ atendimento_numero }}/{{ total_atendimentos }} · 🧪 beta</p>
             </div>
-            <div class="shrink-0 text-right">
+            <div class="flex items-center gap-3 shrink-0">
                 <span class="text-xs font-mono text-slate-500">⚡ {{ xp }} XP</span>
+                <button type="button" @click="painelAberto = true" class="lg:hidden shrink-0 text-slate-400 hover:text-white p-1">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                </button>
             </div>
         </div>
 
@@ -107,7 +110,15 @@
     </main>
 
     {# ---------- PAINEL: humor + dados ---------- #}
-    <aside class="lg:w-72 shrink-0 glass-card rounded-2xl p-5 mt-3 lg:mt-0">
+    <div x-show="painelAberto" x-cloak @click="painelAberto = false" class="lg:hidden fixed inset-0 bg-black/60 z-40"></div>
+    <aside :class="painelAberto ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'"
+           class="fixed lg:static inset-y-0 right-0 w-80 lg:w-72 shrink-0 glass-card rounded-none lg:rounded-2xl flex flex-col z-50 lg:z-auto transition-transform duration-200 lg:h-full p-5 overflow-y-auto">
+        <div class="flex items-center justify-between mb-2 lg:hidden">
+            <span class="text-xs font-bold uppercase tracking-widest text-slate-400">Dados do atendimento</span>
+            <button type="button" @click="painelAberto = false" class="text-slate-500 hover:text-white p-1">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
         <div class="flex flex-col items-center text-center pb-4 border-b border-white/10">
             <span class="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center text-2xl">👤</span>
             <p class="text-sm font-bold text-white mt-2">{{ atendimento.cliente }}</p>
