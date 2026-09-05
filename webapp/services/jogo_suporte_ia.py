@@ -17,6 +17,7 @@ módulo. Isso evita depender da IA "inventar" um número de humor
 descalibrado a cada resposta.
 """
 import json
+import time
 
 import requests
 
@@ -25,7 +26,13 @@ from database.repositorio import jogo_suporte_ia_obter_progresso, jogo_suporte_i
 from webapp.data.jogo_suporte_atendimentos import ATENDIMENTOS
 
 _ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/{modelo}:generateContent"
-_MODELO_PADRAO = "gemini-flash-latest"  # alias que a Google mantém apontado pro Flash estável mais recente
+# Flash-Lite (não o Flash "cheio"): mais barato e com cota gratuita bem
+# maior (na conta gratuita, algo como 1000 requisições/dia contra ~250 do
+# Flash) — de sobra pra uma tarefa de classificação + fala curta como
+# essa, que não precisa do raciocínio mais pesado do modelo cheio.
+_MODELO_PADRAO = "gemini-flash-lite-latest"
+_TENTATIVAS_EM_SOBRECARGA = 2   # HTTP 503 costuma ser passageiro — vale tentar de novo
+_ESPERA_ENTRE_TENTATIVAS_S = 1.5
 
 _HUMOR_MIN = 0
 _HUMOR_MAX = 100
@@ -122,14 +129,24 @@ def _chamar_gemini(prompt_sistema: str, mensagens: list) -> dict:
         },
     }
 
-    try:
-        resposta = requests.post(
-            _ENDPOINT.format(modelo=modelo), params={"key": chave}, json=corpo, timeout=25,
-        )
-    except requests.RequestException as erro:
-        raise GeminiIndisponivelError(f"Falha de conexão com o Gemini: {erro}") from erro
+    resposta = None
+    for tentativa in range(1, _TENTATIVAS_EM_SOBRECARGA + 1):
+        try:
+            resposta = requests.post(
+                _ENDPOINT.format(modelo=modelo), params={"key": chave}, json=corpo, timeout=25,
+            )
+        except requests.RequestException as erro:
+            raise GeminiIndisponivelError(f"Falha de conexão com o Gemini: {erro}") from erro
 
-    if resposta.status_code != 200:
+        if resposta.status_code == 200:
+            break
+        # 503 = modelo temporariamente sobrecarregado do lado da Google —
+        # costuma passar numa segunda tentativa. 429 (cota estourada) e
+        # outros erros não se resolvem tentando de novo, então desistimos
+        # na hora pra não fazer o aluno esperar à toa.
+        if resposta.status_code == 503 and tentativa < _TENTATIVAS_EM_SOBRECARGA:
+            time.sleep(_ESPERA_ENTRE_TENTATIVAS_S)
+            continue
         raise GeminiIndisponivelError(f"Gemini recusou a chamada (HTTP {resposta.status_code}): {resposta.text[:300]}")
 
     try:
