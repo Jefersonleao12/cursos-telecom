@@ -20,12 +20,11 @@ from zoneinfo import ZoneInfo
 from fastapi import APIRouter, BackgroundTasks, Depends, Form, Request
 
 from database.repositorio import (
-    calcular_progresso_curso,
-    curso_totalmente_concluido,
     enviar_duvida,
     listar_avisos_ativos,
     listar_cursos,
     listar_destaques_ativos,
+    progresso_e_conclusao_do_aluno,
 )
 from webapp.integrations.whatsapp import notificar_nova_duvida
 from webapp.services.resumo_jogos import resumo_do_jogo, resumo_do_suporte, resumo_do_suporte_ia
@@ -96,19 +95,21 @@ def _data_por_extenso() -> str:
 
 
 def _resumo_do_aluno(aluno_id: str) -> dict:
-    cursos = listar_cursos()
+    # Uma consulta só pra todos os cursos (antes era um laço curso a curso,
+    # que virava dezenas de idas até o Supabase só pra montar esta tela).
+    progresso_por_curso, concluido_por_curso = progresso_e_conclusao_do_aluno(aluno_id)
     concluidos = 0
     em_andamento = 0
     certificados = 0
 
-    for curso in cursos:
-        progresso = calcular_progresso_curso(aluno_id, curso["id"])
+    for curso in listar_cursos():
+        progresso = progresso_por_curso.get(curso["id"], 0.0)
         if progresso >= 1.0:
             concluidos += 1
         elif progresso > 0:
             em_andamento += 1
 
-        if curso_totalmente_concluido(aluno_id, curso["id"]):
+        if concluido_por_curso.get(curso["id"], False):
             certificados += 1
 
     return {"concluidos": concluidos, "em_andamento": em_andamento, "certificados": certificados}

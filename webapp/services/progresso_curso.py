@@ -9,7 +9,6 @@ from datetime import datetime, timezone
 from database.repositorio import (
     aulas_concluidas_do_modulo,
     buscar_prova_do_modulo,
-    buscar_progresso_aula,
     listar_aulas_do_modulo,
     listar_modulos_do_curso,
     listar_perguntas,
@@ -82,14 +81,15 @@ def calcular_gate_video(aluno_id: str, aula: dict) -> int:
     não no navegador do aluno) e devolve quantos segundos ainda faltam
     antes de liberar o botão "concluir" — 0 já significa liberado.
     """
-    registrar_inicio_aula(aluno_id, aula["id"])
+    # registrar_inicio_aula já devolve o registro (o que existia ou o que
+    # acabou de gravar), então não precisamos consultar o banco de novo.
+    progresso = registrar_inicio_aula(aluno_id, aula["id"])
 
     duracao_min = aula.get("duracao_minutos") or 0
     segundos_exigidos = int(duracao_min * 60 * 0.9)
     if segundos_exigidos <= 0:
         return 0
 
-    progresso = buscar_progresso_aula(aluno_id, aula["id"])
     iniciada_em = progresso.get("iniciada_em") if progresso else None
     if not iniciada_em:
         return segundos_exigidos

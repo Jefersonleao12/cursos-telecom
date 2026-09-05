@@ -109,6 +109,16 @@ if ! grep -qE '^SUPABASE_URL=.+' "$ENV_FILE"; then
 fi
 
 echo "==> Criando serviço systemd..."
+# Por que UM processo só (sem --workers N): a app guarda em memória, por
+# alguns minutos, o resultado das consultas ao Supabase, e limpa essa memória
+# na hora em que algo muda (aluno concluiu aula, admin editou curso...). Essa
+# limpeza só alcança o processo onde ela acontece. Com vários processos, um
+# aluno concluiria uma aula e, no clique seguinte — atendido por outro
+# processo —, veria o progresso antigo por até 5 minutos. Como o trabalho aqui
+# é quase todo espera de rede (não cálculo), um processo com suas threads dá
+# conta de 50+ alunos tranquilamente; se um dia realmente precisar escalar,
+# o caminho certo é mover esse cache pra um Redis compartilhado ANTES de
+# aumentar o número de processos.
 cat > "/etc/systemd/system/${SERVICE_NAME}.service" <<SERVICEEOF
 [Unit]
 Description=Plataforma de Treinamentos em Telecomunicações (webapp/, FastAPI)
@@ -118,7 +128,7 @@ After=network.target
 Type=simple
 WorkingDirectory=${APP_DIR}
 EnvironmentFile=${ENV_FILE}
-ExecStart=${APP_DIR}/venv/bin/python -m uvicorn webapp.main:app --host 127.0.0.1 --port ${APP_PORT}
+ExecStart=${APP_DIR}/venv/bin/python -m uvicorn webapp.main:app --host 127.0.0.1 --port ${APP_PORT} --no-server-header
 Restart=always
 RestartSec=3
 

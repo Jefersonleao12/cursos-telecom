@@ -7,6 +7,7 @@ alguma tela busca suas informações, é só olhar aqui.
 
 Sem dependência de nenhum framework de UI (FastAPI só é usado em webapp/).
 """
+import copy
 import io
 import time
 import uuid
@@ -122,16 +123,17 @@ def desmarcar_definir_foto(aluno_id: str):
     buscar_aluno_por_id.clear()
 
 
-@cache_com_ttl(ttl=10)
+@cache_com_ttl(ttl=60)
 def buscar_aluno_por_id(aluno_id: str):
     """Retorna o registro do aluno pelo id, ou None se não existir.
 
     Usado para restaurar a sessão do aluno a cada requisição (ver
-    webapp/middleware.py). TTL curto (10s) porque toda escrita relevante
-    na tabela alunos já chama `.clear()` nesta função (ver ativar/desativar
-    acesso, trocar senha
-    etc.) — o cache existe só pra evitar bater no banco a cada requisição
-    HTTP, não pra esconder mudanças reais por muito tempo.
+    webapp/middleware.py) — ou seja, é a consulta mais chamada do sistema
+    inteiro. Toda escrita relevante na tabela alunos já chama `.clear()`
+    aqui (ativar/desativar acesso, trocar senha, editar cadastro etc.),
+    então o TTL não precisa ser curto: quem muda o dado já invalida o
+    cache na hora. Sem esse cache, cada clique do aluno custaria uma ida
+    até o Supabase só pra descobrir quem ele é.
     """
     sb = get_supabase_client()
     resposta = sb.table("alunos").select("*").eq("id", aluno_id).execute()
@@ -335,14 +337,14 @@ def contar_alunos_por_filial():
 # CURSOS
 # ---------------------------------------------------------------------------
 
-@cache_com_ttl(ttl=20)
+@cache_com_ttl(ttl=300)
 def listar_cursos():
     sb = get_supabase_client()
     resposta = sb.table("cursos").select("*").order("criado_em", desc=True).execute()
     return resposta.data
 
 
-@cache_com_ttl(ttl=20)
+@cache_com_ttl(ttl=300)
 def buscar_curso(curso_id: int):
     sb = get_supabase_client()
     resposta = sb.table("cursos").select("*").eq("id", curso_id).execute()
@@ -388,19 +390,31 @@ def excluir_curso(curso_id: int):
 # MÓDULOS (assuntos dentro de um curso)
 # ---------------------------------------------------------------------------
 
-@cache_com_ttl(ttl=20)
+@cache_com_ttl(ttl=300)
+def _todos_modulos():
+    """Todos os módulos da plataforma numa consulta só.
+
+    A tabela inteira é pequena (dezenas de linhas) e muda só quando o admin
+    mexe no conteúdo, então trazer tudo de uma vez sai muito mais barato do
+    que uma consulta por curso: a tela de Perfil, por exemplo, percorre os 6
+    cursos do aluno e antes gastava 6 idas até o Supabase só pra isso.
+    """
+    sb = get_supabase_client()
+    return sb.table("modulos").select("*").order("ordem").execute().data or []
+
+
 def listar_modulos_do_curso(curso_id: int):
-    sb = get_supabase_client()
-    resposta = sb.table("modulos").select("*").eq("curso_id", curso_id).order("ordem").execute()
-    return resposta.data
+    return [m for m in _todos_modulos() if m["curso_id"] == curso_id]
 
 
-@cache_com_ttl(ttl=20)
 def buscar_modulo(modulo_id: int):
-    sb = get_supabase_client()
-    resposta = sb.table("modulos").select("*").eq("id", modulo_id).execute()
-    dados = resposta.data
-    return dados[0] if dados else None
+    return next((m for m in _todos_modulos() if m["id"] == modulo_id), None)
+
+
+# Mantém o .clear() que o código de admin já chama nestes nomes funcionando:
+# quem limpa qualquer um deles limpa a consulta única que alimenta os dois.
+listar_modulos_do_curso.clear = _todos_modulos.clear
+buscar_modulo.clear = _todos_modulos.clear
 
 
 def criar_modulo(curso_id: int, titulo: str, ordem: int):
@@ -430,34 +444,33 @@ def excluir_modulo(modulo_id: int):
 # AULAS (agora pertencem a um módulo)
 # ---------------------------------------------------------------------------
 
-@cache_com_ttl(ttl=20)
-def listar_aulas_do_modulo(modulo_id: int):
+@cache_com_ttl(ttl=300)
+def _todas_aulas():
+    """Todas as aulas da plataforma numa consulta só — mesma ideia de
+    _todos_modulos(): a tabela é pequena, muda pouco, e antes uma tela de
+    curso pedia as aulas módulo a módulo (uma ida ao banco por módulo)."""
     sb = get_supabase_client()
-    resposta = (
-        sb.table("aulas")
-        .select("*")
-        .eq("modulo_id", modulo_id)
-        .order("ordem")
-        .execute()
-    )
-    return resposta.data
+    return sb.table("aulas").select("*").order("ordem").execute().data or []
 
 
-@cache_com_ttl(ttl=20)
+def listar_aulas_do_modulo(modulo_id: int):
+    return [a for a in _todas_aulas() if a["modulo_id"] == modulo_id]
+
+
 def listar_aulas_do_curso(curso_id: int):
     """Todas as aulas do curso, de TODOS os módulos juntos — usado para
     calcular o progresso geral do curso (barra de progresso no topo)."""
-    sb = get_supabase_client()
-    resposta = sb.table("aulas").select("*").eq("curso_id", curso_id).execute()
-    return resposta.data
+    return [a for a in _todas_aulas() if a["curso_id"] == curso_id]
 
 
-@cache_com_ttl(ttl=20)
 def buscar_aula(aula_id: int):
-    sb = get_supabase_client()
-    resposta = sb.table("aulas").select("*").eq("id", aula_id).execute()
-    dados = resposta.data
-    return dados[0] if dados else None
+    return next((a for a in _todas_aulas() if a["id"] == aula_id), None)
+
+
+# Mantém funcionando o .clear() que o admin já chama nestes três nomes.
+listar_aulas_do_modulo.clear = _todas_aulas.clear
+listar_aulas_do_curso.clear = _todas_aulas.clear
+buscar_aula.clear = _todas_aulas.clear
 
 
 def criar_aula(modulo_id: int, curso_id: int, titulo: str, url_video: str, ordem: int, duracao_minutos: int):
@@ -512,22 +525,40 @@ def marcar_aula_concluida(aluno_id: str, aula_id: int):
         "concluida_em": datetime.now(timezone.utc).isoformat(),
     }
     sb.table("progresso_aulas").upsert(registro, on_conflict="aluno_id,aula_id").execute()
-    _consultar_aulas_concluidas.clear()
+    _progresso_aulas_do_aluno.clear()
+    # O progresso em lote é calculado a partir das aulas concluídas — sem
+    # limpar aqui, o aluno concluiria a aula e a barra continuaria parada
+    # até o cache expirar.
+    _linhas_progresso_ranking.clear()
+    calcular_ranking_alunos.clear()
+
+
+@cache_com_ttl(ttl=60)
+def _progresso_aulas_do_aluno(aluno_id: str) -> dict:
+    """Tudo o que este aluno já abriu ou concluiu, indexado por aula_id.
+
+    Antes cada pedaço da tela ia buscar o seu: uma consulta por módulo pra
+    saber quais aulas estão concluídas, mais uma consulta por aula aberta
+    pra saber quando o cronômetro começou. Numa tela de curso com 4 módulos
+    isso dava 5 ou 6 idas ao Supabase; agora é uma só, e o resto é filtro
+    em memória. É esvaziado sempre que o aluno conclui ou abre uma aula.
+    """
+    sb = get_supabase_client()
+    linhas = (
+        sb.table("progresso_aulas")
+        .select("*")
+        .eq("aluno_id", aluno_id)
+        .execute()
+        .data
+        or []
+    )
+    return {linha["aula_id"]: linha for linha in linhas}
 
 
 def buscar_progresso_aula(aluno_id: str, aula_id: int):
     """Retorna o registro de progresso do aluno nesta aula, ou None se ele
     nunca chegou a abri-la."""
-    sb = get_supabase_client()
-    resposta = (
-        sb.table("progresso_aulas")
-        .select("*")
-        .eq("aluno_id", aluno_id)
-        .eq("aula_id", aula_id)
-        .execute()
-    )
-    dados = resposta.data
-    return dados[0] if dados else None
+    return _progresso_aulas_do_aluno(aluno_id).get(aula_id)
 
 
 def registrar_inicio_aula(aluno_id: str, aula_id: int):
@@ -539,47 +570,34 @@ def registrar_inicio_aula(aluno_id: str, aula_id: int):
     burlar mudando o relógio do sistema ou chamando a rota direto). Não faz
     nada se já existir um registro — não reinicia o cronômetro toda vez que
     o aluno reabre a aula.
+
+    Devolve o registro de progresso desta aula (o que já existia, ou o que
+    acabou de ser criado) pra quem chamou não precisar consultar de novo.
     """
     existente = buscar_progresso_aula(aluno_id, aula_id)
     if existente and existente.get("iniciada_em"):
-        return
-    sb = get_supabase_client()
-    sb.table("progresso_aulas").upsert(
-        {
-            "aluno_id": aluno_id,
-            "aula_id": aula_id,
-            "iniciada_em": datetime.now(timezone.utc).isoformat(),
-        },
-        on_conflict="aluno_id,aula_id",
-    ).execute()
+        return existente
 
-
-@cache_com_ttl(ttl=15)
-def _consultar_aulas_concluidas(aluno_id: str, ids_aulas: tuple):
-    """
-    Função interna (cacheada): dado um conjunto de IDs de aula, devolve quais
-    delas o aluno já concluiu. É chamada repetidas vezes a cada tela (uma vez
-    por módulo, de cada curso, sempre que a página de Início ou a lista de
-    cursos é desenhada) — cachear evita bater no Supabase várias vezes pela
-    mesma informação em poucos segundos, deixando a navegação bem mais rápida.
-    """
-    if not ids_aulas:
-        return []
+    registro = {
+        "aluno_id": aluno_id,
+        "aula_id": aula_id,
+        "iniciada_em": datetime.now(timezone.utc).isoformat(),
+    }
     sb = get_supabase_client()
-    resposta = (
-        sb.table("progresso_aulas")
-        .select("aula_id")
-        .eq("aluno_id", aluno_id)
-        .eq("concluida", True)
-        .in_("aula_id", list(ids_aulas))
-        .execute()
-    )
-    return [linha["aula_id"] for linha in resposta.data]
+    sb.table("progresso_aulas").upsert(registro, on_conflict="aluno_id,aula_id").execute()
+    # Atualiza o que já está em memória em vez de esvaziar o cache inteiro:
+    # esta função roda pra cada aula aberta na tela do curso, e esvaziar
+    # forçaria uma consulta nova a cada aula.
+    atual = dict(existente or {})
+    atual.update(registro)
+    _progresso_aulas_do_aluno(aluno_id)[aula_id] = atual
+    return atual
 
 
 def _ids_aulas_concluidas(aluno_id: str, ids_aulas: list):
     """Função interna: dado uma lista de IDs de aula, devolve quais delas o aluno já concluiu."""
-    return _consultar_aulas_concluidas(aluno_id, tuple(sorted(ids_aulas)))
+    progresso = _progresso_aulas_do_aluno(aluno_id)
+    return [i for i in ids_aulas if (progresso.get(i) or {}).get("concluida")]
 
 
 def aulas_concluidas_do_aluno(aluno_id: str, curso_id: int):
@@ -633,6 +651,47 @@ def curso_totalmente_concluido(aluno_id: str, curso_id: int) -> bool:
     return all(modulo_esta_completo(aluno_id, m["id"]) for m in modulos)
 
 
+@cache_com_ttl(ttl=300)
+def _linhas_progresso_ranking() -> list:
+    """
+    Progresso e conclusão de TODO aluno × TODO curso, numa consulta só.
+
+    Uma única chamada à função progresso_ranking_dados() do Postgres (ver
+    database/schema.sql) responde tudo que as telas de progresso precisam.
+    O cache fica aqui, no resultado bruto, de propósito: assim os 50 alunos
+    abrindo a Início ao mesmo tempo dividem UMA consulta em vez de fazerem
+    uma cada. É esvaziado na hora em que qualquer progresso muda (aula
+    concluída, prova salva), então ninguém vê barra desatualizada.
+    """
+    sb = get_supabase_client()
+    return sb.rpc("progresso_ranking_dados").execute().data or []
+
+
+def progresso_e_conclusao_do_aluno(aluno_id: str) -> tuple[dict, dict]:
+    """
+    Progresso e conclusão de TODOS os cursos de UM aluno.
+
+    As telas do próprio aluno (Início, Cursos, Certificados, Perfil) antes
+    faziam um laço curso a curso chamando calcular_progresso_curso() e
+    curso_totalmente_concluido(); cada uma dessas duas dispara consultas
+    próprias, então uma Início com 6 cursos gastava ~30 idas e vindas até
+    o Supabase. Como o banco fica em outra região, cada ida custa mais de
+    100ms de latência pura — ou seja, vários segundos só esperando rede,
+    com o VPS parado. Aqui é só filtrar as linhas que já vieram na consulta
+    única de _linhas_progresso_ranking().
+
+    Retorna (progresso, concluido), ambos indexados por curso_id.
+    """
+    progresso: dict = {}
+    concluido: dict = {}
+    for linha in _linhas_progresso_ranking():
+        if linha["aluno_id"] != aluno_id:
+            continue
+        progresso[linha["curso_id"]] = float(linha["progresso"])
+        concluido[linha["curso_id"]] = bool(linha["concluido"])
+    return progresso, concluido
+
+
 def progresso_e_conclusao_em_lote(alunos: list, cursos: list) -> tuple[dict, dict]:
     """
     Progresso (0.0 a 1.0) e conclusão de curso pra CADA combinação
@@ -652,8 +711,7 @@ def progresso_e_conclusao_em_lote(alunos: list, cursos: list) -> tuple[dict, dic
     - progresso: percentual (0.0 a 1.0) de aulas concluídas no curso
     - concluido: True se TODOS os módulos do curso estão completos
     """
-    sb = get_supabase_client()
-    linhas = sb.rpc("progresso_ranking_dados").execute().data
+    linhas = _linhas_progresso_ranking()
 
     progresso: dict = {a["id"]: {} for a in alunos}
     concluido: dict = {a["id"]: {} for a in alunos}
@@ -731,12 +789,15 @@ def nota_final_curso(aluno_id: str, curso_id: int):
     (curso só com vídeos), devolve None — o certificado mostra 'Concluído'
     em vez de uma nota numérica nesse caso.
     """
-    modulos = listar_modulos_do_curso(curso_id)
+    # Versões em lote: 2 consultas no total, em vez de 2 por módulo.
+    provas = provas_por_modulo()
+    melhores = melhores_resultados_do_aluno(aluno_id)
+
     notas = []
-    for modulo in modulos:
-        prova = buscar_prova_do_modulo(modulo["id"])
+    for modulo in listar_modulos_do_curso(curso_id):
+        prova = provas.get(modulo["id"])
         if prova:
-            resultado = melhor_resultado(aluno_id, prova["id"])
+            resultado = melhores.get(prova["id"])
             if resultado:
                 notas.append(float(resultado["nota"]))
     if not notas:
@@ -754,19 +815,17 @@ def registrar_inicio_curso(aluno_id: str, curso_id: int):
     abriu a tela do curso). Não faz nada se já existir um registro — ou
     seja, é seguro chamar isso toda vez que a tela é aberta.
     """
+    # Consulta o mapa já cacheado de todos os cursos do aluno em vez de fazer
+    # um SELECT novo — isso roda em TODA abertura de tela de curso, e na
+    # imensa maioria das vezes o registro já existe (só a primeira abertura
+    # de cada curso, na vida do aluno, precisa gravar alguma coisa).
+    if tempos_curso_do_aluno(aluno_id).get(curso_id):
+        return
     sb = get_supabase_client()
-    existente = (
-        sb.table("progresso_cursos")
-        .select("id")
-        .eq("aluno_id", aluno_id)
-        .eq("curso_id", curso_id)
-        .execute()
-    )
-    if not existente.data:
-        sb.table("progresso_cursos").insert(
-            {"aluno_id": aluno_id, "curso_id": curso_id}
-        ).execute()
-        obter_tempos_curso.clear()
+    sb.table("progresso_cursos").insert(
+        {"aluno_id": aluno_id, "curso_id": curso_id}
+    ).execute()
+    tempos_curso_do_aluno.clear()
 
 
 def finalizar_progresso_curso(aluno_id: str, curso_id: int):
@@ -775,22 +834,24 @@ def finalizar_progresso_curso(aluno_id: str, curso_id: int):
     sb.table("progresso_cursos").update(
         {"finalizado_em": datetime.now(timezone.utc).isoformat()}
     ).eq("aluno_id", aluno_id).eq("curso_id", curso_id).is_("finalizado_em", "null").execute()
-    obter_tempos_curso.clear()
+    tempos_curso_do_aluno.clear()
 
 
-@cache_com_ttl(ttl=15)
 def obter_tempos_curso(aluno_id: str, curso_id: int):
     """Retorna o registro de início/fim do curso para este aluno (ou None)."""
+    return tempos_curso_do_aluno(aluno_id).get(curso_id)
+
+
+@cache_com_ttl(ttl=60)
+def tempos_curso_do_aluno(aluno_id: str) -> dict:
+    """
+    Início/fim de TODOS os cursos deste aluno numa consulta só, indexado por
+    curso_id — versão em lote de obter_tempos_curso(), pra o histórico do
+    Perfil não precisar de uma consulta por curso.
+    """
     sb = get_supabase_client()
-    resposta = (
-        sb.table("progresso_cursos")
-        .select("*")
-        .eq("aluno_id", aluno_id)
-        .eq("curso_id", curso_id)
-        .execute()
-    )
-    dados = resposta.data
-    return dados[0] if dados else None
+    resposta = sb.table("progresso_cursos").select("*").eq("aluno_id", aluno_id).execute()
+    return {linha["curso_id"]: linha for linha in resposta.data}
 
 
 def todos_tempos_curso() -> dict:
@@ -914,6 +975,46 @@ def registrar_lembrete_enviado(aluno_id: str, curso_id: int):
 
 
 # ---------------------------------------------------------------------------
+# SIMULADORES (jogos de treinamento)
+# ---------------------------------------------------------------------------
+#
+# Os três simuladores guardam o progresso do aluno do mesmo jeito: uma linha
+# por aluno, lida o tempo todo (Início, Sala de Simulação, Perfil e cada
+# clique dentro do jogo) e escrita a cada ação. As duas funções abaixo dão a
+# esses três o mesmo tratamento: a leitura fica em memória por 30s, e toda
+# gravação já deixa em memória a linha nova devolvida pelo banco — assim
+# nunca se lê algo desatualizado e, ainda assim, uma tela que mostra o
+# progresso dos três simuladores não custa três idas ao Supabase.
+
+
+@cache_com_ttl(ttl=30)
+def _consultar_progresso_jogo(tabela: str, aluno_id: str) -> dict:
+    sb = get_supabase_client()
+    resposta = sb.table(tabela).select("*").eq("aluno_id", aluno_id).execute()
+    if resposta.data:
+        return resposta.data[0]
+    return {"aluno_id": aluno_id, **_PADROES_JOGO[tabela]}
+
+
+def _progresso_jogo(tabela: str, aluno_id: str) -> dict:
+    # Cópia funda de propósito: o código dos jogos altera esse dicionário
+    # (acrescenta mensagem no chat, soma XP...) antes de salvar. Sem a cópia,
+    # a alteração cairia direto em cima do que está guardado em memória e
+    # valeria mesmo pra uma ação que o aluno acabou abandonando.
+    return copy.deepcopy(_consultar_progresso_jogo(tabela, aluno_id))
+
+
+def _salvar_progresso_jogo(tabela: str, aluno_id: str, campos: dict) -> dict:
+    sb = get_supabase_client()
+    linha = {"aluno_id": aluno_id, **campos}
+    salva = sb.table(tabela).upsert(linha, on_conflict="aluno_id").execute().data[0]
+    # Guarda a linha recém-gravada no lugar da antiga, em vez de esvaziar o
+    # cache: a próxima tela (o redirect logo depois de cada ação do jogo)
+    # já encontra o estado novo sem precisar consultar o banco de novo.
+    return _consultar_progresso_jogo.definir(salva, tabela, aluno_id)
+
+
+# ---------------------------------------------------------------------------
 # SIMULADOR DE CAMPO (jogo de treinamento, ver webapp/services/jogo_campo.py)
 # ---------------------------------------------------------------------------
 
@@ -937,6 +1038,8 @@ _JOGO_CAMPO_PADRAO = {
     "motivo_nao_realizado": None,
 }
 
+_JOGO_CAMPO_PADRAO_ITENS = tuple(_JOGO_CAMPO_PADRAO.items())
+
 
 def jogo_campo_obter_progresso(aluno_id: str) -> dict:
     """
@@ -944,19 +1047,12 @@ def jogo_campo_obter_progresso(aluno_id: str) -> dict:
     não tem linha na tabela ainda — devolve o estado inicial (tela
     "welcome") sem gravar nada no banco até a primeira ação de verdade.
     """
-    sb = get_supabase_client()
-    resposta = sb.table("jogo_campo_progresso").select("*").eq("aluno_id", aluno_id).execute()
-    if resposta.data:
-        return resposta.data[0]
-    return {"aluno_id": aluno_id, **_JOGO_CAMPO_PADRAO}
+    return _progresso_jogo("jogo_campo_progresso", aluno_id)
 
 
 def jogo_campo_salvar_progresso(aluno_id: str, **campos) -> dict:
     """Grava (cria ou atualiza) o progresso do aluno no jogo com os campos passados."""
-    sb = get_supabase_client()
-    linha = {"aluno_id": aluno_id, **campos}
-    resposta = sb.table("jogo_campo_progresso").upsert(linha, on_conflict="aluno_id").execute()
-    return resposta.data[0]
+    return _salvar_progresso_jogo("jogo_campo_progresso", aluno_id, campos)
 
 
 def jogo_campo_missoes_completadas_em_lote(alunos: list) -> dict:
@@ -998,22 +1094,17 @@ _JOGO_SUPORTE_PADRAO = {
     "opcao_escolhida": None,
 }
 
+_JOGO_SUPORTE_PADRAO_ITENS = tuple(_JOGO_SUPORTE_PADRAO.items())
+
 
 def jogo_suporte_obter_progresso(aluno_id: str) -> dict:
     """Retorna o progresso do aluno no Simulador de Suporte (estado inicial se nunca jogou)."""
-    sb = get_supabase_client()
-    resposta = sb.table("jogo_suporte_progresso").select("*").eq("aluno_id", aluno_id).execute()
-    if resposta.data:
-        return resposta.data[0]
-    return {"aluno_id": aluno_id, **_JOGO_SUPORTE_PADRAO}
+    return _progresso_jogo("jogo_suporte_progresso", aluno_id)
 
 
 def jogo_suporte_salvar_progresso(aluno_id: str, **campos) -> dict:
     """Grava (cria ou atualiza) o progresso do aluno no Simulador de Suporte."""
-    sb = get_supabase_client()
-    linha = {"aluno_id": aluno_id, **campos}
-    resposta = sb.table("jogo_suporte_progresso").upsert(linha, on_conflict="aluno_id").execute()
-    return resposta.data[0]
+    return _salvar_progresso_jogo("jogo_suporte_progresso", aluno_id, campos)
 
 
 _JOGO_SUPORTE_IA_PADRAO = {
@@ -1028,22 +1119,26 @@ _JOGO_SUPORTE_IA_PADRAO = {
     "ultimo_desfecho": None,
 }
 
+# Estado inicial de cada simulador, por tabela — usado por _progresso_jogo()
+# pra quem nunca jogou (nesse caso não existe linha no banco ainda).
+_PADROES_JOGO = {
+    "jogo_campo_progresso": _JOGO_CAMPO_PADRAO,
+    "jogo_suporte_progresso": _JOGO_SUPORTE_PADRAO,
+    "jogo_suporte_ia_progresso": _JOGO_SUPORTE_IA_PADRAO,
+}
+
+
+_JOGO_SUPORTE_IA_PADRAO_ITENS = tuple(_JOGO_SUPORTE_IA_PADRAO.items())
+
 
 def jogo_suporte_ia_obter_progresso(aluno_id: str) -> dict:
     """Retorna o progresso do aluno no Simulador de Suporte por IA (estado inicial se nunca jogou)."""
-    sb = get_supabase_client()
-    resposta = sb.table("jogo_suporte_ia_progresso").select("*").eq("aluno_id", aluno_id).execute()
-    if resposta.data:
-        return resposta.data[0]
-    return {"aluno_id": aluno_id, **_JOGO_SUPORTE_IA_PADRAO}
+    return _progresso_jogo("jogo_suporte_ia_progresso", aluno_id)
 
 
 def jogo_suporte_ia_salvar_progresso(aluno_id: str, **campos) -> dict:
     """Grava (cria ou atualiza) o progresso do aluno no Simulador de Suporte por IA."""
-    sb = get_supabase_client()
-    linha = {"aluno_id": aluno_id, **campos}
-    resposta = sb.table("jogo_suporte_ia_progresso").upsert(linha, on_conflict="aluno_id").execute()
-    return resposta.data[0]
+    return _salvar_progresso_jogo("jogo_suporte_ia_progresso", aluno_id, campos)
 
 
 def jogo_suporte_atendimentos_completados_em_lote(alunos: list) -> dict:
@@ -1068,7 +1163,7 @@ def jogo_suporte_atendimentos_completados_em_lote(alunos: list) -> dict:
 # PROVAS E PERGUNTAS
 # ---------------------------------------------------------------------------
 
-@cache_com_ttl(ttl=20)
+@cache_com_ttl(ttl=300)
 def buscar_prova_do_modulo(modulo_id: int):
     sb = get_supabase_client()
     resposta = sb.table("provas").select("*").eq("modulo_id", modulo_id).execute()
@@ -1076,7 +1171,55 @@ def buscar_prova_do_modulo(modulo_id: int):
     return dados[0] if dados else None
 
 
-@cache_com_ttl(ttl=20)
+@cache_com_ttl(ttl=300)
+def contar_perguntas() -> int:
+    """
+    Quantas perguntas existem na plataforma inteira, numa consulta só.
+
+    O painel do admin mostra esse número em TODA página; antes ele era
+    somado percorrendo curso → prova → perguntas, o que dava dezenas de
+    idas ao banco só pra montar o cabeçalho.
+    """
+    sb = get_supabase_client()
+    resposta = sb.table("perguntas").select("id", count="exact").limit(1).execute()
+    return resposta.count or 0
+
+
+@cache_com_ttl(ttl=300)
+def provas_por_modulo() -> dict:
+    """
+    Todas as provas da plataforma indexadas por modulo_id, numa consulta só.
+
+    Telas que percorrem vários cursos (Perfil, certificados) precisavam da
+    prova de cada módulo; fazendo isso módulo a módulo, um aluno com 6
+    cursos de 4 módulos gastava 24 idas até o banco só pra descobrir quais
+    módulos têm prova. A plataforma inteira tem poucas dezenas de provas,
+    então trazer todas de uma vez é mais barato que consultar uma por uma.
+    """
+    sb = get_supabase_client()
+    resposta = sb.table("provas").select("*").execute()
+    return {p["modulo_id"]: p for p in resposta.data}
+
+
+@cache_com_ttl(ttl=60)
+def melhores_resultados_do_aluno(aluno_id: str) -> dict:
+    """
+    Melhor nota do aluno em CADA prova que ele já fez, numa consulta só —
+    versão em lote de melhor_resultado(), pelo mesmo motivo de
+    provas_por_modulo(): evitar uma ida ao banco por prova.
+    """
+    sb = get_supabase_client()
+    resposta = sb.table("resultados_provas").select("*").eq("aluno_id", aluno_id).execute()
+
+    melhores: dict = {}
+    for linha in resposta.data:
+        atual = melhores.get(linha["prova_id"])
+        if atual is None or float(linha["nota"]) > float(atual["nota"]):
+            melhores[linha["prova_id"]] = linha
+    return melhores
+
+
+@cache_com_ttl(ttl=300)
 def buscar_prova_do_curso(curso_id: int):
     """Compatibilidade: retorna a primeira prova encontrada entre os módulos do curso."""
     sb = get_supabase_client()
@@ -1085,7 +1228,7 @@ def buscar_prova_do_curso(curso_id: int):
     return dados[0] if dados else None
 
 
-@cache_com_ttl(ttl=20)
+@cache_com_ttl(ttl=300)
 def listar_provas_do_curso(curso_id: int):
     """Todas as provas do curso, uma por módulo (útil para o dashboard/admin)."""
     sb = get_supabase_client()
@@ -1105,6 +1248,7 @@ def criar_prova(modulo_id: int, curso_id: int, titulo: str, nota_minima: float):
     buscar_prova_do_modulo.clear()
     buscar_prova_do_curso.clear()
     listar_provas_do_curso.clear()
+    provas_por_modulo.clear()
     return resposta.data[0]
 
 
@@ -1116,6 +1260,7 @@ def editar_prova(prova_id: int, titulo: str, nota_minima: float):
     buscar_prova_do_modulo.clear()
     buscar_prova_do_curso.clear()
     listar_provas_do_curso.clear()
+    provas_por_modulo.clear()
 
 
 def excluir_prova(prova_id: int):
@@ -1125,9 +1270,10 @@ def excluir_prova(prova_id: int):
     buscar_prova_do_modulo.clear()
     buscar_prova_do_curso.clear()
     listar_provas_do_curso.clear()
+    provas_por_modulo.clear()
 
 
-@cache_com_ttl(ttl=20)
+@cache_com_ttl(ttl=300)
 def listar_perguntas(prova_id: int):
     sb = get_supabase_client()
     resposta = (
@@ -1154,6 +1300,7 @@ def criar_pergunta(prova_id, enunciado, opcao_a, opcao_b, opcao_c, opcao_d, resp
     }
     resposta = sb.table("perguntas").insert(nova).execute()
     listar_perguntas.clear()
+    contar_perguntas.clear()
     return resposta.data[0]
 
 
@@ -1170,12 +1317,14 @@ def editar_pergunta(pergunta_id, enunciado, opcao_a, opcao_b, opcao_c, opcao_d, 
     }
     sb.table("perguntas").update(dados).eq("id", pergunta_id).execute()
     listar_perguntas.clear()
+    contar_perguntas.clear()
 
 
 def excluir_pergunta(pergunta_id):
     sb = get_supabase_client()
     sb.table("perguntas").delete().eq("id", pergunta_id).execute()
     listar_perguntas.clear()
+    contar_perguntas.clear()
 
 
 # ---------------------------------------------------------------------------
@@ -1193,10 +1342,15 @@ def salvar_resultado_prova(aluno_id: str, prova_id: int, nota: float, aprovado: 
     }
     resposta = sb.table("resultados_provas").insert(registro).execute()
     melhor_resultado.clear()
+    melhores_resultados_do_aluno.clear()
+    # Ser aprovado numa prova fecha o módulo (e às vezes o curso inteiro),
+    # então o progresso em lote e o Ranking precisam ser recalculados.
+    _linhas_progresso_ranking.clear()
+    calcular_ranking_alunos.clear()
     return resposta.data[0]
 
 
-@cache_com_ttl(ttl=15)
+@cache_com_ttl(ttl=60)
 def melhor_resultado(aluno_id: str, prova_id: int):
     """
     Retorna o melhor resultado (maior nota) que o aluno já obteve nesta prova.
@@ -1325,7 +1479,7 @@ def criar_material(titulo: str, descricao: str, categoria: str, link_url: str, i
     return resposta.data[0]
 
 
-@cache_com_ttl(ttl=20)
+@cache_com_ttl(ttl=300)
 def listar_materiais():
     """Lista todos os materiais, do mais recente para o mais antigo."""
     sb = get_supabase_client()
@@ -1333,7 +1487,7 @@ def listar_materiais():
     return resposta.data
 
 
-@cache_com_ttl(ttl=20)
+@cache_com_ttl(ttl=300)
 def listar_categorias_materiais():
     """Lista as categorias já usadas (sem repetir), em ordem alfabética."""
     materiais = listar_materiais()
@@ -1410,7 +1564,7 @@ def criar_aviso(titulo: str, mensagem: str):
     return resposta.data[0]
 
 
-@cache_com_ttl(ttl=20)
+@cache_com_ttl(ttl=300)
 def listar_avisos_ativos():
     """Usado na tela de Início — mostra só os avisos que o admin não desativou."""
     sb = get_supabase_client()
@@ -1543,7 +1697,7 @@ def excluir_destaque(destaque_id, caminho_storage: str):
     listar_todos_destaques.clear()
 
 
-@cache_com_ttl(ttl=20)
+@cache_com_ttl(ttl=300)
 def listar_destaques_ativos():
     """Usado na tela de Início — só os destaques que o admin não desativou, em ordem."""
     sb = get_supabase_client()
@@ -1557,7 +1711,7 @@ def listar_destaques_ativos():
     return resposta.data
 
 
-@cache_com_ttl(ttl=20)
+@cache_com_ttl(ttl=300)
 def listar_todos_destaques():
     """Usado no painel admin — mostra ativos e inativos, para gerenciar."""
     sb = get_supabase_client()

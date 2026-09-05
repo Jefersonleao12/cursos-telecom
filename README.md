@@ -11,7 +11,9 @@ Sistema web para treinamentos corporativos, com:
 ## Stack
 
 - **Python + FastAPI** — back-end (ASGI, servido por Uvicorn)
-- **Jinja2 + HTMX + Alpine.js + Tailwind CSS** — front-end renderizado no servidor, sem build de Node
+- **Jinja2 + Alpine.js + Tailwind CSS** — front-end renderizado no servidor. O CSS e o Alpine são
+  servidos pelo próprio site (`static/css/app.css` e `static/js/alpine.min.js`), não por CDN — o
+  servidor **não** precisa de Node.js pra rodar, só quem for regerar o CSS (ver abaixo)
 - **Supabase (PostgreSQL)** — banco de dados
 - **YouTube / Google Drive** — hospedagem dos vídeos das aulas
 - **Hospedagem do site**: VPS próprio (Ubuntu + Caddy, ver seção abaixo), domínio `nortetel-cursos.com.br`
@@ -33,6 +35,23 @@ uvicorn webapp.main:app --reload
 ```
 
 O app abre em `http://127.0.0.1:8000`.
+
+## Regerar o CSS (só quando mexer em template)
+
+O visual usa Tailwind. O arquivo final já vem pronto e commitado em
+`static/css/app.css`, então **o servidor não precisa de Node.js**. Mas o Tailwind
+só inclui no CSS as classes que ele encontra nos templates — então, se você usar
+uma classe nova em algum `.html`, precisa gerar o CSS de novo:
+
+```bash
+npm install          # só na primeira vez
+npm run build:css    # regera static/css/app.css
+```
+
+Depois é só commitar o `static/css/app.css` junto com a mudança no template.
+Se esquecer, a classe nova simplesmente não terá efeito na tela.
+
+Para atualizar o Alpine.js: `npm install alpinejs@<versão> && npm run copy:alpine`.
 
 ## Estrutura
 

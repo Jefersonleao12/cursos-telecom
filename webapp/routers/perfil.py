@@ -7,15 +7,15 @@ from database.repositorio import (
     ImagemInvalidaError,
     atualizar_foto_perfil,
     atualizar_perfil_aluno,
-    buscar_prova_do_modulo,
-    calcular_progresso_curso,
     jogo_campo_obter_progresso,
     jogo_suporte_obter_progresso,
     listar_cursos,
     listar_modulos_do_curso,
-    melhor_resultado,
+    melhores_resultados_do_aluno,
     nota_final_curso,
-    obter_tempos_curso,
+    tempos_curso_do_aluno,
+    progresso_e_conclusao_do_aluno,
+    provas_por_modulo,
     trocar_senha_aluno,
 )
 from utils.helpers import FILIAIS
@@ -46,10 +46,18 @@ def _formatar_duracao(segundos) -> str:
 def _historico(aluno_id: str) -> list[dict]:
     from datetime import datetime
 
+    # Três consultas em lote resolvem o histórico inteiro. Antes era um laço
+    # curso a curso (e, dentro dele, módulo a módulo) — um aluno com 6 cursos
+    # de 4 módulos disparava mais de 50 idas até o Supabase só nesta tela.
+    progresso_por_curso, _ = progresso_e_conclusao_do_aluno(aluno_id)
+    provas = provas_por_modulo()
+    melhores = melhores_resultados_do_aluno(aluno_id)
+    tempos_por_curso = tempos_curso_do_aluno(aluno_id)
+
     itens = []
     for curso in listar_cursos():
-        progresso = calcular_progresso_curso(aluno_id, curso["id"])
-        tempos = obter_tempos_curso(aluno_id, curso["id"])
+        progresso = progresso_por_curso.get(curso["id"], 0.0)
+        tempos = tempos_por_curso.get(curso["id"])
         if progresso <= 0 and not tempos:
             continue
 
@@ -60,12 +68,12 @@ def _historico(aluno_id: str) -> list[dict]:
             tempo_conclusao = _formatar_duracao((fim - inicio).total_seconds())
 
         prova_ids = [
-            p["id"] for p in (buscar_prova_do_modulo(m["id"]) for m in listar_modulos_do_curso(curso["id"]))
+            p["id"] for p in (provas.get(m["id"]) for m in listar_modulos_do_curso(curso["id"]))
             if p
         ]
         nota_media = nota_final_curso(aluno_id, curso["id"])
         tempo_total_provas = sum(
-            (melhor_resultado(aluno_id, pid) or {}).get("tempo_gasto_segundos") or 0
+            (melhores.get(pid) or {}).get("tempo_gasto_segundos") or 0
             for pid in prova_ids
         )
 

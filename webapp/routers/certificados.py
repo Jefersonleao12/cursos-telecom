@@ -11,6 +11,7 @@ from database.repositorio import (
     emitir_certificado,
     listar_cursos,
     nota_final_curso,
+    progresso_e_conclusao_do_aluno,
 )
 from utils.helpers import formatar_data_br, gerar_codigo_verificacao
 from webapp.deps import obter_aluno_atual
@@ -26,9 +27,12 @@ def _slug_arquivo(titulo: str) -> str:
 
 @router.get("/certificados")
 def lista_certificados(request: Request, aluno: dict = Depends(obter_aluno_atual)):
+    # Uma consulta só resolve a conclusão de todos os cursos (antes era
+    # curso_totalmente_concluido() curso a curso, cada um com suas idas ao banco).
+    _, concluido_por_curso = progresso_e_conclusao_do_aluno(aluno["id"])
     itens = []
     for curso in listar_cursos():
-        if not curso_totalmente_concluido(aluno["id"], curso["id"]):
+        if not concluido_por_curso.get(curso["id"], False):
             continue
         itens.append({"curso": curso, "nota": nota_final_curso(aluno["id"], curso["id"])})
 

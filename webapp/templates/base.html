@@ -10,38 +10,18 @@
     <meta name="theme-color" content="#0b0f19">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="Norte Tel">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
-    <script defer src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'norte-azul': '#143C6E',
-                        'norte-azul-escuro': '#0F2E56',
-                        'norte-azul-claro': '#1F5AA8',
-                        'bg-dark': '#0b0f19',
-                    },
-                },
-            },
-        };
-    </script>
-    <style>
-        [x-cloak] { display: none !important; }
-        body { background-color: #0b0f19; }
-        .glass-card {
-            background: rgba(19, 27, 46, 0.6);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-        }
-        .neon-border-glow { box-shadow: 0 0 15px rgba(0, 242, 254, 0.15), inset 0 0 15px rgba(0, 242, 254, 0.06); }
-        .neon-btn-glow { box-shadow: 0 0 20px rgba(37, 99, 235, 0.4); }
-        .scroll-sem-barra::-webkit-scrollbar { height: 0; }
-        .scroll-sem-barra { scrollbar-width: none; }
-    </style>
+    {#
+       CSS e JS servidos pelo nosso próprio servidor, não por CDN de terceiro.
+       Antes eram 3 scripts externos travando a renderização da página:
+       o "Play CDN" do Tailwind (que baixava o compilador e montava o CSS
+       dentro do navegador do aluno a cada página), o htmx (que não era usado
+       em lugar nenhum) e o Alpine. Isso obrigava o navegador a resolver DNS,
+       abrir TLS e baixar de 2 domínios externos antes de mostrar qualquer
+       coisa — a causa da sensação de "tem que clicar duas ou três vezes".
+       Pra regerar o app.css depois de mexer em template: npm run build:css
+    #}
+    <link rel="stylesheet" href="/static/css/app.css?v={{ versao_estatica }}">
+    <script defer src="/static/js/alpine.min.js?v={{ versao_estatica }}"></script>
     {% block cabecalho_extra %}{% endblock %}
     <script>
         if ('serviceWorker' in navigator) {

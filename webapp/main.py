@@ -6,10 +6,11 @@ Para rodar localmente:  uvicorn webapp.main:app --reload
 """
 from fastapi import FastAPI
 from fastapi.responses import FileResponse, PlainTextResponse
-from fastapi.staticfiles import StaticFiles
+from starlette.middleware.gzip import GZipMiddleware
 
 from webapp.auth.routes import router as auth_router
 from webapp.middleware import AutenticacaoMiddleware
+from webapp.static_cache import EstaticosComCache
 from webapp.routers.admin.alunos import router as admin_alunos_router
 from webapp.routers.admin.aulas import router as admin_aulas_router
 from webapp.routers.admin.avisos import router as admin_avisos_router
@@ -34,10 +35,17 @@ from webapp.routers.ranking import router as ranking_router
 
 app = FastAPI(title="Treinamentos Telecom")
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
-app.mount("/assets", StaticFiles(directory="assets"), name="assets")
+app.mount("/static", EstaticosComCache(directory="static"), name="static")
+app.mount("/assets", EstaticosComCache(directory="assets"), name="assets")
 
 app.add_middleware(AutenticacaoMiddleware)
+# Comprime o HTML antes de mandar pro aluno. As páginas da plataforma têm
+# bastante marcação repetida (classes do Tailwind, SVGs dos ícones), então a
+# compressão costuma cortar o tamanho em ~5x — diferença grande no 4G.
+# Fica DEPOIS do middleware de autenticação na lista porque, no Starlette, o
+# último adicionado é o primeiro a rodar: assim a compressão é a camada mais
+# externa e pega a resposta já pronta, venha ela de onde vier.
+app.add_middleware(GZipMiddleware, minimum_size=500)
 
 app.include_router(auth_router)
 app.include_router(inicio_router)

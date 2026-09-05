@@ -12,6 +12,7 @@ from database.repositorio import (
     buscar_curso,
     calcular_progresso_curso,
     curso_totalmente_concluido,
+    progresso_e_conclusao_do_aluno,
     finalizar_progresso_curso,
     listar_cursos,
     marcar_aula_concluida,
@@ -42,9 +43,13 @@ def lista_cursos(request: Request, q: str = "", aluno: dict = Depends(obter_alun
     if termo:
         cursos = [c for c in cursos if termo in c["titulo"].lower()]
 
+    # Uma consulta só pro progresso de todos os cursos (antes era um laço
+    # curso a curso, cada volta com suas próprias idas até o Supabase).
+    progresso_por_curso, _ = progresso_e_conclusao_do_aluno(aluno["id"])
+
     itens = []
     for curso in cursos:
-        progresso = calcular_progresso_curso(aluno["id"], curso["id"])
+        progresso = progresso_por_curso.get(curso["id"], 0.0)
         classe, rotulo = _status_progresso(progresso)
         itens.append(
             {

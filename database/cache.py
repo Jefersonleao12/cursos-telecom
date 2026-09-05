@@ -20,14 +20,22 @@ def cache_com_ttl(ttl: int, maxsize: int = 256):
     `.clear()` pra invalidar o cache manualmente — usado depois de toda
     escrita (criar/editar/excluir), exatamente como já era feito com
     `@st.cache_data` (ver os `.clear()` espalhados em repositorio.py).
+
+    Ganha também um `.definir(valor, *args)`: quando uma escrita já devolve
+    o registro atualizado (é o caso dos upserts do Supabase), dá pra guardar
+    esse valor direto, em vez de jogar o cache fora e obrigar a próxima tela
+    a consultar o banco de novo pra ver o que a gente acabou de gravar.
     """
     def decorador(func):
         cache = TTLCache(maxsize=maxsize, ttl=ttl)
         lock = threading.RLock()
 
+        def _chave(args, kwargs):
+            return (args, tuple(sorted(kwargs.items())))
+
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
-            chave = (args, tuple(sorted(kwargs.items())))
+            chave = _chave(args, kwargs)
             with lock:
                 if chave in cache:
                     return cache[chave]
@@ -36,7 +44,13 @@ def cache_com_ttl(ttl: int, maxsize: int = 256):
                 cache[chave] = resultado
             return resultado
 
+        def definir(valor, *args, **kwargs):
+            with lock:
+                cache[_chave(args, kwargs)] = valor
+            return valor
+
         wrapper.clear = cache.clear
+        wrapper.definir = definir
         return wrapper
 
     return decorador

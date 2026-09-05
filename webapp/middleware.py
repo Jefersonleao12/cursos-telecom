@@ -49,6 +49,16 @@ def _resolver_aluno(request: Request):
 class AutenticacaoMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         path = request.url.path
+
+        # CSS, JS, logo e ícones não dependem de quem está logado. Sair fora
+        # aqui evita ocupar uma thread (e, no pior caso, uma ida até o banco)
+        # pra cada arquivo estático que a página pede — uma página abre vários
+        # de uma vez, então isso tirava threads de quem estava esperando
+        # conteúdo de verdade.
+        if any(path.startswith(prefixo) for prefixo in _PREFIXOS_PUBLICOS):
+            request.state.aluno = None
+            return await call_next(request)
+
         # _resolver_aluno faz uma consulta síncrona ao Supabase — rodar ela
         # direto aqui bloquearia o event loop inteiro (e, com ele, TODAS as
         # requisições de TODO MUNDO) até a consulta voltar, já que isso roda

@@ -6,10 +6,9 @@ em qualquer uma delas); aqui cada seção do admin é uma página própria, e
 todas precisam do mesmo cabeçalho.
 """
 from database.repositorio import (
+    contar_perguntas,
     listar_cursos,
     listar_duvidas,
-    listar_perguntas,
-    listar_provas_do_curso,
     listar_todos_alunos,
 )
 
@@ -18,9 +17,9 @@ def visao_geral() -> dict:
     cursos = listar_cursos()
     alunos = listar_todos_alunos()
     duvidas_pendentes = listar_duvidas(apenas_nao_respondidas=True)
-    total_perguntas = sum(
-        len(listar_perguntas(p["id"])) for c in cursos for p in listar_provas_do_curso(c["id"])
-    )
+    # Uma consulta só (antes: curso → provas → perguntas, dezenas de idas
+    # ao banco só pra montar o cabeçalho que aparece em toda página do admin).
+    total_perguntas = contar_perguntas()
     return {
         "cursos": len(cursos),
         "alunos": len(alunos),

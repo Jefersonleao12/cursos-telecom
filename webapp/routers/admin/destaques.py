@@ -41,7 +41,10 @@ def destaques(request: Request, editar: int = 0, excluir: int = 0, aluno: dict =
 @router.post("/admin/destaques")
 async def criar(
     request: Request,
-    titulo: str = Form(...),
+    # Form("") e não Form(...): assim um título vazio chega até aqui e o admin
+    # vê a mensagem explicando o que faltou, em vez de uma tela de erro crua
+    # do FastAPI (que é o que acontece quando o campo é declarado obrigatório).
+    titulo: str = Form(""),
     descricao: str = Form(""),
     ordem: int = Form(1),
     foto: UploadFile = None,

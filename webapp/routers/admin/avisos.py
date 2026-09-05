@@ -25,7 +25,10 @@ def avisos(request: Request, aluno: dict = Depends(exigir_admin), erro: str = ""
 
 
 @router.post("/admin/avisos")
-def criar(titulo: str = Form(...), mensagem: str = Form(...), aluno: dict = Depends(exigir_admin)):
+def criar(titulo: str = Form(""), mensagem: str = Form(""), aluno: dict = Depends(exigir_admin)):
+    # Campos com Form("") e não Form(...) de propósito: um envio vazio precisa
+    # chegar até a validação abaixo, que redireciona com uma mensagem legível,
+    # em vez de morrer na validação do FastAPI e mostrar um erro cru.
     if not titulo.strip() or not mensagem.strip():
         return RedirectResponse("/admin/avisos?erro=Preencha o título e a mensagem.", status_code=303)
     criar_aviso(titulo, mensagem)

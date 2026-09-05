@@ -1,0 +1,14 @@
+{
+  "name": "cursos-telecom-frontend",
+  "private": true,
+  "description": "Só o necessário pra gerar o CSS do site (Tailwind) e atualizar o Alpine.js. A aplicação em si é Python/FastAPI — o servidor NÃO precisa de Node.js pra rodar, só quem for regerar o CSS.",
+  "scripts": {
+    "build:css": "tailwindcss -c tailwind.config.js -i webapp/assets-src/app.css -o static/css/app.css --minify",
+    "watch:css": "tailwindcss -c tailwind.config.js -i webapp/assets-src/app.css -o static/css/app.css --watch",
+    "copy:alpine": "cp node_modules/alpinejs/dist/cdn.min.js static/js/alpine.min.js"
+  },
+  "devDependencies": {
+    "alpinejs": "^3.14.8",
+    "tailwindcss": "^3.4.17"
+  }
+}

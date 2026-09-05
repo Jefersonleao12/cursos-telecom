@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Estilos próprios da plataforma. Ficavam num <style> dentro do base.html —
+   vieram pra cá pra saírem junto no mesmo arquivo .css já pronto, evitando
+   que o navegador tenha que processar CSS solto no meio do HTML. */
+[x-cloak] {
+    display: none !important;
+}
+
+body {
+    background-color: #0b0f19;
+}
+
+.glass-card {
+    background: rgba(19, 27, 46, 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.neon-border-glow {
+    box-shadow: 0 0 15px rgba(0, 242, 254, 0.15), inset 0 0 15px rgba(0, 242, 254, 0.06);
+}
+
+.neon-btn-glow {
+    box-shadow: 0 0 20px rgba(37, 99, 235, 0.4);
+}
+
+.scroll-sem-barra::-webkit-scrollbar {
+    height: 0;
+}
+
+.scroll-sem-barra {
+    scrollbar-width: none;
+}
