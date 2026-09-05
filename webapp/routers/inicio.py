@@ -23,18 +23,12 @@ from database.repositorio import (
     calcular_progresso_curso,
     curso_totalmente_concluido,
     enviar_duvida,
-    jogo_campo_obter_progresso,
-    jogo_suporte_ia_obter_progresso,
-    jogo_suporte_obter_progresso,
     listar_avisos_ativos,
     listar_cursos,
     listar_destaques_ativos,
 )
-from webapp.data.jogo_campo_missoes import MISSOES as JOGO_MISSOES
-from webapp.data.jogo_suporte_atendimentos import ATENDIMENTOS as SUPORTE_ATENDIMENTOS
 from webapp.integrations.whatsapp import notificar_nova_duvida
-from webapp.services.jogo_campo import selos_conquistados
-from webapp.services.jogo_suporte import selos_conquistados as suporte_selos_conquistados
+from webapp.services.resumo_jogos import resumo_do_jogo, resumo_do_suporte, resumo_do_suporte_ia
 from webapp.deps import obter_aluno_atual
 from webapp.templating import templates
 
@@ -120,43 +114,6 @@ def _resumo_do_aluno(aluno_id: str) -> dict:
     return {"concluidos": concluidos, "em_andamento": em_andamento, "certificados": certificados}
 
 
-def _resumo_do_jogo(aluno_id: str) -> dict:
-    progresso = jogo_campo_obter_progresso(aluno_id)
-    total_missoes = len(JOGO_MISSOES)
-    return {
-        "comecou": progresso["tela"] != "welcome" or progresso["missoes_completadas"] > 0,
-        "concluiu_tudo": total_missoes > 0 and progresso["missoes_completadas"] >= total_missoes,
-        "missoes_completadas": progresso["missoes_completadas"],
-        "total_missoes": total_missoes,
-        "quantidade_selos": len(selos_conquistados(progresso["missoes_completadas"])),
-    }
-
-
-def _resumo_do_suporte(aluno_id: str) -> dict:
-    progresso = jogo_suporte_obter_progresso(aluno_id)
-    total_atendimentos = len(SUPORTE_ATENDIMENTOS)
-    return {
-        "comecou": progresso["tela"] != "welcome" or progresso["atendimentos_completados"] > 0,
-        "concluiu_tudo": total_atendimentos > 0 and progresso["atendimentos_completados"] >= total_atendimentos,
-        "atendimentos_completados": progresso["atendimentos_completados"],
-        "total_atendimentos": total_atendimentos,
-        "quantidade_selos": len(suporte_selos_conquistados(progresso["atendimentos_completados"])),
-    }
-
-
-def _resumo_do_suporte_ia(aluno_id: str) -> dict:
-    """Igual _resumo_do_suporte, mas pro modo beta em chat livre com IA
-    (webapp/services/jogo_suporte_ia.py) — não tem selo próprio ainda."""
-    progresso = jogo_suporte_ia_obter_progresso(aluno_id)
-    total_atendimentos = len(SUPORTE_ATENDIMENTOS)
-    return {
-        "comecou": progresso["tela"] != "welcome" or progresso["atendimentos_completados"] > 0,
-        "concluiu_tudo": total_atendimentos > 0 and progresso["atendimentos_completados"] >= total_atendimentos,
-        "atendimentos_completados": progresso["atendimentos_completados"],
-        "total_atendimentos": total_atendimentos,
-    }
-
-
 def _renderizar(request: Request, aluno: dict, **extra):
     saudacao, icone = _saudacao_e_icone()
     primeiro_nome = (aluno.get("nome_completo") or "").split(" ")[0]
@@ -173,9 +130,9 @@ def _renderizar(request: Request, aluno: dict, **extra):
             "avisos": listar_avisos_ativos(),
             "destaques": listar_destaques_ativos(),
             "resumo": _resumo_do_aluno(aluno["id"]),
-            "jogo": _resumo_do_jogo(aluno["id"]),
-            "suporte": _resumo_do_suporte(aluno["id"]),
-            "suporte_ia": _resumo_do_suporte_ia(aluno["id"]),
+            "jogo": resumo_do_jogo(aluno["id"]),
+            "suporte": resumo_do_suporte(aluno["id"]),
+            "suporte_ia": resumo_do_suporte_ia(aluno["id"]),
             **extra,
         },
     )

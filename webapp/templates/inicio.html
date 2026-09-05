@@ -1,11 +1,6 @@
 {% extends "base.html" %}
 {% block titulo %}Início — Norte Tel{% endblock %}
 {% block conteudo %}
-{% set pct_jogo = ((jogo.missoes_completadas / jogo.total_missoes * 100) if jogo.total_missoes else 0) %}
-{% set pct_suporte = ((suporte.atendimentos_completados / suporte.total_atendimentos * 100) if suporte.total_atendimentos else 0) %}
-{% set pct_suporte_ia = ((suporte_ia.atendimentos_completados / suporte_ia.total_atendimentos * 100) if suporte_ia.total_atendimentos else 0) %}
-{% set _circ = 100.0 %}
-
 <section class="glass-card rounded-2xl p-6 relative overflow-hidden flex items-center gap-4">
     <div class="absolute -right-10 -top-10 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
     <div class="relative z-10 w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-xl shrink-0">
@@ -30,174 +25,19 @@
 {% endif %}
 
 <section class="mt-6">
-    <a href="/jogo" class="glass-card neon-border-glow rounded-2xl p-6 relative flex flex-col justify-between hover:border-white/20 transition">
-        <div class="flex items-start justify-between gap-4 mb-5">
-            <div>
-                <span class="text-[10px] font-bold tracking-widest uppercase text-slate-400">Simulador de Campo</span>
-                <h2 class="text-xl font-bold text-white mt-0.5 leading-snug">
-                    {% if jogo.concluiu_tudo %}Você já é uma lenda de campo! 🏆
-                    {% elif jogo.comecou %}Continue de onde parou — O.S. {{ jogo.missoes_completadas + 1 }}/{{ jogo.total_missoes }}
-                    {% else %}Encare O.S. simuladas e vire referência técnica{% endif %}
-                </h2>
-            </div>
-            {% if jogo.quantidade_selos > 0 %}
-            <span class="shrink-0 px-3 py-1.5 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-lg text-xs font-semibold flex items-center gap-1.5">
-                🏆 {{ jogo.quantidade_selos }} selo(s)
-            </span>
-            {% endif %}
-        </div>
-
-        <div class="flex items-center gap-6 sm:gap-8 my-2 flex-wrap">
-            <div class="relative w-28 h-28 flex items-center justify-center shrink-0">
-                <svg viewBox="0 0 36 36" class="w-full h-full -rotate-90">
-                    <path class="text-slate-800" stroke-width="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                    <path stroke="url(#anelProgresso)" stroke-dasharray="{{ pct_jogo }}, {{ _circ }}" stroke-width="3" stroke-linecap="round" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                    <defs>
-                        <linearGradient id="anelProgresso" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stop-color="#22d3ee"></stop>
-                            <stop offset="100%" stop-color="#34d399"></stop>
-                        </linearGradient>
-                    </defs>
-                </svg>
-                <span class="absolute text-lg font-bold text-white">{{ jogo.missoes_completadas }}<span class="text-xs text-slate-400">/{{ jogo.total_missoes }}</span></span>
-            </div>
-
-            <div class="flex-1 min-w-[180px] space-y-2">
-                <div class="flex justify-between text-xs font-medium">
-                    <span class="text-slate-300">Progresso no Simulador</span>
-                    <span class="text-emerald-400 font-bold">{{ jogo.missoes_completadas }} <span class="text-slate-400 font-normal">de {{ jogo.total_missoes }} O.S.</span></span>
-                </div>
-                <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
-                    <div class="bg-gradient-to-r from-cyan-400 to-emerald-400 h-full rounded-full" style="width: {{ pct_jogo }}%"></div>
-                </div>
-                <p class="text-[11px] text-slate-400 pt-1">
-                    {% if jogo.quantidade_selos > 0 %}Selos visíveis para todo mundo no Ranking.
-                    {% else %}Decisões reais de campo, alternativas embaralhadas e um selo a cada 5 O.S. fechadas.{% endif %}
-                </p>
+    <a href="/simuladores" class="glass-card rounded-2xl p-5 flex items-center justify-between gap-4 hover:border-white/20 transition group">
+        <div class="flex items-center gap-4 min-w-0">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500/20 to-violet-500/20 border border-white/10 flex items-center justify-center text-2xl shrink-0">🎮</div>
+            <div class="min-w-0">
+                <h2 class="text-base font-bold text-white">Sala de Simulação</h2>
+                <p class="text-xs text-slate-400 mt-0.5 truncate">Simulador de Campo, Suporte e o modo com IA — tudo num só lugar.</p>
             </div>
         </div>
-
-        <div class="flex justify-end mt-2">
-            <span class="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 group-hover:from-blue-500 group-hover:to-indigo-500 text-white font-semibold rounded-xl text-sm transition neon-btn-glow inline-flex items-center gap-2">
-                {{ "Ver relatório" if jogo.concluiu_tudo else ("Continuar" if jogo.comecou else "Começar agora") }}
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-            </span>
-        </div>
+        <svg class="w-5 h-5 text-slate-500 group-hover:text-white transition shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
     </a>
 </section>
 
-<section class="mt-6">
-    <a href="/suporte" class="glass-card neon-border-glow rounded-2xl p-6 relative flex flex-col justify-between hover:border-white/20 transition">
-        <div class="flex items-start justify-between gap-4 mb-5">
-            <div>
-                <span class="text-[10px] font-bold tracking-widest uppercase text-slate-400">Simulador de Suporte</span>
-                <h2 class="text-xl font-bold text-white mt-0.5 leading-snug">
-                    {% if suporte.concluiu_tudo %}Você já é uma lenda do suporte! 🏆
-                    {% elif suporte.comecou %}Continue de onde parou — atendimento {{ suporte.atendimentos_completados + 1 }}/{{ suporte.total_atendimentos }}
-                    {% else %}Encare atendimentos reais de chat e mantenha o cliente satisfeito{% endif %}
-                </h2>
-            </div>
-            {% if suporte.quantidade_selos > 0 %}
-            <span class="shrink-0 px-3 py-1.5 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-lg text-xs font-semibold flex items-center gap-1.5">
-                🏆 {{ suporte.quantidade_selos }} selo(s)
-            </span>
-            {% endif %}
-        </div>
-
-        <div class="flex items-center gap-6 sm:gap-8 my-2 flex-wrap">
-            <div class="relative w-28 h-28 flex items-center justify-center shrink-0">
-                <svg viewBox="0 0 36 36" class="w-full h-full -rotate-90">
-                    <path class="text-slate-800" stroke-width="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                    <path stroke="url(#anelProgressoSuporte)" stroke-dasharray="{{ pct_suporte }}, {{ _circ }}" stroke-width="3" stroke-linecap="round" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                    <defs>
-                        <linearGradient id="anelProgressoSuporte" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stop-color="#22d3ee"></stop>
-                            <stop offset="100%" stop-color="#34d399"></stop>
-                        </linearGradient>
-                    </defs>
-                </svg>
-                <span class="absolute text-lg font-bold text-white">{{ suporte.atendimentos_completados }}<span class="text-xs text-slate-400">/{{ suporte.total_atendimentos }}</span></span>
-            </div>
-
-            <div class="flex-1 min-w-[180px] space-y-2">
-                <div class="flex justify-between text-xs font-medium">
-                    <span class="text-slate-300">Progresso no Simulador</span>
-                    <span class="text-emerald-400 font-bold">{{ suporte.atendimentos_completados }} <span class="text-slate-400 font-normal">de {{ suporte.total_atendimentos }} atendimentos</span></span>
-                </div>
-                <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
-                    <div class="bg-gradient-to-r from-cyan-400 to-emerald-400 h-full rounded-full" style="width: {{ pct_suporte }}%"></div>
-                </div>
-                <p class="text-[11px] text-slate-400 pt-1">
-                    {% if suporte.quantidade_selos > 0 %}Selos visíveis para todo mundo no Ranking.
-                    {% else %}Situações reais de atendimento, humor do cliente em tempo real e um selo a cada 5 atendimentos fechados.{% endif %}
-                </p>
-            </div>
-        </div>
-
-        <div class="flex justify-end mt-2">
-            <span class="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 group-hover:from-blue-500 group-hover:to-indigo-500 text-white font-semibold rounded-xl text-sm transition neon-btn-glow inline-flex items-center gap-2">
-                {{ "Ver relatório" if suporte.concluiu_tudo else ("Continuar" if suporte.comecou else "Começar agora") }}
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-            </span>
-        </div>
-    </a>
-</section>
-
-<section class="mt-6">
-    <a href="/suporte-ia" class="glass-card neon-border-glow rounded-2xl p-6 relative flex flex-col justify-between hover:border-white/20 transition">
-        <div class="flex items-start justify-between gap-4 mb-5">
-            <div>
-                <span class="text-[10px] font-bold tracking-widest uppercase text-slate-400">Simulador de Suporte por IA</span>
-                <h2 class="text-xl font-bold text-white mt-0.5 leading-snug">
-                    {% if suporte_ia.concluiu_tudo %}Você já concluiu todos os atendimentos por IA! 🏆
-                    {% elif suporte_ia.comecou %}Continue de onde parou — atendimento {{ suporte_ia.atendimentos_completados + 1 }}/{{ suporte_ia.total_atendimentos }}
-                    {% else %}Responda com suas próprias palavras — a IA reage de verdade{% endif %}
-                </h2>
-            </div>
-            <span class="shrink-0 px-3 py-1.5 bg-violet-500/10 border border-violet-500/30 text-violet-300 rounded-lg text-xs font-semibold flex items-center gap-1.5">
-                🧪 Beta
-            </span>
-        </div>
-
-        <div class="flex items-center gap-6 sm:gap-8 my-2 flex-wrap">
-            <div class="relative w-28 h-28 flex items-center justify-center shrink-0">
-                <svg viewBox="0 0 36 36" class="w-full h-full -rotate-90">
-                    <path class="text-slate-800" stroke-width="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                    <path stroke="url(#anelProgressoSuporteIA)" stroke-dasharray="{{ pct_suporte_ia }}, {{ _circ }}" stroke-width="3" stroke-linecap="round" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                    <defs>
-                        <linearGradient id="anelProgressoSuporteIA" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stop-color="#a78bfa"></stop>
-                            <stop offset="100%" stop-color="#f472b6"></stop>
-                        </linearGradient>
-                    </defs>
-                </svg>
-                <span class="absolute text-lg font-bold text-white">{{ suporte_ia.atendimentos_completados }}<span class="text-xs text-slate-400">/{{ suporte_ia.total_atendimentos }}</span></span>
-            </div>
-
-            <div class="flex-1 min-w-[180px] space-y-2">
-                <div class="flex justify-between text-xs font-medium">
-                    <span class="text-slate-300">Progresso no Simulador</span>
-                    <span class="text-violet-300 font-bold">{{ suporte_ia.atendimentos_completados }} <span class="text-slate-400 font-normal">de {{ suporte_ia.total_atendimentos }} atendimentos</span></span>
-                </div>
-                <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
-                    <div class="bg-gradient-to-r from-violet-400 to-pink-400 h-full rounded-full" style="width: {{ pct_suporte_ia }}%"></div>
-                </div>
-                <p class="text-[11px] text-slate-400 pt-1">
-                    Chat livre por texto: você escreve, uma IA interpreta a resposta e reage como um cliente de verdade reagiria.
-                </p>
-            </div>
-        </div>
-
-        <div class="flex justify-end mt-2">
-            <span class="px-6 py-2.5 bg-gradient-to-r from-violet-600 to-pink-600 group-hover:from-violet-500 group-hover:to-pink-500 text-white font-semibold rounded-xl text-sm transition neon-btn-glow inline-flex items-center gap-2">
-                {{ "Ver progresso" if suporte_ia.concluiu_tudo else ("Continuar" if suporte_ia.comecou else "Começar agora") }}
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-            </span>
-        </div>
-    </a>
-</section>
-
-<section class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
+<section class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mt-6">
     <div class="glass-card rounded-2xl p-4 flex items-center justify-between">
         <div>
             <p class="text-xs text-slate-400">Cursos em andamento</p>
@@ -218,6 +58,20 @@
             <p class="text-2xl font-bold text-white mt-1">{{ resumo.certificados }}</p>
         </div>
         <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-lg shrink-0">🎖️</div>
+    </div>
+    <div class="glass-card rounded-2xl p-4 flex items-center justify-between">
+        <div>
+            <p class="text-xs text-slate-400">O.S. resolvidas</p>
+            <p class="text-2xl font-bold text-white mt-1">{{ jogo.missoes_completadas }}</p>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-lg shrink-0">🛠️</div>
+    </div>
+    <div class="glass-card rounded-2xl p-4 flex items-center justify-between">
+        <div>
+            <p class="text-xs text-slate-400">Selos conquistados</p>
+            <p class="text-2xl font-bold text-white mt-1">{{ jogo.quantidade_selos + suporte.quantidade_selos }}</p>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-lg shrink-0">🏆</div>
     </div>
 </section>
 
