@@ -58,7 +58,7 @@
     {# ---------- COLUNA ESQUERDA: fila de atendimentos (decorativa) ---------- #}
     <div x-show="listaAberta" x-cloak @click="listaAberta = false" class="lg:hidden fixed inset-0 bg-black/60 z-40"></div>
     <aside :class="listaAberta ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
-           class="fixed lg:static inset-y-0 left-0 w-80 lg:w-72 shrink-0 glass-card rounded-none lg:rounded-2xl flex flex-col z-50 lg:z-auto transition-transform duration-200 lg:h-full">
+           class="fixed lg:static inset-y-0 left-0 w-80 lg:w-72 shrink-0 glass-card painel-flutuante rounded-none lg:rounded-2xl flex flex-col z-50 lg:z-auto transition-transform duration-200 lg:h-full">
         <div class="p-4 border-b border-white/10 flex items-center justify-between">
             <span class="text-xs font-bold uppercase tracking-widest text-slate-400">Meus atendimentos</span>
             <button type="button" @click="listaAberta = false" class="lg:hidden text-slate-500 hover:text-white p-1">
@@ -209,7 +209,7 @@
     {# ---------- COLUNA DIREITA: painel do cliente + medidor de humor ---------- #}
     <div x-show="painelAberto" x-cloak @click="painelAberto = false" class="lg:hidden fixed inset-0 bg-black/60 z-40"></div>
     <aside :class="painelAberto ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'"
-           class="fixed lg:static inset-y-0 right-0 w-80 shrink-0 glass-card rounded-none lg:rounded-2xl flex flex-col z-50 lg:z-auto transition-transform duration-200 lg:h-full p-5">
+           class="fixed lg:static inset-y-0 right-0 w-80 shrink-0 glass-card painel-flutuante rounded-none lg:rounded-2xl flex flex-col z-50 lg:z-auto transition-transform duration-200 lg:h-full p-5">
         <div class="flex items-center justify-between mb-4">
             <span class="text-xs font-bold uppercase tracking-widest text-slate-400">Dados do atendimento</span>
             <button type="button" @click="painelAberto = false" class="lg:hidden text-slate-500 hover:text-white p-1">

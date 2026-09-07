@@ -64,10 +64,36 @@ body {
 
 .glass-card {
     background: rgba(19, 27, 46, 0.6);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+/* O desfoque de fundo é o efeito mais caro que existe numa página: a cada
+   quadro da rolagem o navegador precisa recortar o que está atrás do cartão,
+   borrar e recompor. A tela de Início tem onze cartões desses; num celular
+   mediano isso é o suficiente pra rolagem perder quadros e dar a sensação de
+   estar agarrando.
+
+   E aqui ele não estava entregando quase nada: o fundo da plataforma é uma cor
+   chapada (#0b0f19), e borrar uma cor chapada devolve a mesma cor chapada. O
+   desfoque fica só a partir de telas grandes, onde sobra GPU e onde ele
+   eventualmente aparece sobre conteúdo — no celular sai fora, sem mudar um
+   pixel do que o aluno vê. */
+@media (min-width: 1024px) {
+    .glass-card {
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+    }
+}
+
+/* Os painéis que deslizam por cima do conteúdo (fila de atendimentos, painel
+   do cliente) são a exceção: ali existe texto atrás, e era o desfoque que
+   deixava o painel legível. Sem ele no celular, o fundo passa a ser opaco —
+   mesmo tom que o desfoque produzia, só que de graça. */
+@media (max-width: 1023px) {
+    .painel-flutuante {
+        background: #131b2e;
+    }
 }
 
 .neon-border-glow {
@@ -84,4 +110,22 @@ body {
 
 .scroll-sem-barra {
     scrollbar-width: none;
+    /* Quando a lista chega no fim, o gesto parava de rolar ela e começava a
+       arrastar a página atrás — a rolagem "engatava" nesse momento de troca.
+       Com "contain" o movimento morre dentro da própria lista. */
+    overscroll-behavior: contain;
+    /* Rolagem com inércia nos iPhones mais antigos; nos atuais já é o padrão. */
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Tirar o atraso de ~300ms que o navegador do celular guarda depois do toque
+   esperando pra ver se vem um segundo toque (o duplo-toque que dá zoom). Fica
+   só nos elementos clicáveis: o zoom com dois dedos continua funcionando
+   normalmente na página inteira, que é o que importa pra acessibilidade. */
+a,
+button,
+[role="button"],
+label,
+summary {
+    touch-action: manipulation;
 }

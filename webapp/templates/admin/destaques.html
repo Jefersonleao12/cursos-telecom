@@ -14,7 +14,7 @@
     {% for d in destaques %}
     <div class="glass-card rounded-xl p-4">
         <div class="flex flex-col sm:flex-row gap-4">
-            <img src="{{ d.foto_url }}" alt="" class="w-full sm:w-32 aspect-[4/3] object-cover rounded-lg border border-white/10 shrink-0">
+            <img loading="lazy" decoding="async" src="{{ d.foto_url }}" alt="" class="w-full sm:w-32 aspect-[4/3] object-cover rounded-lg border border-white/10 shrink-0">
             <div class="flex-1 min-w-0">
                 <p class="text-sm text-slate-300">
                     <strong>{{ d.titulo }}</strong>{{ " (desativado)" if not d.ativo else "" }}

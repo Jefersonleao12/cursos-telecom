@@ -23,7 +23,7 @@
         <div class="flex items-center gap-4 flex-1 min-w-0">
             <div class="text-2xl font-bold w-10 text-center shrink-0">{{ linha.medalha }}</div>
             {% if item.foto_url %}
-            <img src="{{ item.foto_url }}" alt="" class="w-12 h-12 rounded-full object-cover ring-2 ring-white/10 shrink-0">
+            <img loading="lazy" decoding="async" src="{{ item.foto_url }}" alt="" class="w-12 h-12 rounded-full object-cover ring-2 ring-white/10 shrink-0">
             {% else %}
             <div class="w-12 h-12 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-xl shrink-0">👤</div>
             {% endif %}
