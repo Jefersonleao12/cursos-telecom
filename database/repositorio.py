@@ -188,9 +188,20 @@ def _abrir_imagem(arquivo_bytes: bytes):
     """
     from PIL import Image, UnidentifiedImageError
 
+    # Um PNG de poucos kilobytes pode declarar 60000x60000 pixels e virar
+    # dezenas de gigabytes quando o Pillow o abre — é o golpe conhecido como
+    # "bomba de descompressão", e derrubaria o processo inteiro. O teto abaixo
+    # cobre com folga qualquer foto de celular (uma de 108 megapixels tem 108M)
+    # e recusa o resto antes de alocar memória.
+    Image.MAX_IMAGE_PIXELS = 120_000_000
+
     try:
         return Image.open(io.BytesIO(arquivo_bytes)).convert("RGB")
-    except (UnidentifiedImageError, OSError):
+    except Image.DecompressionBombError:
+        raise ImagemInvalidaError(
+            "Essa imagem tem resolução alta demais. Envie uma foto menor."
+        )
+    except (UnidentifiedImageError, OSError, ValueError):
         raise ImagemInvalidaError(
             "Não consegui abrir essa imagem. Tente outra foto (JPEG, PNG ou HEIC)."
         )

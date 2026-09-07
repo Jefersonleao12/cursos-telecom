@@ -128,9 +128,26 @@ After=network.target
 Type=simple
 WorkingDirectory=${APP_DIR}
 EnvironmentFile=${ENV_FILE}
-ExecStart=${APP_DIR}/venv/bin/python -m uvicorn webapp.main:app --host 127.0.0.1 --port ${APP_PORT} --no-server-header
+ExecStart=${APP_DIR}/venv/bin/python -m uvicorn webapp.main:app --host 127.0.0.1 --port ${APP_PORT} --no-server-header --proxy-headers --forwarded-allow-ips=127.0.0.1
 Restart=always
 RestartSec=3
+
+# Contenção do processo. Nada aqui muda o funcionamento da plataforma; serve
+# para limitar o estrago caso alguma falha permita executar código dentro dela.
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=${APP_DIR}
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+RestrictRealtime=yes
+LockPersonality=yes
+# A app só fala IPv4/IPv6 e com o Caddy local — não precisa de outros
+# protocolos de rede nem de criar sockets exóticos.
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
 
 [Install]
 WantedBy=multi-user.target
@@ -143,7 +160,27 @@ systemctl restart "${SERVICE_NAME}"
 echo "==> Configurando Caddy (proxy + HTTPS automático em $DOMINIO)..."
 cat > /etc/caddy/Caddyfile <<CADDYEOF
 ${DOMINIO} {
-    reverse_proxy 127.0.0.1:${APP_PORT}
+    # Corta envios gigantes na porta de entrada, antes de chegarem ao Python.
+    # A foto de perfil já é limitada dentro da app (webapp/seguranca/upload.py);
+    # aqui a barreira existe para que um envio de gigabytes nem ocupe memória
+    # e banda do processo da plataforma.
+    request_body {
+        max_size 12MB
+    }
+
+    # O Caddy anuncia o próprio nome nas respostas por padrão. Não é uma falha,
+    # mas também não há motivo para contar a quem escaneia a internet qual
+    # servidor está rodando aqui e em que versão.
+    header -Server
+
+    reverse_proxy 127.0.0.1:${APP_PORT} {
+        # O IP real de quem acessa é a chave do limite de tentativas de login
+        # (webapp/seguranca/cliente.py). O Caddy já envia X-Forwarded-For;
+        # deixar explícito evita que uma mudança de configuração o remova sem
+        # ninguém perceber e transforme todo mundo numa origem só.
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
 }
 CADDYEOF
 

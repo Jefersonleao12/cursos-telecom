@@ -12,6 +12,7 @@ from database.repositorio import (
     listar_todos_destaques,
 )
 from webapp.deps import exigir_admin
+from webapp.seguranca.upload import ArquivoGrandeDemaisError, ler_upload_limitado
 from webapp.services.admin_stats import visao_geral
 from webapp.templating import templates
 
@@ -50,7 +51,10 @@ async def criar(
     foto: UploadFile = None,
     aluno: dict = Depends(exigir_admin),
 ):
-    conteudo = await foto.read() if foto else b""
+    try:
+        conteudo = await ler_upload_limitado(foto) if foto else b""
+    except ArquivoGrandeDemaisError as erro:
+        return _renderizar(request, aluno, erro_cadastro=str(erro))
     if not titulo.strip() or not conteudo:
         return _renderizar(request, aluno, erro_cadastro="Preencha o título e escolha uma foto.")
     try:
@@ -77,7 +81,10 @@ async def editar(
     if not titulo.strip():
         return _renderizar(request, aluno, editando_id=destaque_id, erro_edicao="Informe o título.")
 
-    conteudo = await foto.read() if foto else None
+    try:
+        conteudo = await ler_upload_limitado(foto) if foto else None
+    except ArquivoGrandeDemaisError as erro:
+        return _renderizar(request, aluno, editando_id=destaque_id, erro_edicao=str(erro))
     try:
         # Processa a imagem (Pillow) e envia pro Storage numa thread
         # separada, pra não travar o event loop de todo mundo.

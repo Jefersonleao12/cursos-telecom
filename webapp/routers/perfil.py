@@ -19,8 +19,15 @@ from database.repositorio import (
     trocar_senha_aluno,
 )
 from utils.helpers import FILIAIS
-from webapp.auth.security import gerar_hash_senha, verificar_senha
+from webapp.auth.cookies import definir_cookie_sessao
+from webapp.auth.security import (
+    erro_de_politica_de_senha,
+    gerar_hash_senha,
+    gerar_token_sessao,
+    verificar_senha,
+)
 from webapp.deps import obter_aluno_atual
+from webapp.seguranca.upload import ArquivoGrandeDemaisError, ler_upload_limitado
 from webapp.services.jogo_campo import selos_conquistados
 from webapp.services.jogo_suporte import selos_conquistados as suporte_selos_conquistados
 from webapp.templating import templates
@@ -135,20 +142,34 @@ def trocar_senha(
 ):
     if not verificar_senha(senha_atual, aluno["senha_hash"]):
         erro = "Senha atual incorreta."
-    elif len(nova_senha) < 6:
-        erro = "A nova senha deve ter pelo menos 6 caracteres."
     elif nova_senha != confirmar:
         erro = "As senhas não coincidem."
+    elif politica := erro_de_politica_de_senha(
+        nova_senha, cpf=aluno.get("cpf", ""), nome=aluno.get("nome_completo", "")
+    ):
+        erro = politica
     else:
-        trocar_senha_aluno(aluno["id"], gerar_hash_senha(nova_senha))
-        return _renderizar(request, aluno, aba_ativa="senha", sucesso_senha="Senha alterada com sucesso!")
+        novo_hash = gerar_hash_senha(nova_senha)
+        trocar_senha_aluno(aluno["id"], novo_hash)
+        aluno = dict(aluno, senha_hash=novo_hash)
+        resposta = _renderizar(
+            request, aluno, aba_ativa="senha", sucesso_senha="Senha alterada com sucesso!"
+        )
+        # A senha nova derruba os cookies antigos (ver marca_de_senha em
+        # webapp/auth/security.py). Reemitir aqui mantém esta aba funcionando e
+        # desconecta qualquer outro aparelho que ainda estivesse logado.
+        definir_cookie_sessao(resposta, gerar_token_sessao(aluno["id"], novo_hash))
+        return resposta
 
     return _renderizar(request, aluno, aba_ativa="senha", erro_senha=erro)
 
 
 @router.post("/perfil/foto")
 async def salvar_foto(request: Request, foto: UploadFile, aluno: dict = Depends(obter_aluno_atual)):
-    conteudo = await foto.read()
+    try:
+        conteudo = await ler_upload_limitado(foto)
+    except ArquivoGrandeDemaisError as erro:
+        return _renderizar(request, aluno, aba_ativa="dados", erro_dados=str(erro))
     if conteudo:
         # atualizar_foto_perfil processa a imagem (Pillow) e envia pro
         # Storage do Supabase — bloqueante, então roda numa thread separada

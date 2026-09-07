@@ -4,13 +4,17 @@ Ponto de entrada da Plataforma de Treinamentos em Telecomunicações
 
 Para rodar localmente:  uvicorn webapp.main:app --reload
 """
-from fastapi import FastAPI
+import os
+
+from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse, PlainTextResponse
 from starlette.middleware.gzip import GZipMiddleware
 
 from webapp.auth.routes import router as auth_router
 from webapp.cache_html import CacheDeHtmlMiddleware
 from webapp.middleware import AutenticacaoMiddleware
+from webapp.seguranca.cabecalhos import CabecalhosDeSegurancaMiddleware
+from webapp.seguranca.upload import ArquivoGrandeDemaisError
 from webapp.static_cache import EstaticosComCache
 from webapp.routers.admin.alunos import router as admin_alunos_router
 from webapp.routers.admin.aulas import router as admin_aulas_router
@@ -36,10 +40,31 @@ from webapp.routers.novidades import router as novidades_router
 from webapp.routers.perfil import router as perfil_router
 from webapp.routers.ranking import router as ranking_router
 
-app = FastAPI(title="Treinamentos Telecom")
+# A documentação automática do FastAPI (/docs, /redoc, /openapi.json) lista
+# TODAS as rotas da plataforma, inclusive as de administração, com os campos
+# que cada uma espera. Qualquer aluno logado poderia abrir esse mapa e usá-lo
+# como roteiro para tentar chamar rotas que não são dele. Como esta app não é
+# uma API pública, a documentação fica desligada; para depurar em uma máquina
+# de teste, suba com DOCS_ABERTAS=1.
+_DOCS_LIGADAS = os.getenv("DOCS_ABERTAS") == "1"
+
+app = FastAPI(
+    title="Treinamentos Telecom",
+    docs_url="/docs" if _DOCS_LIGADAS else None,
+    redoc_url="/redoc" if _DOCS_LIGADAS else None,
+    openapi_url="/openapi.json" if _DOCS_LIGADAS else None,
+)
 
 app.mount("/static", EstaticosComCache(directory="static"), name="static")
 app.mount("/assets", EstaticosComCache(directory="assets"), name="assets")
+
+
+@app.exception_handler(ArquivoGrandeDemaisError)
+def arquivo_grande_demais(request: Request, erro: ArquivoGrandeDemaisError):
+    """Rede de segurança: se algum envio novo esquecer de tratar o limite, o
+    aluno vê a explicação em vez de uma tela de erro sem sentido."""
+    return PlainTextResponse(str(erro), status_code=413)
+
 
 app.add_middleware(AutenticacaoMiddleware)
 # Manda o navegador conferir com o servidor antes de reusar uma página já
@@ -53,6 +78,10 @@ app.add_middleware(CacheDeHtmlMiddleware)
 # último adicionado é o primeiro a rodar: assim a compressão é a camada mais
 # externa e pega a resposta já pronta, venha ela de onde vier.
 app.add_middleware(GZipMiddleware, minimum_size=500)
+# Última camada adicionada, portanto a primeira a rodar e a última a tocar na
+# resposta: garante que os cabeçalhos de proteção saiam em TODA resposta, até
+# nos redirecionamentos do middleware de autenticação e nas páginas de erro.
+app.add_middleware(CabecalhosDeSegurancaMiddleware)
 
 app.include_router(auth_router)
 app.include_router(inicio_router)

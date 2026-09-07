@@ -15,11 +15,13 @@ from starlette.responses import RedirectResponse
 
 from database.repositorio import buscar_aluno_por_id
 from webapp.auth.cookies import NOME_COOKIE, limpar_cookie_sessao
-from webapp.auth.security import validar_token_sessao
+from webapp.auth.security import marca_de_senha, validar_token_sessao
 
 # Caminhos que não exigem login. As telas obrigatórias (troca de senha,
 # foto) NÃO entram aqui de propósito — só quem já está logado pode vê-las.
-_CAMINHOS_PUBLICOS = {"/login", "/logout", "/esqueci-senha", "/healthz", "/healthz/banco", "/healthz/rotas", "/sw.js"}
+# Lista fechada de propósito: qualquer rota que não esteja aqui exige login.
+# "/healthz" é o único que devolve algo sem sessão, e devolve apenas "ok".
+_CAMINHOS_PUBLICOS = {"/login", "/logout", "/esqueci-senha", "/healthz", "/sw.js"}
 _PREFIXOS_PUBLICOS = ("/static/", "/assets/")
 
 _TROCAR_SENHA = "/trocar-senha-obrigatoria"
@@ -35,12 +37,19 @@ def _resolver_aluno(request: Request):
     if not token:
         return None, False
 
-    aluno_id = validar_token_sessao(token)
-    if not aluno_id:
+    conferido = validar_token_sessao(token)
+    if not conferido:
         return None, True
+    aluno_id, marca = conferido
 
     aluno = buscar_aluno_por_id(aluno_id)
     if not aluno or not aluno.get("ativo", True):
+        return None, True
+
+    # A senha mudou desde que este cookie foi emitido: derruba a sessão. É o
+    # que faz "trocar a senha" realmente expulsar quem estivesse usando a conta
+    # — pelo aluno ou por um reset feito pelo administrador.
+    if marca != marca_de_senha(aluno.get("senha_hash", "")):
         return None, True
 
     return aluno, False
