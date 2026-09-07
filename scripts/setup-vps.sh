@@ -21,6 +21,9 @@
 # Como usar: salve este arquivo no servidor (ex: setup-vps.sh), depois:
 #   chmod +x setup-vps.sh
 #   ./setup-vps.sh
+#
+# Para publicar uma branch de trabalho em vez da main:
+#   BRANCH=nome-da-branch ./setup-vps.sh
 
 set -euo pipefail
 
@@ -30,6 +33,9 @@ ENV_FILE="/etc/cursos-telecom.env"
 DOMINIO_FILE="/etc/cursos-telecom-dominio"
 SERVICE_NAME="cursos-telecom"
 APP_PORT="8000"
+# Branch a publicar. Rodar sem nada usa "main"; para publicar uma branch de
+# trabalho antes de mesclar:  BRANCH=minha-branch ./setup-vps.sh
+BRANCH="${BRANCH:-main}"
 
 if [ -f "$DOMINIO_FILE" ]; then
   DOMINIO="$(cat "$DOMINIO_FILE")"
@@ -63,13 +69,13 @@ if ! command -v caddy >/dev/null 2>&1; then
   apt-get install -y caddy
 fi
 
-echo "==> Clonando/atualizando o repositório em $APP_DIR..."
+echo "==> Clonando/atualizando o repositório em $APP_DIR (branch: $BRANCH)..."
 if [ -d "$APP_DIR/.git" ]; then
-  git -C "$APP_DIR" fetch origin main
-  git -C "$APP_DIR" checkout main
-  git -C "$APP_DIR" pull origin main
+  git -C "$APP_DIR" fetch origin "$BRANCH"
+  git -C "$APP_DIR" checkout "$BRANCH"
+  git -C "$APP_DIR" reset --hard "origin/$BRANCH"
 else
-  git clone --branch main "$REPO_URL" "$APP_DIR"
+  git clone --branch "$BRANCH" "$REPO_URL" "$APP_DIR"
 fi
 
 echo "==> Criando ambiente virtual e instalando dependências..."
